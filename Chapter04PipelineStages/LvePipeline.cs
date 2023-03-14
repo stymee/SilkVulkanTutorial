@@ -1,4 +1,6 @@
-﻿namespace Chapter04PipelineStages;
+﻿using Silk.NET.Vulkan;
+
+namespace Chapter04PipelineStages;
 
 public class LvePipeline : IDisposable
 {
@@ -18,12 +20,101 @@ public class LvePipeline : IDisposable
     }
 
 
-    private void createGraphicsPipeline(string vertPath, string fragPath, PipelineConfigInfo configInfo)
+    private unsafe void createGraphicsPipeline(string vertPath, string fragPath, PipelineConfigInfo configInfo)
     {
         var vertSource = getShaderBytes(vertPath);
         var fragSource = getShaderBytes(fragPath);
 
-        Console.WriteLine($"shader bytes are {vertSource.Length} and {fragSource.Length}");
+        vertShaderModule = createShaderModule(vertSource);
+        fragShaderModule = createShaderModule(fragSource);
+
+        PipelineShaderStageCreateInfo vertShaderStageInfo = new()
+        {
+            SType = StructureType.PipelineShaderStageCreateInfo,
+            Stage = ShaderStageFlags.VertexBit,
+            Module = vertShaderModule,
+            PName = (byte*)SilkMarshal.StringToPtr("main"),
+            Flags = PipelineShaderStageCreateFlags.None,
+            PNext = null,
+            PSpecializationInfo = null,
+        };
+
+        PipelineShaderStageCreateInfo fragShaderStageInfo = new()
+        {
+            SType = StructureType.PipelineShaderStageCreateInfo,
+            Stage = ShaderStageFlags.FragmentBit,
+            Module = fragShaderModule,
+            PName = (byte*)SilkMarshal.StringToPtr("main"),
+            Flags = PipelineShaderStageCreateFlags.None,
+            PNext = null,
+            PSpecializationInfo = null,
+        };
+
+        var shaderStages = stackalloc[]
+        {
+            vertShaderStageInfo,
+            fragShaderStageInfo
+        };
+
+        //var shaderStages = new PipelineShaderStageCreateInfo[2];
+
+        //// vertex shader stage
+        //shaderStages[0].SType = StructureType.PipelineShaderStageCreateInfo;
+        //shaderStages[0].Stage = ShaderStageFlags.VertexBit;
+        //shaderStages[0].Module = vertShaderModule;
+        //shaderStages[0].PName = (byte*)SilkMarshal.StringToPtr("main");
+        //shaderStages[0].Flags = PipelineShaderStageCreateFlags.None;
+        //shaderStages[0].PNext = null;
+        //shaderStages[0].PSpecializationInfo = null;
+
+        //// frag shader stage
+        //shaderStages[1].SType = StructureType.PipelineShaderStageCreateInfo;
+        //shaderStages[1].Stage = ShaderStageFlags.FragmentBit;
+        //shaderStages[1].Module = fragShaderModule;
+        //shaderStages[1].PName = (byte*)SilkMarshal.StringToPtr("main");
+        //shaderStages[1].Flags = PipelineShaderStageCreateFlags.None;
+        //shaderStages[1].PNext = null;
+        //shaderStages[1].PSpecializationInfo = null;
+
+        var vertextInputInfo = new PipelineVertexInputStateCreateInfo()
+        {
+            SType = StructureType.PipelineVertexInputStateCreateInfo,
+            VertexAttributeDescriptionCount = 0,
+            VertexBindingDescriptionCount = 0,
+            PVertexAttributeDescriptions = null,
+            PVertexBindingDescriptions = null,
+        };
+
+        var pipelineInfo = new GraphicsPipelineCreateInfo()
+        {
+            SType = StructureType.GraphicsPipelineCreateInfo,
+            StageCount = 2,
+            PStages = shaderStages,
+            PVertexInputState = &vertextInputInfo,
+            PInputAssemblyState = &configInfo.InputAssemblyInfo,
+            PViewportState = &configInfo.ViewportInfo,
+            PRasterizationState = &configInfo.RasterizationInfo,
+            PColorBlendState = &configInfo.ColorBlendInfo,
+            PDepthStencilState = &configInfo.DepthStencilInfo,
+            PDynamicState = null,
+            Layout = configInfo.PipelineLayout, // 
+            RenderPass = configInfo.RenderPass, // 
+            Subpass = configInfo.Subpass,       //
+            BasePipelineIndex = -1,
+            BasePipelineHandle = default
+        };
+
+        if (vk.CreateGraphicsPipelines(device.VkDevice, default, 1, pipelineInfo, null, out graphicsPipeline) != Result.Success)
+        {
+            throw new Exception("failed to create graphics pipeline!");
+        }
+
+
+        vk.DestroyShaderModule(device.VkDevice, fragShaderModule, null);
+        vk.DestroyShaderModule(device.VkDevice, vertShaderModule, null);
+
+        SilkMarshal.Free((nint)shaderStages[0].PName);
+        SilkMarshal.Free((nint)shaderStages[1].PName);
 
     }
 
@@ -72,6 +163,9 @@ public class LvePipeline : IDisposable
     }
 
 
+
+
+    // Default PipelineConfig
     public unsafe static PipelineConfigInfo DefaultPipelineConfigInfo(uint width, uint height)
     {
         PipelineInputAssemblyStateCreateInfo inputAssembly = new()
@@ -232,8 +326,8 @@ public struct PipelineConfigInfo
     public PipelineColorBlendAttachmentState ColorBlendAttachment;
     public PipelineColorBlendStateCreateInfo ColorBlendInfo;
     public PipelineDepthStencilStateCreateInfo DepthStencilInfo;
-    public PipelineLayout PipelineLayout;
-    public RenderPass RenderPass;
+    public PipelineLayout PipelineLayout; // no default to be set
+    public RenderPass RenderPass; // no default to be set
     public uint Subpass;
 
     public PipelineConfigInfo()
