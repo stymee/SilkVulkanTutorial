@@ -1,7 +1,4 @@
-﻿using Silk.NET.Vulkan;
-using System.Reflection;
-
-namespace Chapter03PipelineSetup;
+﻿namespace Chapter03PipelineSetup;
 
 public class FirstApp
 {
@@ -19,12 +16,25 @@ public class FirstApp
 
     public void Run()
     {
+        log.RestartTimer();
+        log.d("app run", "starting Run");
+
         vk = Vk.GetApi();
+        log.d("app run", "got vk");
+
         window = new LveWindow(WIDTH, HEIGHT, "MyApp");
-        device = new LveDevice(window, vk);
-        pipeline = new LvePipeline("simpleShader.vert.spv", "simpleShader.frag.spv");
-        
-        //InitVulkan();
+        log.d("app run", "got window");
+
+        device = new LveDevice(vk, window);
+        log.d("app run", "got device");
+
+        pipeline = new LvePipeline(
+            vk, device, 
+            "simpleShader.vert.spv", "simpleShader.frag.spv", 
+            LvePipeline.DefaultPipelineConfigInfo(WIDTH, HEIGHT)
+            );
+        log.d("app run", "got pipeline");
+
         MainLoop();
         CleanUp();
     }

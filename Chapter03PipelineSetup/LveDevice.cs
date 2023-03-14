@@ -1,20 +1,11 @@
-﻿using Silk.NET;
-using Silk.NET.Core;
-using Silk.NET.Core.Contexts;
-using Silk.NET.Core.Native;
-using Silk.NET.Vulkan;
-using Silk.NET.Vulkan.Extensions.EXT;
-using Silk.NET.Vulkan.Extensions.KHR;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
-
-namespace Chapter03PipelineSetup;
+﻿namespace Chapter03PipelineSetup;
 
 public unsafe class LveDevice
 {
     private readonly Vk vk = null!;
     private readonly LveWindow window;
+
+    public Device VkDevice => device;
 
     private ExtDebugUtils debugUtils = null!;
     private DebugUtilsMessengerEXT debugMessenger;
@@ -45,7 +36,7 @@ public unsafe class LveDevice
     private CommandPool commandPool;
 
 
-    public LveDevice(LveWindow window, Vk vk)
+    public LveDevice(Vk vk, LveWindow window)
     {
         this.vk = vk;
         this.window = window;
@@ -320,7 +311,7 @@ public unsafe class LveDevice
 
         var msg = Marshal.PtrToStringAnsi((nint)pCallbackData->PMessage);
 
-        System.Diagnostics.Debug.WriteLine($"{messageSeverity} | validation layer: {msg}");
+        Debug.WriteLine($"{messageSeverity} | validation layer: {msg}");
 
         return Vk.False;
     }

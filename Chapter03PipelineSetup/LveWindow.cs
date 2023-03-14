@@ -1,11 +1,4 @@
-﻿global using Window = Silk.NET.Windowing.Window;
-using Silk.NET.Core.Contexts;
-using Silk.NET.Maths;
-using Silk.NET.Vulkan;
-using Silk.NET.Vulkan.Extensions.KHR;
-using Silk.NET.Windowing;
-
-namespace Chapter03PipelineSetup;
+﻿namespace Chapter03PipelineSetup;
 
 public class LveWindow: IDisposable
 {

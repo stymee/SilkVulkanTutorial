@@ -1,18 +1,24 @@
-﻿
+﻿namespace Chapter03PipelineSetup;
 
-using System.Reflection;
-
-namespace Chapter03PipelineSetup;
-
-public class LvePipeline
+public class LvePipeline : IDisposable
 {
-    public LvePipeline(string vertPath, string fragPath)
+    private readonly Vk vk = null!;
+    private readonly LveDevice device = null!;
+
+    private Pipeline graphicsPipeline;
+    private ShaderModule vertShaderModule;
+    private ShaderModule fragShaderModule;
+    private bool disposedValue;
+
+    public LvePipeline(Vk vk, LveDevice device, string vertPath, string fragPath, PipelineConfitInfo configInfo)
     {
-        createGraphicsPipeline(vertPath, fragPath);
+        this.vk = vk;
+        this.device = device;
+        createGraphicsPipeline(vertPath, fragPath, configInfo);
     }
 
 
-    private void createGraphicsPipeline(string vertPath, string fragPath)
+    private void createGraphicsPipeline(string vertPath, string fragPath, PipelineConfitInfo configInfo)
     {
         var vertSource = getShaderBytes(vertPath);
         var fragSource = getShaderBytes(fragPath);
@@ -20,6 +26,31 @@ public class LvePipeline
         Console.WriteLine($"shader bytes are {vertSource.Length} and {fragSource.Length}");
 
     }
+
+
+    private unsafe ShaderModule createShaderModule(byte[] code)
+    {
+        ShaderModuleCreateInfo createInfo = new()
+        {
+            SType = StructureType.ShaderModuleCreateInfo,
+            CodeSize = (nuint)code.Length,
+        };
+
+        ShaderModule shaderModule;
+
+        fixed (byte* codePtr = code)
+        {
+            createInfo.PCode = (uint*)codePtr;
+
+            if (vk.CreateShaderModule(device.VkDevice, createInfo, null, out shaderModule) != Result.Success)
+            {
+                throw new Exception();
+            }
+        }
+
+        return shaderModule;
+    }
+
 
     private static byte[] getShaderBytes(string filename)
     {
@@ -39,4 +70,46 @@ public class LvePipeline
         return ms.ToArray();
 
     }
+
+
+    public static PipelineConfitInfo DefaultPipelineConfigInfo(uint width, uint height)
+    {
+        var ret = new PipelineConfitInfo();
+
+        return ret;
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                // TODO: dispose managed state (managed objects)
+            }
+
+            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+            // TODO: set large fields to null
+            disposedValue = true;
+        }
+    }
+
+    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    // ~LvePipeline()
+    // {
+    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //     Dispose(disposing: false);
+    // }
+
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+}
+
+public struct PipelineConfitInfo
+{
+
 }
