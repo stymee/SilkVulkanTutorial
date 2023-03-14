@@ -1,4 +1,5 @@
-﻿using Silk.NET.Maths;
+﻿using Silk.NET.Core.Contexts;
+using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
 namespace Chapter03PipelineSetup;
@@ -9,6 +10,8 @@ public class LveWindow: IDisposable
     private int width = 800;
     private int height = 600;
     private IWindow window = null!;
+
+    public IVkSurface VkSurface => window.VkSurface ?? throw new ApplicationException("VkSurface is null!");
 
     public LveWindow(int w, int h, string name)
     {

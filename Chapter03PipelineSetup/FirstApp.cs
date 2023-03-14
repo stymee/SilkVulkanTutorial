@@ -8,38 +8,26 @@ public class FirstApp
     private const int WIDTH = 800;
     private const int HEIGHT = 600;
 
-    
-    private LveWindow window = null!;
-    private LvePipeline pipeline = null!;
-    private LveDebug debugger = null!;
 
     private Vk vk = null!;
+
+    private LveWindow window = null!;
+    private LveDevice device = null!;
+    private LvePipeline pipeline = null!;
+
 
 
     public void Run()
     {
+        vk = Vk.GetApi();
         window = new LveWindow(WIDTH, HEIGHT, "MyApp");
+        device = new LveDevice(window, vk);
         pipeline = new LvePipeline("simpleShader.vert.spv", "simpleShader.frag.spv");
         
-        InitVulkan();
+        //InitVulkan();
         MainLoop();
         CleanUp();
     }
-
-
-    private void InitVulkan()
-    {
-        vk = Vk.GetApi();
-        
-
-
-        //uint extensionsCount = 0;
-        //byte* nullBytes = null;
-        //vk.EnumerateInstanceExtensionProperties(nullBytes, ref extensionsCount, null);
-
-        //Console.WriteLine($" {extensionsCount} available extensions supported...");
-    }
-
 
 
 
