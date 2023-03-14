@@ -1,5 +1,8 @@
-﻿using Silk.NET.Core.Contexts;
+﻿global using Window = Silk.NET.Windowing.Window;
+using Silk.NET.Core.Contexts;
 using Silk.NET.Maths;
+using Silk.NET.Vulkan;
+using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
 
 namespace Chapter03PipelineSetup;
@@ -41,6 +44,13 @@ public class LveWindow: IDisposable
 
     }
 
+    //public unsafe void CreateWindowSurface(Instance instance, out SurfaceKHR surface)
+    //{
+    //    if (window.VkSurface is null) throw new ApplicationException("In CreateWindowSurface, window.VkSurface is null!");
+
+    //    surface = window.VkSurface.Create<AllocationCallbacks>(instance.ToHandle(), null).ToSurface();
+
+    //}
     public void Run()
     {
         window.Run();

@@ -15,18 +15,35 @@ public unsafe class LveDevice
 {
     private readonly Vk vk = null!;
     private readonly LveWindow window;
-    private Instance instance;
-
-    private KhrSurface vkSurface;
-
 
     private ExtDebugUtils debugUtils = null!;
     private DebugUtilsMessengerEXT debugMessenger;
 
     private bool enableValidationLayers = true;
     private string[] validationLayers = { "VK_LAYER_KHRONOS_validation" };
-    private List<string> instanceExtensions = new() { ExtDebugUtils.ExtensionName };
-    private List<string> deviceExtensions = new() { KhrSwapchain.ExtensionName };
+    //private List<string> instanceExtensions = new() { ExtDebugUtils.ExtensionName };
+    //private List<string> deviceExtensions = new() { KhrSwapchain.ExtensionName };
+
+    private readonly string[] deviceExtensions = new[]
+{
+        KhrSwapchain.ExtensionName
+    };
+
+    private Instance instance;
+
+    private KhrSurface khrSurface = null!;
+    private SurfaceKHR surface;
+
+    private PhysicalDevice physicalDevice;
+    private SampleCountFlags msaaSamples = SampleCountFlags.Count1Bit;
+    private Device device;
+
+    private uint graphicsFamilyIndex;
+    private Queue graphicsQueue;
+    private Queue presentQueue;
+
+    private CommandPool commandPool;
+
 
     public LveDevice(LveWindow window, Vk vk)
     {
@@ -42,47 +59,151 @@ public unsafe class LveDevice
 
     private void createInstance()
     {
-        if (enableValidationLayers && !checkValidationLayerSupport())
+        //vk = Vk.GetApi();
+
+        if (enableValidationLayers && !CheckValidationLayerSupport())
         {
-            throw new ApplicationException("Validation layers requested, but are not available!");
+            throw new Exception("validation layers requested, but not available!");
         }
 
-        var appInfo = new ApplicationInfo()
+        ApplicationInfo appInfo = new()
         {
             SType = StructureType.ApplicationInfo,
-            PApplicationName = (byte*)Marshal.StringToHGlobalAnsi("LittleVulkanEngine App"),
+            PApplicationName = (byte*)Marshal.StringToHGlobalAnsi("Hello Triangle"),
             ApplicationVersion = new Version32(1, 0, 0),
             PEngineName = (byte*)Marshal.StringToHGlobalAnsi("No Engine"),
             EngineVersion = new Version32(1, 0, 0),
-            ApiVersion = Vk.Version13
+            ApiVersion = Vk.Version12
         };
 
-        var createInfo = new InstanceCreateInfo()
+        InstanceCreateInfo createInfo = new()
         {
             SType = StructureType.InstanceCreateInfo,
             PApplicationInfo = &appInfo
         };
 
-        var extensions = window.VkSurface.GetRequiredExtensions(out var extCount);
-        // TODO Review that this count doesn't realistically exceed 1k (recommended max for stack
-        //
-        //
-        // )
-        // Should probably be allocated on heap anyway as this isn't super performance critical.
-        var newExtensions = stackalloc byte*[(int)(extCount + instanceExtensions.Count)];
-        for (var i = 0; i < extCount; i++)
+        var extensions = GetRequiredExtensions();
+        createInfo.EnabledExtensionCount = (uint)extensions.Length;
+        createInfo.PpEnabledExtensionNames = (byte**)SilkMarshal.StringArrayToPtr(extensions); ;
+
+        if (enableValidationLayers)
         {
-            newExtensions[i] = extensions[i];
+            createInfo.EnabledLayerCount = (uint)validationLayers.Length;
+            createInfo.PpEnabledLayerNames = (byte**)SilkMarshal.StringArrayToPtr(validationLayers);
+
+            DebugUtilsMessengerCreateInfoEXT debugCreateInfo = new();
+            PopulateDebugMessengerCreateInfo(ref debugCreateInfo);
+            createInfo.PNext = &debugCreateInfo;
+        }
+        else
+        {
+            createInfo.EnabledLayerCount = 0;
+            createInfo.PNext = null;
         }
 
-        for (var i = 0; i < instanceExtensions.Count; i++)
+        if (vk.CreateInstance(createInfo, null, out instance) != Result.Success)
         {
-            newExtensions[extCount + i] = (byte*)SilkMarshal.StringToPtr(instanceExtensions[i]);
+            throw new Exception("failed to create instance!");
         }
 
-        extCount += (uint)instanceExtensions.Count;
-        createInfo.EnabledExtensionCount = extCount;
-        createInfo.PpEnabledExtensionNames = newExtensions;
+        Marshal.FreeHGlobal((IntPtr)appInfo.PApplicationName);
+        Marshal.FreeHGlobal((IntPtr)appInfo.PEngineName);
+        SilkMarshal.Free((nint)createInfo.PpEnabledExtensionNames);
+
+        if (enableValidationLayers)
+        {
+            SilkMarshal.Free((nint)createInfo.PpEnabledLayerNames);
+        }
+
+    }
+
+    private void createSurface()
+    {
+        if (!vk.TryGetInstanceExtension<KhrSurface>(instance, out khrSurface))
+        {
+            throw new NotSupportedException("KHR_surface extension not found.");
+        }
+
+        surface = window.VkSurface.Create<AllocationCallbacks>(instance.ToHandle(), null).ToSurface();
+    }
+
+
+    private void pickPhysicalDevice()
+    {
+        uint devicedCount = 0;
+        vk.EnumeratePhysicalDevices(instance, ref devicedCount, null);
+
+        if (devicedCount == 0)
+        {
+            throw new Exception("failed to find GPUs with Vulkan support!");
+        }
+
+        var devices = new PhysicalDevice[devicedCount];
+        fixed (PhysicalDevice* devicesPtr = devices)
+        {
+            vk.EnumeratePhysicalDevices(instance, ref devicedCount, devicesPtr);
+        }
+
+        foreach (var device in devices)
+        {
+            if (IsDeviceSuitable(device))
+            {
+                physicalDevice = device;
+                msaaSamples = GetMaxUsableSampleCount();
+                break;
+            }
+        }
+
+        if (physicalDevice.Handle == 0)
+        {
+            throw new Exception("failed to find a suitable GPU!");
+        }
+    }
+
+
+    private void createLogicalDevice()
+    {
+        var indices = FindQueueFamilies(physicalDevice);
+
+        var uniqueQueueFamilies = new[] { indices.GraphicsFamily!.Value, indices.PresentFamily!.Value };
+        uniqueQueueFamilies = uniqueQueueFamilies.Distinct().ToArray();
+
+        graphicsFamilyIndex = indices.GraphicsFamily.Value;
+
+        using var mem = GlobalMemory.Allocate(uniqueQueueFamilies.Length * sizeof(DeviceQueueCreateInfo));
+        var queueCreateInfos = (DeviceQueueCreateInfo*)Unsafe.AsPointer(ref mem.GetPinnableReference());
+
+        float queuePriority = 1.0f;
+        for (int i = 0; i < uniqueQueueFamilies.Length; i++)
+        {
+            queueCreateInfos[i] = new()
+            {
+                SType = StructureType.DeviceQueueCreateInfo,
+                QueueFamilyIndex = uniqueQueueFamilies[i],
+                QueueCount = 1
+            };
+
+
+            queueCreateInfos[i].PQueuePriorities = &queuePriority;
+        }
+
+        PhysicalDeviceFeatures deviceFeatures = new()
+        {
+            SamplerAnisotropy = true,
+        };
+
+
+        DeviceCreateInfo createInfo = new()
+        {
+            SType = StructureType.DeviceCreateInfo,
+            QueueCreateInfoCount = (uint)uniqueQueueFamilies.Length,
+            PQueueCreateInfos = queueCreateInfos,
+
+            PEnabledFeatures = &deviceFeatures,
+
+            EnabledExtensionCount = (uint)deviceExtensions.Length,
+            PpEnabledExtensionNames = (byte**)SilkMarshal.StringArrayToPtr(deviceExtensions)
+        };
 
         if (enableValidationLayers)
         {
@@ -92,38 +213,43 @@ public unsafe class LveDevice
         else
         {
             createInfo.EnabledLayerCount = 0;
-            createInfo.PNext = null;
         }
 
-        fixed (Instance* pInstance = &instance)
+        if (vk.CreateDevice(physicalDevice, in createInfo, null, out device) != Result.Success)
         {
-            if (vk.CreateInstance(&createInfo, null, pInstance) != Result.Success)
-            {
-                throw new Exception("Failed to create instance!");
-            }
+            throw new Exception("failed to create logical device!");
         }
 
-        vk.CurrentInstance = instance;
-
-        if (!vk.TryGetInstanceExtension(instance, out vkSurface))
-        {
-            throw new NotSupportedException("KHR_surface extension not found.");
-        }
-
-        Marshal.FreeHGlobal((nint)appInfo.PApplicationName);
-        Marshal.FreeHGlobal((nint)appInfo.PEngineName);
+        vk.GetDeviceQueue(device, indices.GraphicsFamily!.Value, 0, out graphicsQueue);
+        vk.GetDeviceQueue(device, indices.PresentFamily!.Value, 0, out presentQueue);
 
         if (enableValidationLayers)
         {
             SilkMarshal.Free((nint)createInfo.PpEnabledLayerNames);
         }
 
+        SilkMarshal.Free((nint)createInfo.PpEnabledExtensionNames);
     }
 
 
+    private void createCommandPool()
+    {
+        var queueFamiliyIndicies = FindQueueFamilies(physicalDevice);
+
+        CommandPoolCreateInfo poolInfo = new()
+        {
+            SType = StructureType.CommandPoolCreateInfo,
+            QueueFamilyIndex = queueFamiliyIndicies.GraphicsFamily!.Value,
+        };
+
+        if (vk.CreateCommandPool(device, poolInfo, null, out commandPool) != Result.Success)
+        {
+            throw new Exception("failed to create command pool!");
+        }
+    }
 
 
-
+    // helpers
     private bool checkValidationLayerSupport()
     {
         uint propCount = 0;
@@ -158,32 +284,6 @@ public unsafe class LveDevice
         return Encoding.UTF8.GetString(stringStart, characters);
     }
 
-
-    private void createSurface()
-    {
-        
-    }
-
-
-    private void pickPhysicalDevice()
-    {
-        
-    }
-
-
-    private void createLogicalDevice()
-    {
-        
-    }
-
-
-    private void createCommandPool()
-    {
-        
-    }
-
-
-    // debug stuff
     private void PopulateDebugMessengerCreateInfo(ref DebugUtilsMessengerCreateInfoEXT createInfo)
     {
         createInfo.SType = StructureType.DebugUtilsMessengerCreateInfoExt;
@@ -224,5 +324,190 @@ public unsafe class LveDevice
 
         return Vk.False;
     }
+
+    struct SwapChainSupportDetails
+    {
+        public SurfaceCapabilitiesKHR Capabilities;
+        public SurfaceFormatKHR[] Formats;
+        public PresentModeKHR[] PresentModes;
+    }
+
+    private SwapChainSupportDetails QuerySwapChainSupport(PhysicalDevice physicalDevice)
+    {
+        var details = new SwapChainSupportDetails();
+
+        khrSurface.GetPhysicalDeviceSurfaceCapabilities(physicalDevice, surface, out details.Capabilities);
+
+        uint formatCount = 0;
+        khrSurface.GetPhysicalDeviceSurfaceFormats(physicalDevice, surface, ref formatCount, null);
+
+        if (formatCount != 0)
+        {
+            details.Formats = new SurfaceFormatKHR[formatCount];
+            fixed (SurfaceFormatKHR* formatsPtr = details.Formats)
+            {
+                khrSurface.GetPhysicalDeviceSurfaceFormats(physicalDevice, surface, ref formatCount, formatsPtr);
+            }
+        }
+        else
+        {
+            details.Formats = Array.Empty<SurfaceFormatKHR>();
+        }
+
+        uint presentModeCount = 0;
+        khrSurface.GetPhysicalDeviceSurfacePresentModes(physicalDevice, surface, ref presentModeCount, null);
+
+        if (presentModeCount != 0)
+        {
+            details.PresentModes = new PresentModeKHR[presentModeCount];
+            fixed (PresentModeKHR* formatsPtr = details.PresentModes)
+            {
+                khrSurface.GetPhysicalDeviceSurfacePresentModes(physicalDevice, surface, ref presentModeCount, formatsPtr);
+            }
+
+        }
+        else
+        {
+            details.PresentModes = Array.Empty<PresentModeKHR>();
+        }
+
+        return details;
+    }
+
+    private bool IsDeviceSuitable(PhysicalDevice device)
+    {
+        var indices = FindQueueFamilies(device);
+
+        bool extensionsSupported = CheckDeviceExtensionsSupport(device);
+
+        bool swapChainAdequate = false;
+        if (extensionsSupported)
+        {
+            var swapChainSupport = QuerySwapChainSupport(device);
+            swapChainAdequate = swapChainSupport.Formats.Any() && swapChainSupport.PresentModes.Any();
+        }
+
+        PhysicalDeviceFeatures supportedFeatures;
+        vk.GetPhysicalDeviceFeatures(device, out supportedFeatures);
+
+        return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.SamplerAnisotropy;
+    }
+
+    private bool CheckDeviceExtensionsSupport(PhysicalDevice device)
+    {
+        uint extentionsCount = 0;
+        vk.EnumerateDeviceExtensionProperties(device, (byte*)null, ref extentionsCount, null);
+
+        var availableExtensions = new ExtensionProperties[extentionsCount];
+        fixed (ExtensionProperties* availableExtensionsPtr = availableExtensions)
+        {
+            vk.EnumerateDeviceExtensionProperties(device, (byte*)null, ref extentionsCount, availableExtensionsPtr);
+        }
+
+        var availableExtensionNames = availableExtensions.Select(extension => Marshal.PtrToStringAnsi((IntPtr)extension.ExtensionName)).ToHashSet();
+
+        return deviceExtensions.All(availableExtensionNames.Contains);
+
+    }
+
+    struct QueueFamilyIndices
+    {
+        public uint? GraphicsFamily { get; set; }
+        public uint? PresentFamily { get; set; }
+        public bool IsComplete()
+        {
+            return GraphicsFamily.HasValue && PresentFamily.HasValue;
+        }
+    }
+
+    private QueueFamilyIndices FindQueueFamilies(PhysicalDevice device)
+    {
+        var indices = new QueueFamilyIndices();
+
+        uint queueFamilityCount = 0;
+        vk.GetPhysicalDeviceQueueFamilyProperties(device, ref queueFamilityCount, null);
+
+        var queueFamilies = new QueueFamilyProperties[queueFamilityCount];
+        fixed (QueueFamilyProperties* queueFamiliesPtr = queueFamilies)
+        {
+            vk.GetPhysicalDeviceQueueFamilyProperties(device, ref queueFamilityCount, queueFamiliesPtr);
+        }
+
+
+        uint i = 0;
+        foreach (var queueFamily in queueFamilies)
+        {
+            if (queueFamily.QueueFlags.HasFlag(QueueFlags.GraphicsBit))
+            {
+                indices.GraphicsFamily = i;
+            }
+
+            khrSurface.GetPhysicalDeviceSurfaceSupport(device, i, surface, out var presentSupport);
+
+            if (presentSupport)
+            {
+                indices.PresentFamily = i;
+            }
+
+            if (indices.IsComplete())
+            {
+                break;
+            }
+
+            i++;
+        }
+
+        return indices;
+    }
+
+
+    private string[] GetRequiredExtensions()
+    {
+        var glfwExtensions = window!.VkSurface!.GetRequiredExtensions(out var glfwExtensionCount);
+        var extensions = SilkMarshal.PtrToStringArray((nint)glfwExtensions, (int)glfwExtensionCount);
+
+        if (enableValidationLayers)
+        {
+            return extensions.Append(ExtDebugUtils.ExtensionName).ToArray();
+        }
+
+        return extensions;
+    }
+
+
+    private bool CheckValidationLayerSupport()
+    {
+        uint layerCount = 0;
+        vk.EnumerateInstanceLayerProperties(ref layerCount, null);
+        var availableLayers = new LayerProperties[layerCount];
+        fixed (LayerProperties* availableLayersPtr = availableLayers)
+        {
+            vk.EnumerateInstanceLayerProperties(ref layerCount, availableLayersPtr);
+        }
+
+        var availableLayerNames = availableLayers.Select(layer => Marshal.PtrToStringAnsi((IntPtr)layer.LayerName)).ToHashSet();
+
+        return validationLayers.All(availableLayerNames.Contains);
+    }
+
+
+    private SampleCountFlags GetMaxUsableSampleCount()
+    {
+        vk.GetPhysicalDeviceProperties(physicalDevice, out var physicalDeviceProperties);
+
+        var counts = physicalDeviceProperties.Limits.FramebufferColorSampleCounts & physicalDeviceProperties.Limits.FramebufferDepthSampleCounts;
+
+        return counts switch
+        {
+            var c when (c & SampleCountFlags.Count64Bit) != 0 => SampleCountFlags.Count64Bit,
+            var c when (c & SampleCountFlags.Count32Bit) != 0 => SampleCountFlags.Count32Bit,
+            var c when (c & SampleCountFlags.Count16Bit) != 0 => SampleCountFlags.Count16Bit,
+            var c when (c & SampleCountFlags.Count8Bit) != 0 => SampleCountFlags.Count8Bit,
+            var c when (c & SampleCountFlags.Count4Bit) != 0 => SampleCountFlags.Count4Bit,
+            var c when (c & SampleCountFlags.Count2Bit) != 0 => SampleCountFlags.Count2Bit,
+            _ => SampleCountFlags.Count1Bit
+        };
+    }
+
 
 }
