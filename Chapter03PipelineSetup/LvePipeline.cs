@@ -10,7 +10,7 @@ public class LvePipeline : IDisposable
     private ShaderModule fragShaderModule;
     private bool disposedValue;
 
-    public LvePipeline(Vk vk, LveDevice device, string vertPath, string fragPath, PipelineConfitInfo configInfo)
+    public LvePipeline(Vk vk, LveDevice device, string vertPath, string fragPath, PipelineConfigInfo configInfo)
     {
         this.vk = vk;
         this.device = device;
@@ -18,7 +18,7 @@ public class LvePipeline : IDisposable
     }
 
 
-    private void createGraphicsPipeline(string vertPath, string fragPath, PipelineConfitInfo configInfo)
+    private void createGraphicsPipeline(string vertPath, string fragPath, PipelineConfigInfo configInfo)
     {
         var vertSource = getShaderBytes(vertPath);
         var fragSource = getShaderBytes(fragPath);
@@ -72,9 +72,9 @@ public class LvePipeline : IDisposable
     }
 
 
-    public static PipelineConfitInfo DefaultPipelineConfigInfo(uint width, uint height)
+    public static PipelineConfigInfo DefaultPipelineConfigInfo(uint width, uint height)
     {
-        var ret = new PipelineConfitInfo();
+        var ret = new PipelineConfigInfo();
 
         return ret;
     }
@@ -109,7 +109,7 @@ public class LvePipeline : IDisposable
     }
 }
 
-public struct PipelineConfitInfo
+public struct PipelineConfigInfo
 {
 
 }
