@@ -1,6 +1,4 @@
-﻿using Silk.NET.Vulkan;
-
-namespace Chapter05SwapChain;
+﻿namespace Chapter06VertexBuffers;
 
 public class FirstApp : IDisposable
 {
@@ -14,6 +12,7 @@ public class FirstApp : IDisposable
     private LveDevice device = null!;
     private LvePipeline pipeline = null!;
     private LveSwapChain swapChain = null!;
+    private LveModel model = null!;
     private PipelineLayout pipelineLayout;
     private CommandBuffer[] commandBuffers = null!;
     private bool disposedValue;
@@ -35,6 +34,7 @@ public class FirstApp : IDisposable
         swapChain = new LveSwapChain(vk, device, window.GetExtent());
         log.d("app run", "got swapchain");
 
+        loadModels();
         createPipelineLayout();
         createPipeline();
         createCommandBuffers();
@@ -85,6 +85,18 @@ public class FirstApp : IDisposable
     private void CleanUp()
     {
         window.Dispose();
+    }
+
+    private void loadModels()
+    {
+        var vertices = new Vertex[3]
+        {
+            new Vertex(0.0f, -0.5f),
+            new Vertex(0.5f, 0.5f),
+            new Vertex(-0.5f, 0.5f),
+        };
+
+        model = new LveModel(vk, device, vertices);
     }
 
     private unsafe void createPipelineLayout()
@@ -185,8 +197,9 @@ public class FirstApp : IDisposable
 
             pipeline.Bind(commandBuffers[i]);
 
-
-            vk.CmdDraw(commandBuffers[i], 3, 1, 0, 0);
+            model.Bind(commandBuffers[i]);
+            model.Draw(commandBuffers[i]);
+            //vk.CmdDraw(commandBuffers[i], 3, 1, 0, 0);
 
 
             vk.CmdEndRenderPass(commandBuffers[i]);

@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter04PipelineStages", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter05PipelineStages", "Chapter05SwapChain\Chapter05PipelineStages.csproj", "{5F6A2A61-13ED-428B-A584-6BB2EC16DA9F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter06VertextBuffers", "Chapter06VertexBuffers\Chapter06VertextBuffers.csproj", "{A85853E5-356B-4E88-8FF2-F35779CF5FAD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{5F6A2A61-13ED-428B-A584-6BB2EC16DA9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F6A2A61-13ED-428B-A584-6BB2EC16DA9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F6A2A61-13ED-428B-A584-6BB2EC16DA9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A85853E5-356B-4E88-8FF2-F35779CF5FAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A85853E5-356B-4E88-8FF2-F35779CF5FAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A85853E5-356B-4E88-8FF2-F35779CF5FAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A85853E5-356B-4E88-8FF2-F35779CF5FAD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
