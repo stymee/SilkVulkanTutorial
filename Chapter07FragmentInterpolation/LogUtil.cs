@@ -1,5 +1,5 @@
 ﻿
-namespace Chapter06VertexBuffers;
+namespace Chapter07FragmentInterpolation;
 
 public enum VerbosityLevels
 {
