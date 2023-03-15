@@ -89,8 +89,11 @@ public class FirstApp : IDisposable
 
     private void loadModels()
     {
-        var vertices = new Vertex[3]
+        var vertices = new Vertex[]
         {
+            //new Vertex(1.0f, 1.0f),
+            //new Vertex(1.0f, 1.0f),
+            //new Vertex(-0.5f, 0.5f),
             new Vertex(0.0f, -0.5f),
             new Vertex(0.5f, 0.5f),
             new Vertex(-0.5f, 0.5f),
@@ -105,9 +108,9 @@ public class FirstApp : IDisposable
         {
             SType = StructureType.PipelineLayoutCreateInfo,
             SetLayoutCount = 0,
-            //PSetLayouts = null,
+            PSetLayouts = null,
             PushConstantRangeCount = 0,
-            //PPushConstantRanges = null,
+            PPushConstantRanges = null,
         };
 
         if (vk.CreatePipelineLayout(device.VkDevice, pipelineLayoutInfo, null, out pipelineLayout) != Result.Success)
