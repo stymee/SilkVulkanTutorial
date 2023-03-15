@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter06VertextBuffers", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter07FragmentInterpolation", "Chapter07FragmentInterpolation\Chapter07FragmentInterpolation.csproj", "{C598F577-1F21-497F-8288-F417A2C014D0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter08DynamicViewports", "Chapter08DynamicViewports\Chapter08DynamicViewports.csproj", "{8806BC74-1FC5-4D8C-BA9B-2F5C29D037EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{C598F577-1F21-497F-8288-F417A2C014D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C598F577-1F21-497F-8288-F417A2C014D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C598F577-1F21-497F-8288-F417A2C014D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8806BC74-1FC5-4D8C-BA9B-2F5C29D037EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8806BC74-1FC5-4D8C-BA9B-2F5C29D037EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8806BC74-1FC5-4D8C-BA9B-2F5C29D037EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8806BC74-1FC5-4D8C-BA9B-2F5C29D037EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
