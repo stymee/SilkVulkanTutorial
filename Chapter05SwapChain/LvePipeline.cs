@@ -83,6 +83,17 @@ public class LvePipeline : IDisposable
             PVertexBindingDescriptions = null,
         };
 
+
+        var viewportInfo = new PipelineViewportStateCreateInfo()
+        {
+            SType = StructureType.PipelineViewportStateCreateInfo,
+            ViewportCount = 1,
+            PViewports = &configInfo.Viewport,
+            ScissorCount = 1,
+            PScissors = &configInfo.Scissor,
+        };
+
+
         var pipelineInfo = new GraphicsPipelineCreateInfo()
         {
             SType = StructureType.GraphicsPipelineCreateInfo,
@@ -90,7 +101,7 @@ public class LvePipeline : IDisposable
             PStages = shaderStages,
             PVertexInputState = &vertextInputInfo,
             PInputAssemblyState = &configInfo.InputAssemblyInfo,
-            PViewportState = &configInfo.ViewportInfo,
+            PViewportState = &viewportInfo,
             PRasterizationState = &configInfo.RasterizationInfo,
             PColorBlendState = &configInfo.ColorBlendInfo,
             PDepthStencilState = &configInfo.DepthStencilInfo,
@@ -190,14 +201,6 @@ public class LvePipeline : IDisposable
             Extent = new(width, height),
         };
 
-        PipelineViewportStateCreateInfo viewportState = new()
-        {
-            SType = StructureType.PipelineViewportStateCreateInfo,
-            ViewportCount = 1,
-            PViewports = &viewport,
-            ScissorCount = 1,
-            PScissors = &scissor,
-        };
 
         PipelineRasterizationStateCreateInfo rasterizer = new()
         {
@@ -271,7 +274,6 @@ public class LvePipeline : IDisposable
             InputAssemblyInfo = inputAssembly,
             Viewport = viewport,
             Scissor = scissor,
-            ViewportInfo = viewportState,
             RasterizationInfo = rasterizer,
             MultisampleInfo = multisampling,
             ColorBlendAttachment = colorBlendAttachment,
@@ -318,7 +320,6 @@ public struct PipelineConfigInfo
     public PipelineInputAssemblyStateCreateInfo InputAssemblyInfo;
     public Viewport Viewport;
     public Rect2D Scissor;
-    public PipelineViewportStateCreateInfo ViewportInfo;
     public PipelineRasterizationStateCreateInfo RasterizationInfo;
     public PipelineMultisampleStateCreateInfo MultisampleInfo;
     public PipelineColorBlendAttachmentState ColorBlendAttachment;

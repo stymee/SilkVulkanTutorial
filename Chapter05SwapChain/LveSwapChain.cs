@@ -1,4 +1,7 @@
 ﻿
+
+using Silk.NET.Vulkan;
+
 namespace Chapter05SwapChain;
 
 public class LveSwapChain : IDisposable
@@ -32,9 +35,9 @@ public class LveSwapChain : IDisposable
     private DeviceMemory colorImageMemory;
     private ImageView colorImageView;
 
-    private Image depthImage;
-    private DeviceMemory depthImageMemory;
-    private ImageView depthImageView;
+    private Image[] depthImages;
+    private DeviceMemory[] depthImageMemorys;
+    private ImageView[] depthImageViews;
 
     private Extent2D windowExtent;
 
@@ -44,6 +47,11 @@ public class LveSwapChain : IDisposable
     private Fence[]? imagesInFlight;
     private int currentFrame = 0;
 
+    public uint Width => swapChainExtent.Width;
+    public uint Height => swapChainExtent.Height;
+    public RenderPass GetRenderPass() => renderPass;
+
+    private uint imageCount() => (uint)swapChainImageViews.Length;
 
     public LveSwapChain(Vk vk, LveDevice device, Extent2D extent)
     {
@@ -118,13 +126,13 @@ public class LveSwapChain : IDisposable
 
         if (khrSwapChain is null)
         {
-            if (vk.TryGetDeviceExtension(device.Instance, vkDevice, out khrSwapChain))
+            if (!vk.TryGetDeviceExtension(device.Instance, vkDevice, out khrSwapChain))
             {
                 throw new NotSupportedException("VK_KHR_swapchain extension not found.");
             }
         }
 
-        if (khrSwapChain!.CreateSwapchain(vkDevice, creatInfo, null, out swapChain) != Result.Success)
+        if (khrSwapChain.CreateSwapchain(vkDevice, creatInfo, null, out swapChain) != Result.Success)
         {
             throw new Exception("failed to create swap chain!");
         }
@@ -156,21 +164,10 @@ public class LveSwapChain : IDisposable
 
     private unsafe void createRenderPass()
     {
-        AttachmentDescription colorAttachment = new()
-        {
-            Format = swapChainImageFormat,
-            Samples = msaaSamples,
-            LoadOp = AttachmentLoadOp.Clear,
-            StoreOp = AttachmentStoreOp.Store,
-            StencilLoadOp = AttachmentLoadOp.DontCare,
-            InitialLayout = ImageLayout.Undefined,
-            FinalLayout = ImageLayout.ColorAttachmentOptimal,
-        };
-
         AttachmentDescription depthAttachment = new()
         {
             Format = device.FindDepthFormat(),
-            Samples = msaaSamples,
+            Samples = SampleCountFlags.Count1Bit,
             LoadOp = AttachmentLoadOp.Clear,
             StoreOp = AttachmentStoreOp.DontCare,
             StencilLoadOp = AttachmentLoadOp.DontCare,
@@ -179,11 +176,17 @@ public class LveSwapChain : IDisposable
             FinalLayout = ImageLayout.DepthStencilAttachmentOptimal,
         };
 
-        AttachmentDescription colorAttachmentResolve = new()
+        AttachmentReference depthAttachmentRef = new()
+        {
+            Attachment = 1,
+            Layout = ImageLayout.DepthStencilAttachmentOptimal,
+        };
+
+        AttachmentDescription colorAttachment = new()
         {
             Format = swapChainImageFormat,
             Samples = SampleCountFlags.Count1Bit,
-            LoadOp = AttachmentLoadOp.DontCare,
+            LoadOp = AttachmentLoadOp.Clear,
             StoreOp = AttachmentStoreOp.Store,
             StencilLoadOp = AttachmentLoadOp.DontCare,
             StencilStoreOp = AttachmentStoreOp.DontCare,
@@ -197,17 +200,6 @@ public class LveSwapChain : IDisposable
             Layout = ImageLayout.ColorAttachmentOptimal,
         };
 
-        AttachmentReference depthAttachmentRef = new()
-        {
-            Attachment = 1,
-            Layout = ImageLayout.DepthStencilAttachmentOptimal,
-        };
-
-        AttachmentReference colorAttachmentResolveRef = new()
-        {
-            Attachment = 2,
-            Layout = ImageLayout.ColorAttachmentOptimal,
-        };
 
         SubpassDescription subpass = new()
         {
@@ -215,7 +207,6 @@ public class LveSwapChain : IDisposable
             ColorAttachmentCount = 1,
             PColorAttachments = &colorAttachmentRef,
             PDepthStencilAttachment = &depthAttachmentRef,
-            PResolveAttachments = &colorAttachmentResolveRef,
         };
 
         SubpassDependency dependency = new()
@@ -228,8 +219,7 @@ public class LveSwapChain : IDisposable
             DstAccessMask = AccessFlags.ColorAttachmentWriteBit | AccessFlags.DepthStencilAttachmentWriteBit
         };
 
-        var attachments = new[] { colorAttachment, depthAttachment, colorAttachmentResolve };
-        //var attachments = new[] { colorAttachment, depthAttachment };
+        var attachments = new[] { colorAttachment, depthAttachment };
 
         fixed (AttachmentDescription* attachmentsPtr = attachments)
         {
@@ -254,12 +244,11 @@ public class LveSwapChain : IDisposable
 
     private unsafe void createFrameBuffers()
     {
-        swapChainFramebuffers = new Framebuffer[swapChainImageViews!.Length];
+        swapChainFramebuffers = new Framebuffer[swapChainImageViews.Length];
 
         for (int i = 0; i < swapChainImageViews.Length; i++)
         {
-            var attachments = new[] { colorImageView, depthImageView, swapChainImageViews[i] };
-            //var attachments = new[] { depthImageView, swapChainImageViews[i] };
+            var attachments = new[] { swapChainImageViews[i], depthImageViews[i] };
 
             fixed (ImageView* attachmentsPtr = attachments)
             {
@@ -274,7 +263,7 @@ public class LveSwapChain : IDisposable
                     Layers = 1,
                 };
 
-                if (vk.CreateFramebuffer(vkDevice, framebufferInfo, null, out swapChainFramebuffers[i]) != Result.Success)
+                if (vk!.CreateFramebuffer(device.VkDevice, framebufferInfo, null, out swapChainFramebuffers[i]) != Result.Success)
                 {
                     throw new Exception("failed to create framebuffer!");
                 }
@@ -283,43 +272,102 @@ public class LveSwapChain : IDisposable
     }
 
 
-    private void createDepthResources()
+    private unsafe void createDepthResources()
     {
         Format depthFormat = device.FindDepthFormat();
 
-        CreateImage(swapChainExtent.Width, swapChainExtent.Height, 1, msaaSamples, depthFormat, ImageTiling.Optimal, ImageUsageFlags.DepthStencilAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref depthImage, ref depthImageMemory);
-        depthImageView = CreateImageView(depthImage, depthFormat, ImageAspectFlags.DepthBit, 1);
-    }
+        depthImages = new Image[imageCount()];
+        depthImageMemorys = new DeviceMemory[imageCount()];
+        depthImageViews = new ImageView[imageCount()];
 
-
-    private unsafe void createSyncObjects()
-    {
-        imageAvailableSemaphores = new Semaphore[MAX_FRAMES_IN_FLIGHT];
-        renderFinishedSemaphores = new Semaphore[MAX_FRAMES_IN_FLIGHT];
-        inFlightFences = new Fence[MAX_FRAMES_IN_FLIGHT];
-        imagesInFlight = new Fence[swapChainImages!.Length];
-
-        SemaphoreCreateInfo semaphoreInfo = new()
+        for (int i=0; i < depthImages.Length; i++)
         {
-            SType = StructureType.SemaphoreCreateInfo,
-        };
-
-        FenceCreateInfo fenceInfo = new()
-        {
-            SType = StructureType.FenceCreateInfo,
-            Flags = FenceCreateFlags.SignaledBit,
-        };
-
-        for (var i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-        {
-            if (vk.CreateSemaphore(vkDevice, semaphoreInfo, null, out imageAvailableSemaphores[i]) != Result.Success ||
-                vk.CreateSemaphore(vkDevice, semaphoreInfo, null, out renderFinishedSemaphores[i]) != Result.Success ||
-                vk.CreateFence(vkDevice, fenceInfo, null, out inFlightFences[i]) != Result.Success)
+            ImageCreateInfo imageInfo = new()
             {
-                throw new Exception("failed to create synchronization objects for a frame!");
+                SType = StructureType.ImageCreateInfo,
+                ImageType = ImageType.Type2D,
+                Extent =
+            {
+                Width = swapChainExtent.Width,
+                Height = swapChainExtent.Height,
+                Depth = 1,
+            },
+                MipLevels = 1,
+                ArrayLayers = 1,
+                Format = depthFormat,
+                Tiling = ImageTiling.Optimal,
+                InitialLayout = ImageLayout.Undefined,
+                Usage = ImageUsageFlags.DepthStencilAttachmentBit,
+                Samples = SampleCountFlags.Count1Bit,
+                SharingMode = SharingMode.Exclusive,
+                Flags = 0
+            };
+
+            fixed (Image* imagePtr = &depthImages[i])
+            {
+                if (vk.CreateImage(vkDevice, imageInfo, null, imagePtr) != Result.Success)
+                {
+                    throw new Exception("failed to create depth image!");
+                }
             }
+
+            MemoryRequirements memRequirements;
+            vk.GetImageMemoryRequirements(vkDevice, depthImages[i], out memRequirements);
+
+            MemoryAllocateInfo allocInfo = new()
+            {
+                SType = StructureType.MemoryAllocateInfo,
+                AllocationSize = memRequirements.Size,
+                MemoryTypeIndex = device.FindMemoryType(memRequirements.MemoryTypeBits, MemoryPropertyFlags.DeviceLocalBit),
+            };
+
+            fixed (DeviceMemory* imageMemoryPtr = &depthImageMemorys[i])
+            {
+                if (vk.AllocateMemory(vkDevice, allocInfo, null, imageMemoryPtr) != Result.Success)
+                {
+                    throw new Exception("failed to allocate depth image memory!");
+                }
+            }
+
+            vk.BindImageMemory(vkDevice, depthImages[i], depthImageMemorys[i], 0);
+
+
+            // depth image view
+            ImageViewCreateInfo createInfo = new()
+            {
+                SType = StructureType.ImageViewCreateInfo,
+                Image = depthImages[i],
+                ViewType = ImageViewType.Type2D,
+                Format = depthFormat,
+                //Components =
+                //    {
+                //        R = ComponentSwizzle.Identity,
+                //        G = ComponentSwizzle.Identity,
+                //        B = ComponentSwizzle.Identity,
+                //        A = ComponentSwizzle.Identity,
+                //    },
+                SubresourceRange =
+                {
+                    AspectMask = ImageAspectFlags.DepthBit,
+                    BaseMipLevel = 0,
+                    LevelCount = 1,
+                    BaseArrayLayer = 0,
+                    LayerCount = 1,
+                }
+
+            };
+
+            if (vk.CreateImageView(vkDevice, createInfo, null, out depthImageViews[i]) != Result.Success)
+            {
+                throw new Exception("failed to create depth image views!");
+            }
+
+
+
         }
+
     }
+
 
     private unsafe void CreateImage(uint width, uint height, uint mipLevels, SampleCountFlags numSamples, Format format, ImageTiling tiling, ImageUsageFlags usage, MemoryPropertyFlags properties, ref Image image, ref DeviceMemory imageMemory)
     {
@@ -408,6 +456,35 @@ public class LveSwapChain : IDisposable
         return imageView;
     }
 
+    private unsafe void createSyncObjects()
+    {
+        imageAvailableSemaphores = new Semaphore[MAX_FRAMES_IN_FLIGHT];
+        renderFinishedSemaphores = new Semaphore[MAX_FRAMES_IN_FLIGHT];
+        inFlightFences = new Fence[MAX_FRAMES_IN_FLIGHT];
+        imagesInFlight = new Fence[swapChainImages!.Length];
+
+        SemaphoreCreateInfo semaphoreInfo = new()
+        {
+            SType = StructureType.SemaphoreCreateInfo,
+        };
+
+        FenceCreateInfo fenceInfo = new()
+        {
+            SType = StructureType.FenceCreateInfo,
+            Flags = FenceCreateFlags.SignaledBit,
+        };
+
+        for (var i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            if (vk.CreateSemaphore(vkDevice, semaphoreInfo, null, out imageAvailableSemaphores[i]) != Result.Success ||
+                vk.CreateSemaphore(vkDevice, semaphoreInfo, null, out renderFinishedSemaphores[i]) != Result.Success ||
+                vk.CreateFence(vkDevice, fenceInfo, null, out inFlightFences[i]) != Result.Success)
+            {
+                throw new Exception("failed to create synchronization objects for a frame!");
+            }
+        }
+    }
+
 
     private SurfaceFormatKHR ChooseSwapSurfaceFormat(IReadOnlyList<SurfaceFormatKHR> availableFormats)
     {
@@ -428,10 +505,12 @@ public class LveSwapChain : IDisposable
         {
             if (availablePresentMode == PresentModeKHR.MailboxKhr)
             {
+                log.d("swapchain", $"got present mode = Mailbox");
                 return availablePresentMode;
             }
         }
 
+        log.d("swapchain", $"fallback present mode = FifoKhr");
         return PresentModeKHR.FifoKhr;
     }
 

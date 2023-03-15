@@ -37,6 +37,11 @@ public class LveWindow: IDisposable
 
     }
 
+    public Extent2D GetExtent()
+    {
+        return new((uint)width, (uint)height);
+    }
+
     //public unsafe void CreateWindowSurface(Instance instance, out SurfaceKHR surface)
     //{
     //    if (window.VkSurface is null) throw new ApplicationException("In CreateWindowSurface, window.VkSurface is null!");
