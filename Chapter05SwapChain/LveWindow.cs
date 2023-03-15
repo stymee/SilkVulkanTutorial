@@ -6,6 +6,7 @@ public class LveWindow: IDisposable
     private int width = 800;
     private int height = 600;
     private IWindow window = null!;
+    public IWindow GlfwWindow => window;
 
     public IVkSurface VkSurface => window.VkSurface ?? throw new ApplicationException("VkSurface is null!");
 

@@ -17,6 +17,10 @@ public class LvePipeline : IDisposable
         createGraphicsPipeline(vertPath, fragPath, configInfo);
     }
 
+    public void Bind(CommandBuffer commandBuffer)
+    {
+        vk.CmdBindPipeline(commandBuffer, PipelineBindPoint.Graphics, graphicsPipeline);
+    }
 
     private unsafe void createGraphicsPipeline(string vertPath, string fragPath, PipelineConfigInfo configInfo)
     {

@@ -22,6 +22,7 @@ global using Silk.NET.Windowing;
 global using Semaphore = Silk.NET.Vulkan.Semaphore;
 global using Buffer = Silk.NET.Vulkan.Buffer;
 global using Image = Silk.NET.Vulkan.Image;
+global using Device = Silk.NET.Vulkan.Device;
 
 
 

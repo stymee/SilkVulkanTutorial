@@ -55,13 +55,28 @@ public class FirstApp : IDisposable
     }
 
 
-    private void drawFrame()
+    private void drawFrame(double delta)
     {
+        uint imageIndex = 0;
+        var result = swapChain.AcquireNextImage(imageIndex);
+
+        if (result != Result.Success && result != Result.SuboptimalKhr)
+        {
+            throw new Exception("failed to acquire next swapchain image");
+        }
+
+
+        result = swapChain.SubmitCommandBuffers(commandBuffers[imageIndex], imageIndex);
+        if (result != Result.Success)
+        {
+            throw new Exception("failed to submit command buffers");
+        }
 
     }
 
     private void MainLoop()
     {
+        window.GlfwWindow.Render += drawFrame;
         window.Run();
     }
 
@@ -97,11 +112,90 @@ public class FirstApp : IDisposable
             "simpleShader.vert.spv", "simpleShader.frag.spv",
             pipelineConfig
             );
-        log.d("app run", "got pipeline");
+        log.d("app run", " got pipeline");
     }
 
-    private void createCommandBuffers()
+    private unsafe void createCommandBuffers()
     {
+        commandBuffers = new CommandBuffer[swapChain.ImageCount()];
+
+        CommandBufferAllocateInfo allocInfo = new()
+        {
+            SType = StructureType.CommandBufferAllocateInfo,
+            CommandPool = device.GetCommandPool(),
+            Level = CommandBufferLevel.Primary,
+            CommandBufferCount = (uint)commandBuffers.Length,
+        };
+
+        fixed (CommandBuffer* commandBuffersPtr = commandBuffers)
+        {
+            if (vk!.AllocateCommandBuffers(device.VkDevice, allocInfo, commandBuffersPtr) != Result.Success)
+            {
+                throw new Exception("failed to allocate command buffers!");
+            }
+        }
+
+
+        for (int i = 0; i < commandBuffers.Length; i++)
+        {
+            CommandBufferBeginInfo beginInfo = new()
+            {
+                SType = StructureType.CommandBufferBeginInfo,
+            };
+
+            if (vk.BeginCommandBuffer(commandBuffers[i], beginInfo) != Result.Success)
+            {
+                throw new Exception("failed to begin recording command buffer!");
+            }
+
+            RenderPassBeginInfo renderPassInfo = new()
+            {
+                SType = StructureType.RenderPassBeginInfo,
+                RenderPass = swapChain.GetRenderPass(),
+                Framebuffer = swapChain.GetFrameBufferAt(i),
+                RenderArea =
+                {
+                    Offset = { X = 0, Y = 0 },
+                    Extent = swapChain.GetSwapChainExtent(),
+                }
+            };
+
+            var clearValues = new ClearValue[]
+            {
+                new()
+                {
+                    Color = new (){ Float32_0 = 0.1f, Float32_1 = 0.1f, Float32_2 = 0.1f, Float32_3 = 1 },
+                },
+                new()
+                {
+                    DepthStencil = new () { Depth = 1, Stencil = 0 }
+                }
+            };
+
+
+            fixed (ClearValue* clearValuesPtr = clearValues)
+            {
+                renderPassInfo.ClearValueCount = (uint)clearValues.Length;
+                renderPassInfo.PClearValues = clearValuesPtr;
+
+                vk.CmdBeginRenderPass(commandBuffers[i], &renderPassInfo, SubpassContents.Inline);
+            }
+
+            pipeline.Bind(commandBuffers[i]);
+
+
+            vk.CmdDraw(commandBuffers[i], 3, 1, 0, 0);
+
+
+            vk.CmdEndRenderPass(commandBuffers[i]);
+
+
+            if (vk.EndCommandBuffer(commandBuffers[i]) != Result.Success)
+            {
+                throw new Exception("failed to record command buffer!");
+            }
+
+        }
 
     }
 

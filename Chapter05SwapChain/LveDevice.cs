@@ -35,9 +35,13 @@ public unsafe class LveDevice
 
     private uint graphicsFamilyIndex;
     private Queue graphicsQueue;
+    public Queue GraphicsQueue => graphicsQueue;
+
     private Queue presentQueue;
+    public Queue PresentQueue => presentQueue;
 
     private CommandPool commandPool;
+    public CommandPool GetCommandPool() => commandPool;
 
 
     public LveDevice(Vk vk, LveWindow window)
