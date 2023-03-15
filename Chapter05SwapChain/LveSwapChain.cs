@@ -27,18 +27,18 @@ public class LveSwapChain : IDisposable
     private bool framebufferResized = false;
 
     // save this for later
-    private SampleCountFlags msaaSamples = SampleCountFlags.Count1Bit;
+    //private SampleCountFlags msaaSamples = SampleCountFlags.Count1Bit;
 
     private RenderPass renderPass;
-    private DescriptorSetLayout descriptorSetLayout;
-    private PipelineLayout pipelineLayout;
-    private Pipeline graphicsPipeline;
+    //private DescriptorSetLayout descriptorSetLayout;
+    //private PipelineLayout pipelineLayout;
+    //private Pipeline graphicsPipeline;
 
-    private CommandPool commandPool;
+    //private CommandPool commandPool;
 
-    private Image colorImage;
-    private DeviceMemory colorImageMemory;
-    private ImageView colorImageView;
+    //private Image colorImage;
+    //private DeviceMemory colorImageMemory;
+    //private ImageView colorImageView;
 
     private Image[] depthImages = null!;
     private DeviceMemory[] depthImageMemorys = null!;

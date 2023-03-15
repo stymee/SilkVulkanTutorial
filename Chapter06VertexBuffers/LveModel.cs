@@ -48,7 +48,7 @@ public struct Vertex
             {
                 Binding = 0,
                 Location = 0,
-                Format = Format.R32G32B32Sfloat,
+                Format = Format.R32G32Sfloat,
                 Offset = 0, //(uint)Marshal.OffsetOf<Vertex>("position"),
             }
         };
