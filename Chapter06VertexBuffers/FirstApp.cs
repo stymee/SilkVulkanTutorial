@@ -105,9 +105,9 @@ public class FirstApp : IDisposable
         {
             SType = StructureType.PipelineLayoutCreateInfo,
             SetLayoutCount = 0,
-            PSetLayouts = null,
+            //PSetLayouts = null,
             PushConstantRangeCount = 0,
-            PPushConstantRanges = null,
+            //PPushConstantRanges = null,
         };
 
         if (vk.CreatePipelineLayout(device.VkDevice, pipelineLayoutInfo, null, out pipelineLayout) != Result.Success)

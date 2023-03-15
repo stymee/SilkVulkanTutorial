@@ -79,11 +79,11 @@ public class LvePipeline : IDisposable
         //shaderStages[1].PSpecializationInfo = null;
 
         var bindingDescriptions = Vertex.GetBindingDescriptions();
-        var attributeDescriptions = Vertex.GetAttributeDescription();
+        var attributeDescriptions = Vertex.GetAttributeDescriptions();
 
 
-        fixed (VertexInputAttributeDescription* attributeDescriptionsPtr = attributeDescriptions)
         fixed (VertexInputBindingDescription* bindingDescriptionsPtr = bindingDescriptions)
+        fixed (VertexInputAttributeDescription* attributeDescriptionsPtr = attributeDescriptions)
         {
             var vertextInputInfo = new PipelineVertexInputStateCreateInfo()
             {

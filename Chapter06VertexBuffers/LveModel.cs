@@ -1,4 +1,6 @@
 ﻿
+using Silk.NET.Vulkan;
+
 namespace Chapter06VertexBuffers;
 
 public struct Vertex
@@ -10,6 +12,18 @@ public struct Vertex
         position.X = x;
         position.Y = y;
     }
+
+    //public static VertexInputBindingDescription GetBindingDescription()
+    //{
+    //    VertexInputBindingDescription bindingDescription = new()
+    //    {
+    //        Binding = 0,
+    //        Stride = (uint)Unsafe.SizeOf<Vertex>(),
+    //        InputRate = VertexInputRate.Vertex,
+    //    };
+
+    //    return bindingDescription;
+    //}
 
     public static VertexInputBindingDescription[] GetBindingDescriptions()
     {
@@ -26,7 +40,7 @@ public struct Vertex
         return bindingDescriptions;
     }
 
-    public static VertexInputAttributeDescription[] GetAttributeDescription()
+    public static VertexInputAttributeDescription[] GetAttributeDescriptions()
     {
         var attributeDescriptions = new[]
         {
@@ -59,10 +73,55 @@ public class LveModel : IDisposable
     {
         this.vk = vk;
         this.device = device;
+        vertexCount = (uint)vertices.Length;
         createVertexBuffers(vertices);
     }
 
     private unsafe void createVertexBuffers(Vertex[] vertices)
+    {
+        BufferCreateInfo bufferInfo = new()
+        {
+            SType = StructureType.BufferCreateInfo,
+            Size = (ulong)(sizeof(Vertex) * vertices.Length),
+            Usage = BufferUsageFlags.VertexBufferBit,
+            SharingMode = SharingMode.Exclusive,
+        };
+
+        fixed (Buffer* vertexBufferPtr = &vertexBuffer)
+        {
+            if (vk.CreateBuffer(device.VkDevice, bufferInfo, null, vertexBufferPtr) != Result.Success)
+            {
+                throw new Exception("failed to create vertex buffer!");
+            }
+        }
+
+        MemoryRequirements memRequirements = new();
+        vk.GetBufferMemoryRequirements(device.VkDevice, vertexBuffer, out memRequirements);
+
+        MemoryAllocateInfo allocateInfo = new()
+        {
+            SType = StructureType.MemoryAllocateInfo,
+            AllocationSize = memRequirements.Size,
+            MemoryTypeIndex = device.FindMemoryType(memRequirements.MemoryTypeBits, MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit),
+        };
+
+        fixed (DeviceMemory* vertexBufferMemoryPtr = &vertexBufferMemory)
+        {
+            if (vk.AllocateMemory(device.VkDevice, allocateInfo, null, vertexBufferMemoryPtr) != Result.Success)
+            {
+                throw new Exception("failed to allocate vertex buffer memory!");
+            }
+        }
+
+        vk.BindBufferMemory(device.VkDevice, vertexBuffer, vertexBufferMemory, 0);
+
+        void* data;
+        vk.MapMemory(device.VkDevice, vertexBufferMemory, 0, bufferInfo.Size, 0, &data);
+        vertices.AsSpan().CopyTo(new Span<Vertex>(data, vertices.Length));
+        vk.UnmapMemory(device.VkDevice, vertexBufferMemory);
+    }
+
+    private unsafe void createVertexBuffersBad(Vertex[] vertices)
     {
         ulong bufferSize = (ulong)(Unsafe.SizeOf<Vertex>() * vertices.Length);
 
