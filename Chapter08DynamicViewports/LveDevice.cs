@@ -302,6 +302,7 @@ public unsafe class LveDevice
         {
             SType = StructureType.CommandPoolCreateInfo,
             QueueFamilyIndex = queueFamiliyIndicies.GraphicsFamily!.Value,
+            Flags = CommandPoolCreateFlags.ResetCommandBufferBit
         };
 
         if (vk.CreateCommandPool(device, poolInfo, null, out commandPool) != Result.Success)

@@ -1,7 +1,4 @@
 ﻿
-
-using Silk.NET.Vulkan;
-
 namespace Chapter08DynamicViewports;
 
 public class LveSwapChain : IDisposable
