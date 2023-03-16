@@ -1,5 +1,5 @@
 ﻿
-namespace Chapter08DynamicViewports;
+namespace Chapter09PushConstants;
 
 public class LveSwapChain : IDisposable
 {
