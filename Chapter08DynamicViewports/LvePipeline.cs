@@ -1,4 +1,5 @@
-﻿namespace Chapter08DynamicViewports;
+﻿
+namespace Chapter08DynamicViewports;
 
 public class LvePipeline : IDisposable
 {
@@ -7,7 +8,7 @@ public class LvePipeline : IDisposable
 
     private Pipeline graphicsPipeline;
     public Pipeline VkPipeline => graphicsPipeline;
-    
+
     private ShaderModule vertShaderModule;
     private ShaderModule fragShaderModule;
     private bool disposedValue;
@@ -98,14 +99,6 @@ public class LvePipeline : IDisposable
 
 
 
-            var viewportInfo = new PipelineViewportStateCreateInfo()
-            {
-                SType = StructureType.PipelineViewportStateCreateInfo,
-                ViewportCount = 1,
-                PViewports = &configInfo.Viewport,
-                ScissorCount = 1,
-                PScissors = &configInfo.Scissor,
-            };
 
 
             var pipelineInfo = new GraphicsPipelineCreateInfo()
@@ -115,16 +108,17 @@ public class LvePipeline : IDisposable
                 PStages = shaderStages,
                 PVertexInputState = &vertextInputInfo,
                 PInputAssemblyState = &configInfo.InputAssemblyInfo,
-                PViewportState = &viewportInfo,
+                PViewportState = &configInfo.ViewportInfo,
                 PRasterizationState = &configInfo.RasterizationInfo,
                 PColorBlendState = &configInfo.ColorBlendInfo,
                 PDepthStencilState = &configInfo.DepthStencilInfo,
-                PDynamicState = null,
+                PDynamicState = &configInfo.DynamicStateInfo,
                 Layout = configInfo.PipelineLayout, // 
                 RenderPass = configInfo.RenderPass, // 
                 Subpass = configInfo.Subpass,       //
                 BasePipelineIndex = -1,
                 BasePipelineHandle = default
+
             };
 
             if (vk.CreateGraphicsPipelines(device.VkDevice, default, 1, pipelineInfo, null, out graphicsPipeline) != Result.Success)
@@ -190,111 +184,130 @@ public class LvePipeline : IDisposable
 
 
     // Default PipelineConfig
-    public unsafe static PipelineConfigInfo DefaultPipelineConfigInfo(uint width, uint height)
+    public unsafe static void DefaultPipelineConfigInfo(ref PipelineConfigInfo configInfo)
     {
-        PipelineInputAssemblyStateCreateInfo inputAssembly = new()
-        {
-            SType = StructureType.PipelineInputAssemblyStateCreateInfo,
-            Topology = PrimitiveTopology.TriangleList,
-            PrimitiveRestartEnable = false,
-        };
+        configInfo.InputAssemblyInfo.SType = StructureType.PipelineInputAssemblyStateCreateInfo;
+        configInfo.InputAssemblyInfo.Topology = PrimitiveTopology.TriangleList;
+        configInfo.InputAssemblyInfo.PrimitiveRestartEnable = false;
+
+        //var viewportInfo = new PipelineViewportStateCreateInfo()
+        //{
+        configInfo.ViewportInfo.SType = StructureType.PipelineViewportStateCreateInfo;
+        configInfo.ViewportInfo.ViewportCount = 1;
+        configInfo.ViewportInfo.PViewports = default;
+        configInfo.ViewportInfo.ScissorCount = 1;
+        configInfo.ViewportInfo.PScissors = default;
+        //};
+
+        //Viewport viewport = new()
+        //{
+        //    X = 0,
+        //    Y = 0,
+        //    Width = width,
+        //    Height = height,
+        //    MinDepth = 0,
+        //    MaxDepth = 1,
+        //};
+
+        //Rect2D scissor = new()
+        //{
+        //    Offset = { X = 0, Y = 0 },
+        //    Extent = new(width, height),
+        //};
 
 
-        Viewport viewport = new()
-        {
-            X = 0,
-            Y = 0,
-            Width = width,
-            Height = height,
-            MinDepth = 0,
-            MaxDepth = 1,
-        };
+        //PipelineRasterizationStateCreateInfo rasterizer = new()
+        //{
+        configInfo.RasterizationInfo.SType = StructureType.PipelineRasterizationStateCreateInfo;
+        configInfo.RasterizationInfo.DepthClampEnable = false;
+        configInfo.RasterizationInfo.RasterizerDiscardEnable = false;
+        configInfo.RasterizationInfo.PolygonMode = PolygonMode.Fill;
+        configInfo.RasterizationInfo.LineWidth = 1f;
+        configInfo.RasterizationInfo.CullMode = CullModeFlags.None;
+        configInfo.RasterizationInfo.FrontFace = FrontFace.CounterClockwise;
+        configInfo.RasterizationInfo.DepthBiasEnable = false;
+        configInfo.RasterizationInfo.DepthBiasConstantFactor = 0f;
+        configInfo.RasterizationInfo.DepthBiasClamp = 0f;
+        configInfo.RasterizationInfo.DepthBiasSlopeFactor = 0f;
+        //};
 
-        Rect2D scissor = new()
-        {
-            Offset = { X = 0, Y = 0 },
-            Extent = new(width, height),
-        };
+        //PipelineMultisampleStateCreateInfo multisampling = new()
+        //{
+        configInfo.MultisampleInfo.SType = StructureType.PipelineMultisampleStateCreateInfo;
+        configInfo.MultisampleInfo.SampleShadingEnable = false;
+        configInfo.MultisampleInfo.RasterizationSamples = SampleCountFlags.Count1Bit;
+        configInfo.MultisampleInfo.MinSampleShading = 1.0f;
+        configInfo.MultisampleInfo.PSampleMask = null;
+        configInfo.MultisampleInfo.AlphaToCoverageEnable = false;
+        configInfo.MultisampleInfo.AlphaToOneEnable = false;
+        //};
 
+        //PipelineColorBlendAttachmentState colorBlendAttachment = new()
+        //{
+        configInfo.ColorBlendAttachment.ColorWriteMask = ColorComponentFlags.RBit | ColorComponentFlags.GBit | ColorComponentFlags.BBit | ColorComponentFlags.ABit;
+        configInfo.ColorBlendAttachment.BlendEnable = false;
+        configInfo.ColorBlendAttachment.SrcColorBlendFactor = BlendFactor.One;
+        configInfo.ColorBlendAttachment.DstColorBlendFactor = BlendFactor.Zero;
+        configInfo.ColorBlendAttachment.ColorBlendOp = BlendOp.Add;
+        configInfo.ColorBlendAttachment.SrcAlphaBlendFactor = BlendFactor.One;
+        configInfo.ColorBlendAttachment.DstAlphaBlendFactor = BlendFactor.Zero;
+        configInfo.ColorBlendAttachment.AlphaBlendOp = BlendOp.Add;
+        //};
 
-        PipelineRasterizationStateCreateInfo rasterizer = new()
-        {
-            SType = StructureType.PipelineRasterizationStateCreateInfo,
-            DepthClampEnable = false,
-            RasterizerDiscardEnable = false,
-            PolygonMode = PolygonMode.Fill,
-            LineWidth = 1f,
-            CullMode = CullModeFlags.None,
-            FrontFace = FrontFace.CounterClockwise,
-            DepthBiasEnable = false,
-            DepthBiasConstantFactor = 0f,
-            DepthBiasClamp = 0f,
-            DepthBiasSlopeFactor = 0f,
-        };
+        //PipelineColorBlendStateCreateInfo colorBlending = new()
+        //{
+        configInfo.ColorBlendInfo.SType = StructureType.PipelineColorBlendStateCreateInfo;
+        configInfo.ColorBlendInfo.LogicOpEnable = false;
+        configInfo.ColorBlendInfo.LogicOp = LogicOp.Copy;
+        configInfo.ColorBlendInfo.AttachmentCount = 1;
+        //configInfo.ColorBlendInfo.PAttachments = &configInfo.ColorBlendAttachment;
+        configInfo.ColorBlendInfo.PAttachments = (PipelineColorBlendAttachmentState*)Unsafe.AsPointer(ref configInfo.ColorBlendAttachment);
+        //};
 
-        PipelineMultisampleStateCreateInfo multisampling = new()
-        {
-            SType = StructureType.PipelineMultisampleStateCreateInfo,
-            SampleShadingEnable = false,
-            RasterizationSamples = SampleCountFlags.Count1Bit,
-            MinSampleShading = 1.0f,
-            PSampleMask = null,
-            AlphaToCoverageEnable = false,
-            AlphaToOneEnable = false,
-        };
+        configInfo.ColorBlendInfo.BlendConstants[0] = 0;
+        configInfo.ColorBlendInfo.BlendConstants[1] = 0;
+        configInfo.ColorBlendInfo.BlendConstants[2] = 0;
+        configInfo.ColorBlendInfo.BlendConstants[3] = 0;
 
-        PipelineColorBlendAttachmentState colorBlendAttachment = new()
-        {
-            ColorWriteMask = ColorComponentFlags.RBit | ColorComponentFlags.GBit | ColorComponentFlags.BBit | ColorComponentFlags.ABit,
-            BlendEnable = false,
-            SrcColorBlendFactor = BlendFactor.One,
-            DstColorBlendFactor = BlendFactor.Zero,
-            ColorBlendOp = BlendOp.Add,
-            SrcAlphaBlendFactor = BlendFactor.One,
-            DstAlphaBlendFactor = BlendFactor.Zero,
-            AlphaBlendOp = BlendOp.Add,
-        };
+        //PipelineDepthStencilStateCreateInfo depthStencil = new()
+        //{
+        configInfo.DepthStencilInfo.SType = StructureType.PipelineDepthStencilStateCreateInfo;
+        configInfo.DepthStencilInfo.DepthTestEnable = true;
+        configInfo.DepthStencilInfo.DepthWriteEnable = true;
+        configInfo.DepthStencilInfo.DepthCompareOp = CompareOp.Less;
+        configInfo.DepthStencilInfo.DepthBoundsTestEnable = false;
+        configInfo.DepthStencilInfo.MinDepthBounds = 0.0f;
+        configInfo.DepthStencilInfo.MaxDepthBounds = 1.0f;
+        configInfo.DepthStencilInfo.StencilTestEnable = false;
+        configInfo.DepthStencilInfo.Front = default;
+        configInfo.DepthStencilInfo.Back = default;
+        //};
 
-        PipelineColorBlendStateCreateInfo colorBlending = new()
-        {
-            SType = StructureType.PipelineColorBlendStateCreateInfo,
-            LogicOpEnable = false,
-            LogicOp = LogicOp.Copy,
-            AttachmentCount = 1,
-            PAttachments = &colorBlendAttachment,
-        };
+        var dynamicStateEnables = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
 
-        colorBlending.BlendConstants[0] = 0;
-        colorBlending.BlendConstants[1] = 0;
-        colorBlending.BlendConstants[2] = 0;
-        colorBlending.BlendConstants[3] = 0;
+        //PipelineDynamicStateCreateInfo dynamicState = new()
+        //{
 
-        PipelineDepthStencilStateCreateInfo depthStencil = new()
-        {
-            SType = StructureType.PipelineDepthStencilStateCreateInfo,
-            DepthTestEnable = true,
-            DepthWriteEnable = true,
-            DepthCompareOp = CompareOp.Less,
-            DepthBoundsTestEnable = false,
-            MinDepthBounds = 0.0f,
-            MaxDepthBounds = 1.0f,
-            StencilTestEnable = false,
-            Front = { },
-            Back = { },
-        };
+        configInfo.DynamicStateInfo.SType = StructureType.PipelineDynamicStateCreateInfo;
+        configInfo.DynamicStateInfo.DynamicStateCount = 2;// (uint)dynamicStateEnables.Length;
+        configInfo.DynamicStateInfo.PDynamicStates = dynamicStateEnables;
+        configInfo.DynamicStateInfo.Flags = 0;
+        //};
 
 
-        return new PipelineConfigInfo()
-        {
-            InputAssemblyInfo = inputAssembly,
-            Viewport = viewport,
-            Scissor = scissor,
-            RasterizationInfo = rasterizer,
-            MultisampleInfo = multisampling,
-            ColorBlendAttachment = colorBlendAttachment,
-            ColorBlendInfo = colorBlending,
-            DepthStencilInfo = depthStencil
-        };
+        //return configInfo with
+        //{
+        //    InputAssemblyInfo = inputAssembly,
+        //    //Viewport = viewport,
+        //    //Scissor = scissor,
+        //    ViewportInfo = viewportInfo,
+        //    RasterizationInfo = rasterizer,
+        //    MultisampleInfo = multisampling,
+        //    ColorBlendAttachment = colorBlendAttachment,
+        //    ColorBlendInfo = colorBlending,
+        //    DepthStencilInfo = depthStencil,
+        //    DynamicStateInfo = dynamicState,
+        //};
     }
 
 
@@ -332,14 +345,17 @@ public class LvePipeline : IDisposable
 
 public struct PipelineConfigInfo
 {
+    //public Viewport Viewport;
+    //public Rect2D Scissor;
+    public PipelineViewportStateCreateInfo ViewportInfo;
     public PipelineInputAssemblyStateCreateInfo InputAssemblyInfo;
-    public Viewport Viewport;
-    public Rect2D Scissor;
     public PipelineRasterizationStateCreateInfo RasterizationInfo;
     public PipelineMultisampleStateCreateInfo MultisampleInfo;
     public PipelineColorBlendAttachmentState ColorBlendAttachment;
     public PipelineColorBlendStateCreateInfo ColorBlendInfo;
     public PipelineDepthStencilStateCreateInfo DepthStencilInfo;
+    public DynamicState[] DynamicStateEnables;
+    public PipelineDynamicStateCreateInfo DynamicStateInfo;
     public PipelineLayout PipelineLayout; // no default to be set
     public RenderPass RenderPass; // no default to be set
     public uint Subpass;
@@ -347,5 +363,6 @@ public struct PipelineConfigInfo
     public PipelineConfigInfo()
     {
         Subpass = 0;
+        DynamicStateEnables = Array.Empty<DynamicState>();
     }
 }

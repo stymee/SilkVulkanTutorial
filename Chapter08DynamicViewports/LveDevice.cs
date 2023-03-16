@@ -3,7 +3,7 @@
 public unsafe class LveDevice
 {
     private readonly Vk vk = null!;
-    private readonly LveWindow window;
+    private readonly IWindow window;
 
     public Device VkDevice => device;
 
@@ -44,7 +44,7 @@ public unsafe class LveDevice
     public CommandPool GetCommandPool() => commandPool;
 
 
-    public LveDevice(Vk vk, LveWindow window)
+    public LveDevice(Vk vk, IWindow window)
     {
         this.vk = vk;
         this.window = window;

@@ -1,5 +1,7 @@
 ﻿
 
+using Silk.NET.Vulkan;
+
 namespace Chapter08DynamicViewports;
 
 public class LveSwapChain : IDisposable
@@ -14,7 +16,7 @@ public class LveSwapChain : IDisposable
 
     private KhrSwapchain khrSwapChain = null!;
     private SwapchainKHR swapChain;
-    //public SwapchainKHR GetSwapChain() => swapChain;
+    public SwapchainKHR VkSwapChain => swapChain;
 
     private Image[] swapChainImages = null!;
     private Format swapChainImageFormat;
@@ -28,9 +30,6 @@ public class LveSwapChain : IDisposable
     public Framebuffer[] GetFrameBuffers() => swapChainFramebuffers;
 
     public uint GetFrameBufferCount() => (uint)swapChainFramebuffers.Length;
-
-    //private Queue graphicsQueue;
-    //private Queue presentQueue;
 
     private bool framebufferResized = false;
 
@@ -69,23 +68,37 @@ public class LveSwapChain : IDisposable
 
     public uint ImageCount() => (uint)swapChainImageViews.Length;
 
+    private LveSwapChain? oldSwapChain = null!;
+
     public LveSwapChain(Vk vk, LveDevice device, Extent2D extent)
     {
         this.vk = vk;
         this.device = device;
         vkDevice = device.VkDevice;
         windowExtent = extent;
+        init();
+    }
+
+    public LveSwapChain(Vk vk, LveDevice device, Extent2D extent, LveSwapChain previous)
+    {
+        this.vk = vk;
+        this.device = device;
+        vkDevice = device.VkDevice;
+        windowExtent = extent;
+        oldSwapChain = previous;
+        init();
+
+        oldSwapChain = null;
+    }
+
+    private void init()
+    {
         createSwapChain();
         createImageViews();
         createRenderPass();
         createDepthResources();
         createFrameBuffers();
         createSyncObjects();
-    }
-
-    public unsafe void DestroySwapChain()
-    {
-        khrSwapChain.DestroySwapchain(device.VkDevice, swapChain, null);
     }
 
     public unsafe Result AcquireNextImage(uint imageIndex)
@@ -155,18 +168,18 @@ public class LveSwapChain : IDisposable
             result = khrSwapChain.QueuePresent(device.PresentQueue, &presentInfo);
         }
 
-        if (result == Result.ErrorOutOfDateKhr || result == Result.SuboptimalKhr || framebufferResized)
-        {
-            framebufferResized = false;
-            //RecreateSwapChain();
-        }
-        else if (result != Result.Success)
-        {
-            throw new Exception("failed to present swap chain image!");
-        }
+        //if (result == Result.ErrorOutOfDateKhr || result == Result.SuboptimalKhr || framebufferResized)
+        //{
+        //    framebufferResized = false;
+        //    //RecreateSwapChain();
+        //}
+        //else if (result != Result.Success)
+        //{
+        //    throw new Exception("failed to present swap chain image!");
+        //}
 
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-        return Result.Success;
+        return result;
     }
 
     private unsafe void createSwapChain()
@@ -229,6 +242,8 @@ public class LveSwapChain : IDisposable
             }
         }
 
+        creatInfo.OldSwapchain = oldSwapChain == null ? default : oldSwapChain.VkSwapChain;
+
         var res = khrSwapChain.CreateSwapchain(vkDevice, creatInfo, null, out swapChain);
         if (res != Result.Success)
         {
@@ -247,14 +262,33 @@ public class LveSwapChain : IDisposable
     }
 
 
-    private void createImageViews()
+    private unsafe void createImageViews()
     {
         swapChainImageViews = new ImageView[swapChainImages!.Length];
 
         for (int i = 0; i < swapChainImages.Length; i++)
         {
 
-            swapChainImageViews[i] = CreateImageView(swapChainImages[i], swapChainImageFormat, ImageAspectFlags.ColorBit, 1);
+            ImageViewCreateInfo createInfo = new()
+            {
+                SType = StructureType.ImageViewCreateInfo,
+                Image = swapChainImages[i],
+                ViewType = ImageViewType.Type2D,
+                Format = swapChainImageFormat,
+                SubresourceRange =
+                {
+                    AspectMask = ImageAspectFlags.ColorBit,
+                    BaseMipLevel = 0,
+                    LevelCount = 1,
+                    BaseArrayLayer = 0,
+                    LayerCount = 1,
+                }
+            };
+
+            if (vk.CreateImageView(vkDevice, createInfo, null, out swapChainImageViews[i]) != Result.Success)
+            {
+                throw new Exception("failed to create image view!");
+            }
         }
 
     }
@@ -309,16 +343,15 @@ public class LveSwapChain : IDisposable
 
         SubpassDependency dependency = new()
         {
-            SrcSubpass = Vk.SubpassExternal,
             DstSubpass = 0,
-            SrcStageMask = PipelineStageFlags.ColorAttachmentOutputBit | PipelineStageFlags.EarlyFragmentTestsBit,
-            SrcAccessMask = 0,
+            DstAccessMask = AccessFlags.ColorAttachmentWriteBit | AccessFlags.DepthStencilAttachmentWriteBit,
             DstStageMask = PipelineStageFlags.ColorAttachmentOutputBit | PipelineStageFlags.EarlyFragmentTestsBit,
-            DstAccessMask = AccessFlags.ColorAttachmentWriteBit | AccessFlags.DepthStencilAttachmentWriteBit
+            SrcSubpass = Vk.SubpassExternal,
+            SrcAccessMask = 0,
+            SrcStageMask = PipelineStageFlags.ColorAttachmentOutputBit | PipelineStageFlags.EarlyFragmentTestsBit,
         };
 
         var attachments = new[] { colorAttachment, depthAttachment };
-
         fixed (AttachmentDescription* attachmentsPtr = attachments)
         {
             RenderPassCreateInfo renderPassInfo = new()
@@ -519,41 +552,41 @@ public class LveSwapChain : IDisposable
         vk.BindImageMemory(vkDevice, image, imageMemory, 0);
     }
 
-    private unsafe ImageView CreateImageView(Image image, Format format, ImageAspectFlags aspectFlags, uint mipLevels)
-    {
-        ImageViewCreateInfo createInfo = new()
-        {
-            SType = StructureType.ImageViewCreateInfo,
-            Image = image,
-            ViewType = ImageViewType.Type2D,
-            Format = format,
-            //Components =
-            //    {
-            //        R = ComponentSwizzle.Identity,
-            //        G = ComponentSwizzle.Identity,
-            //        B = ComponentSwizzle.Identity,
-            //        A = ComponentSwizzle.Identity,
-            //    },
-            SubresourceRange =
-                {
-                    AspectMask = aspectFlags,
-                    BaseMipLevel = 0,
-                    LevelCount = mipLevels,
-                    BaseArrayLayer = 0,
-                    LayerCount = 1,
-                }
+    //private unsafe ImageView CreateImageView(Image image, Format format, ImageAspectFlags aspectFlags, uint mipLevels)
+    //{
+    //    ImageViewCreateInfo createInfo = new()
+    //    {
+    //        SType = StructureType.ImageViewCreateInfo,
+    //        Image = image,
+    //        ViewType = ImageViewType.Type2D,
+    //        Format = format,
+    //        //Components =
+    //        //    {
+    //        //        R = ComponentSwizzle.Identity,
+    //        //        G = ComponentSwizzle.Identity,
+    //        //        B = ComponentSwizzle.Identity,
+    //        //        A = ComponentSwizzle.Identity,
+    //        //    },
+    //        SubresourceRange =
+    //            {
+    //                AspectMask = aspectFlags,
+    //                BaseMipLevel = 0,
+    //                LevelCount = mipLevels,
+    //                BaseArrayLayer = 0,
+    //                LayerCount = 1,
+    //            }
 
-        };
+    //    };
 
-        ImageView imageView = default;
+    //    ImageView imageView = default;
 
-        if (vk.CreateImageView(vkDevice, createInfo, null, out imageView) != Result.Success)
-        {
-            throw new Exception("failed to create image views!");
-        }
+    //    if (vk.CreateImageView(vkDevice, createInfo, null, out imageView) != Result.Success)
+    //    {
+    //        throw new Exception("failed to create image views!");
+    //    }
 
-        return imageView;
-    }
+    //    return imageView;
+    //}
 
     private unsafe void createSyncObjects()
     {

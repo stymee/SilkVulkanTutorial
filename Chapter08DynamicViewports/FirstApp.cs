@@ -1,14 +1,23 @@
-﻿namespace Chapter08DynamicViewports;
+﻿using Silk.NET.Vulkan;
+
+namespace Chapter08DynamicViewports;
 
 public class FirstApp : IDisposable
 {
+    // Window stuff
+    private IWindow window = null!;
     private int width = 800;
     private int height = 600;
+    private string windowName = "Vulkan Tut";
+    private bool framebufferResized = false;
+    private long fpsUpdateInterval = 200 * 10_000;
+    private long fpsLastUpdate;
 
-
+    // Vk api
     private Vk vk = null!;
 
-    private LveWindow window = null!;
+
+    //private LveWindow window = null!;
     private LveDevice device = null!;
     private LvePipeline pipeline = null!;
     private LveSwapChain swapChain = null!;
@@ -25,7 +34,8 @@ public class FirstApp : IDisposable
         vk = Vk.GetApi();
         log.d("app run", "got vk");
 
-        window = new LveWindow(width, height, "MyApp");
+        //window = new LveWindow(width, height, "MyApp");
+        initWindow();
         log.d("app run", "got window");
 
         device = new LveDevice(vk, window);
@@ -36,15 +46,12 @@ public class FirstApp : IDisposable
 
         loadModels();
         createPipelineLayout();
-        //createPipeline();
         recreateSwapChain();
         createCommandBuffers();
     }
 
     public void Run()
     {
-        window.OnRender += drawFrame;
-        window.OnResize += resize;
 
         MainLoop();
         CleanUp();
@@ -69,14 +76,14 @@ public class FirstApp : IDisposable
 
         recordCommandBuffer(imageIndex);
         result = swapChain.SubmitCommandBuffers(commandBuffers[imageIndex], imageIndex);
-        if (result == Result.ErrorOutOfDateKhr || result == Result.SuboptimalKhr || window.WasWindowResized)
+        if (result == Result.ErrorOutOfDateKhr || result == Result.SuboptimalKhr || framebufferResized)
         {
-            window.ResetWindowResizeFlag();
+            framebufferResized = false;
             recreateSwapChain();
             return;
         }
         
-        if (result != Result.Success)
+        else if (result != Result.Success)
         {
             throw new Exception("failed to submit command buffers");
         }
@@ -101,51 +108,82 @@ public class FirstApp : IDisposable
         window.Dispose();
     }
 
-    private unsafe void cleanUpSwapChain()
+    private void initWindow()
     {
-        if (swapChain is null || swapChain.GetFrameBufferCount() == 0) return;
-        foreach (var framebuffer in swapChain.GetFrameBuffers())
+        //Create a window.
+        var options = WindowOptions.DefaultVulkan with
         {
-            vk!.DestroyFramebuffer(device.VkDevice, framebuffer, null);
+            Size = new Vector2D<int>(width, height),
+            Title = windowName
+        };
+
+        window = Window.Create(options);
+        window.Initialize();
+
+        if (window.VkSurface is null)
+        {
+            throw new Exception("Windowing platform doesn't support Vulkan.");
         }
 
-        fixed (CommandBuffer* commandBuffersPtr = commandBuffers)
-        {
-            vk!.FreeCommandBuffers(device.VkDevice, device.GetCommandPool(), (uint)commandBuffers!.Length, commandBuffersPtr);
-        }
+        fpsLastUpdate = DateTime.Now.Ticks;
 
-        vk!.DestroyPipeline(device.VkDevice, pipeline.VkPipeline, null);
-        vk!.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
-        vk!.DestroyRenderPass(device.VkDevice, swapChain.GetRenderPass(), null);
-
-        foreach (var imageView in swapChain.GetSwapChainImageViews())
-        {
-            vk!.DestroyImageView(device.VkDevice, imageView, null);
-        }
-
-        swapChain.DestroySwapChain();
-        //khrSwapChain.DestroySwapchain(device.VkDevice, swapChain.GetSwapChain(), null);
+        window.Render += drawFrame;
+        window.FramebufferResize += resize;
+        window.Update += updateWindow;
     }
 
+    private void updateWindow(double frametime)
+    {
+
+        if (DateTime.Now.Ticks - fpsLastUpdate < fpsUpdateInterval) return;
+
+        fpsLastUpdate = DateTime.Now.Ticks;
+        window.Title = $"{windowName} - {1d / frametime,-8: #,##0.0} fps";
+    }
+
+    private Extent2D GetWindowExtents()
+    {
+        return new Extent2D((uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
+    }
 
 
     private void recreateSwapChain()
     {
-        var extent = window.GetExtent();
+        var frameBufferSize = window.FramebufferSize;
 
-        while (extent.Width == 0 || extent.Height == 0)
+        while (frameBufferSize.X == 0 || frameBufferSize.Y == 0)
         {
-            extent = window.GetExtent();
-            window.GlfwWindow.DoEvents();
+            frameBufferSize = window.FramebufferSize;
+            window.DoEvents();
         }
 
         vk.DeviceWaitIdle(device.VkDevice);
 
-        cleanUpSwapChain();
 
-        swapChain = new LveSwapChain(vk, device, extent);
+        if (swapChain is null)
+        {
+            swapChain = new LveSwapChain(vk, device, GetWindowExtents());
+        }
+        else
+        {
+            swapChain = new LveSwapChain(vk, device, GetWindowExtents(), swapChain);
+            if (swapChain.GetFrameBufferCount() != commandBuffers.Length)
+            {
+                freeCommandBuffers();
+                createCommandBuffers();
+            }
+        }
         createPipeline();
         
+    }
+
+    private unsafe void freeCommandBuffers()
+    {
+        fixed (CommandBuffer* commandBuffersPtr = commandBuffers)
+        {
+            vk.FreeCommandBuffers(device.VkDevice, device.GetCommandPool(), (uint)commandBuffers.Length, commandBuffersPtr);
+        }
+        Array.Clear(commandBuffers);
     }
 
     private unsafe void recordCommandBuffer(uint imageIndex)
@@ -193,8 +231,24 @@ public class FirstApp : IDisposable
             vk.CmdBeginRenderPass(commandBuffers[imageIndex], &renderPassInfo, SubpassContents.Inline);
         }
 
-        pipeline.Bind(commandBuffers[imageIndex]);
 
+        Viewport viewport = new()
+        {
+            X = 0.0f,
+            Y = 0.0f,
+            Width = swapChain.GetSwapChainExtent().Width,
+            Height = swapChain.GetSwapChainExtent().Height,
+            MinDepth = 0.0f,
+            MaxDepth = 1.0f,
+        };
+        Rect2D scissor = new(new Offset2D(), swapChain.GetSwapChainExtent());
+        vk.CmdSetViewport(commandBuffers[imageIndex], 0, 1, &viewport);
+        vk.CmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
+        //vk.CmdSetViewport(commandBuffers[imageIndex], 0, 1, (Viewport*)Unsafe.AsPointer(ref viewport));
+        //vk.CmdSetScissor(commandBuffers[imageIndex], 0, 1, (Rect2D*)Unsafe.AsPointer(ref scissor));
+
+
+        pipeline.Bind(commandBuffers[imageIndex]);
         model.Bind(commandBuffers[imageIndex]);
         model.Draw(commandBuffers[imageIndex]);
 
@@ -230,9 +284,9 @@ public class FirstApp : IDisposable
         {
             SType = StructureType.PipelineLayoutCreateInfo,
             SetLayoutCount = 0,
-            PSetLayouts = null,
+            PSetLayouts = default,
             PushConstantRangeCount = 0,
-            PPushConstantRanges = null,
+            PPushConstantRanges = default,
         };
 
         if (vk.CreatePipelineLayout(device.VkDevice, pipelineLayoutInfo, null, out pipelineLayout) != Result.Success)
@@ -243,7 +297,8 @@ public class FirstApp : IDisposable
 
     private void createPipeline()
     {
-        var pipelineConfig = LvePipeline.DefaultPipelineConfigInfo(swapChain.Width, swapChain.Height);
+        var pipelineConfig = new PipelineConfigInfo();
+        LvePipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
         pipelineConfig.RenderPass = swapChain.GetRenderPass();
         pipelineConfig.PipelineLayout = pipelineLayout;
         pipeline = new LvePipeline(
