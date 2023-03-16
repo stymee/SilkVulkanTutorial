@@ -1,7 +1,4 @@
-﻿
-using Silk.NET.Vulkan;
-
-namespace Chapter11RendererSystems;
+﻿namespace Chapter11RendererSystems;
 
 public class LvePipeline : IDisposable
 {
