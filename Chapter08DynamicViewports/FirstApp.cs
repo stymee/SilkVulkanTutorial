@@ -14,16 +14,17 @@ public class FirstApp : IDisposable
     private long fpsLastUpdate;
 
     // Vk api
-    private Vk vk = null!;
+    private readonly Vk vk = null!;
 
 
-    //private LveWindow window = null!;
     private LveDevice device = null!;
     private LvePipeline pipeline = null!;
     private LveSwapChain swapChain = null!;
     private LveModel model = null!;
+
     private PipelineLayout pipelineLayout;
     private CommandBuffer[] commandBuffers = null!;
+
     private bool disposedValue;
 
     public FirstApp()
@@ -34,15 +35,11 @@ public class FirstApp : IDisposable
         vk = Vk.GetApi();
         log.d("app run", "got vk");
 
-        //window = new LveWindow(width, height, "MyApp");
         initWindow();
         log.d("app run", "got window");
 
         device = new LveDevice(vk, window);
         log.d("app run", "got device");
-
-        //swapChain = new LveSwapChain(vk, device, window.GetExtent());
-        //log.d("app run", "got swapchain");
 
         loadModels();
         createPipelineLayout();
@@ -60,8 +57,6 @@ public class FirstApp : IDisposable
 
     private void drawFrame(double delta)
     {
-        //vk.WaitForFences(device.VkDevice, 1, swapChain.CurrentFence, true, ulong.MaxValue);
-
         uint imageIndex = 0;
         var result = swapChain.AcquireNextImage(ref imageIndex);
 

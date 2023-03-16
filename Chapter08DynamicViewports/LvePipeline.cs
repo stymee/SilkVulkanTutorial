@@ -64,26 +64,6 @@ public class LvePipeline : IDisposable
             fragShaderStageInfo
         };
 
-        //var shaderStages = new PipelineShaderStageCreateInfo[2];
-
-        //// vertex shader stage
-        //shaderStages[0].SType = StructureType.PipelineShaderStageCreateInfo;
-        //shaderStages[0].Stage = ShaderStageFlags.VertexBit;
-        //shaderStages[0].Module = vertShaderModule;
-        //shaderStages[0].PName = (byte*)SilkMarshal.StringToPtr("main");
-        //shaderStages[0].Flags = PipelineShaderStageCreateFlags.None;
-        //shaderStages[0].PNext = null;
-        //shaderStages[0].PSpecializationInfo = null;
-
-        //// frag shader stage
-        //shaderStages[1].SType = StructureType.PipelineShaderStageCreateInfo;
-        //shaderStages[1].Stage = ShaderStageFlags.FragmentBit;
-        //shaderStages[1].Module = fragShaderModule;
-        //shaderStages[1].PName = (byte*)SilkMarshal.StringToPtr("main");
-        //shaderStages[1].Flags = PipelineShaderStageCreateFlags.None;
-        //shaderStages[1].PNext = null;
-        //shaderStages[1].PSpecializationInfo = null;
-
         var bindingDescriptions = Vertex.GetBindingDescriptions();
         var attributeDescriptions = Vertex.GetAttributeDescriptions();
 
@@ -101,6 +81,7 @@ public class LvePipeline : IDisposable
                 PVertexBindingDescriptions = bindingDescriptionsPtr,
             };
 
+            // stole this from ImGui controller, pulled this out of the default pipelineConfig and constructor
             Span<DynamicState> dynamic_states = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
             var dynamic_state = new PipelineDynamicStateCreateInfo();
             dynamic_state.SType = StructureType.PipelineDynamicStateCreateInfo;
@@ -227,10 +208,7 @@ public class LvePipeline : IDisposable
         configInfo.MultisampleInfo.PSampleMask = default;
         configInfo.MultisampleInfo.AlphaToCoverageEnable = false;
         configInfo.MultisampleInfo.AlphaToOneEnable = false;
-        //};
 
-        //PipelineColorBlendAttachmentState colorBlendAttachment = new()
-        //{
         configInfo.ColorBlendAttachment.ColorWriteMask = ColorComponentFlags.RBit | ColorComponentFlags.GBit | ColorComponentFlags.BBit | ColorComponentFlags.ABit;
         configInfo.ColorBlendAttachment.BlendEnable = false;
         configInfo.ColorBlendAttachment.SrcColorBlendFactor = BlendFactor.One;
@@ -239,25 +217,19 @@ public class LvePipeline : IDisposable
         configInfo.ColorBlendAttachment.SrcAlphaBlendFactor = BlendFactor.One;
         configInfo.ColorBlendAttachment.DstAlphaBlendFactor = BlendFactor.Zero;
         configInfo.ColorBlendAttachment.AlphaBlendOp = BlendOp.Add;
-        //};
 
-        //PipelineColorBlendStateCreateInfo colorBlending = new()
-        //{
         configInfo.ColorBlendInfo.SType = StructureType.PipelineColorBlendStateCreateInfo;
         configInfo.ColorBlendInfo.LogicOpEnable = false;
         configInfo.ColorBlendInfo.LogicOp = LogicOp.Copy;
         configInfo.ColorBlendInfo.AttachmentCount = 1;
-        //configInfo.ColorBlendInfo.PAttachments = &configInfo.ColorBlendAttachment;
         configInfo.ColorBlendInfo.PAttachments = (PipelineColorBlendAttachmentState*)Unsafe.AsPointer(ref configInfo.ColorBlendAttachment);
-        //};
 
         configInfo.ColorBlendInfo.BlendConstants[0] = 0;
         configInfo.ColorBlendInfo.BlendConstants[1] = 0;
         configInfo.ColorBlendInfo.BlendConstants[2] = 0;
         configInfo.ColorBlendInfo.BlendConstants[3] = 0;
 
-        //PipelineDepthStencilStateCreateInfo depthStencil = new()
-        //{
+
         configInfo.DepthStencilInfo.SType = StructureType.PipelineDepthStencilStateCreateInfo;
         configInfo.DepthStencilInfo.DepthTestEnable = true;
         configInfo.DepthStencilInfo.DepthWriteEnable = true;
@@ -268,7 +240,9 @@ public class LvePipeline : IDisposable
         configInfo.DepthStencilInfo.StencilTestEnable = false;
         configInfo.DepthStencilInfo.Front = default;
         configInfo.DepthStencilInfo.Back = default;
-        //};
+
+
+        // pulled dynamic state stuff out of here 
 
         //var dynamicStateEnables = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
         //Span<DynamicState> dynamic_states = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };

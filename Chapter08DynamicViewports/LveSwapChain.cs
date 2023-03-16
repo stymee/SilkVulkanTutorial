@@ -31,22 +31,10 @@ public class LveSwapChain : IDisposable
 
     public uint GetFrameBufferCount() => (uint)swapChainFramebuffers.Length;
 
-    //private bool framebufferResized = false;
-
     private RenderPass renderPass;
     
     // save this for later
     //private SampleCountFlags msaaSamples = SampleCountFlags.Count1Bit;
-
-    //private DescriptorSetLayout descriptorSetLayout;
-    //private PipelineLayout pipelineLayout;
-    //private Pipeline graphicsPipeline;
-
-    //private CommandPool commandPool;
-
-    //private Image colorImage;
-    //private DeviceMemory colorImageMemory;
-    //private ImageView colorImageView;
 
     private Image[] depthImages = null!;
     private DeviceMemory[] depthImageMemorys = null!;
@@ -57,12 +45,9 @@ public class LveSwapChain : IDisposable
     private Semaphore[] imageAvailableSemaphores = null!;
     private Semaphore[] renderFinishedSemaphores = null!;
     private Fence[] inFlightFences = null!;
-    //public Fence[] InFlightFences => inFlightFences;
 
     private Fence[] imagesInFlight = null!;
     private int currentFrame = 0;
-    //public int CurrentFrame => currentFrame;
-    //public Fence CurrentFence => inFlightFences[currentFrame];
 
     public uint Width => swapChainExtent.Width;
     public uint Height => swapChainExtent.Height;
@@ -554,42 +539,6 @@ public class LveSwapChain : IDisposable
 
         vk.BindImageMemory(vkDevice, image, imageMemory, 0);
     }
-
-    //private unsafe ImageView CreateImageView(Image image, Format format, ImageAspectFlags aspectFlags, uint mipLevels)
-    //{
-    //    ImageViewCreateInfo createInfo = new()
-    //    {
-    //        SType = StructureType.ImageViewCreateInfo,
-    //        Image = image,
-    //        ViewType = ImageViewType.Type2D,
-    //        Format = format,
-    //        //Components =
-    //        //    {
-    //        //        R = ComponentSwizzle.Identity,
-    //        //        G = ComponentSwizzle.Identity,
-    //        //        B = ComponentSwizzle.Identity,
-    //        //        A = ComponentSwizzle.Identity,
-    //        //    },
-    //        SubresourceRange =
-    //            {
-    //                AspectMask = aspectFlags,
-    //                BaseMipLevel = 0,
-    //                LevelCount = mipLevels,
-    //                BaseArrayLayer = 0,
-    //                LayerCount = 1,
-    //            }
-
-    //    };
-
-    //    ImageView imageView = default;
-
-    //    if (vk.CreateImageView(vkDevice, createInfo, null, out imageView) != Result.Success)
-    //    {
-    //        throw new Exception("failed to create image views!");
-    //    }
-
-    //    return imageView;
-    //}
 
     private unsafe void createSyncObjects()
     {
