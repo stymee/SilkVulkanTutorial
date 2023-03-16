@@ -66,8 +66,6 @@ public class FirstApp : IDisposable
 
     public void Run()
     {
-        //var testSize = SimplePushConstantData.SizeOf();
-
         MainLoop();
         CleanUp();
     }
@@ -77,8 +75,13 @@ public class FirstApp : IDisposable
     {
         pipeline.Bind(commandBuffer);
 
+
         foreach (var g in gameObjects)
         {
+            g.Transform2d = g.Transform2d with
+            {
+                Rotation = g.Transform2d.Rotation + .0001f * MathF.Tau
+            };
             SimplePushConstantData push = new()
             {
                 Offset = new(g.Transform2d.Translation, 0.0f, 0.0f),
@@ -334,6 +337,8 @@ public class FirstApp : IDisposable
         Rect2D scissor = new(new Offset2D(), swapChain.GetSwapChainExtent());
         vk.CmdSetViewport(commandBuffers[imageIndex], 0, 1, &viewport);
         vk.CmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
+
+        renderGameObjects(commandBuffers[imageIndex]);
         //vk.CmdSetViewport(commandBuffers[imageIndex], 0, 1, (Viewport*)Unsafe.AsPointer(ref viewport));
         //vk.CmdSetScissor(commandBuffers[imageIndex], 0, 1, (Rect2D*)Unsafe.AsPointer(ref scissor));
 
@@ -359,8 +364,12 @@ public class FirstApp : IDisposable
         var triangle = LveGameObject.CreateGameObject();
         triangle.Model = model;
         triangle.Color = new(0.1f, 0.8f, 0.1f, 0.0f);
-        triangle.Transform2d = triangle.Transform2d with { Translation = new Vector2(0.2f, 0.0f) };
-
+        triangle.Transform2d = triangle.Transform2d with 
+        { 
+            Translation = new Vector2(0.2f, 0.0f),
+            Scale = new Vector2(2.0f, 0.5f),
+            Rotation = 0.25f * MathF.Tau
+        };
         gameObjects.Add(triangle);
 
     }
