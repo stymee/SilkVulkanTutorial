@@ -1,4 +1,7 @@
 ﻿
+using Silk.NET.Core.Native;
+using Silk.NET.Vulkan;
+
 namespace Chapter08DynamicViewports;
 
 public class LveSwapChain : IDisposable
@@ -28,7 +31,7 @@ public class LveSwapChain : IDisposable
 
     public uint GetFrameBufferCount() => (uint)swapChainFramebuffers.Length;
 
-    private bool framebufferResized = false;
+    //private bool framebufferResized = false;
 
     private RenderPass renderPass;
     
@@ -54,8 +57,12 @@ public class LveSwapChain : IDisposable
     private Semaphore[] imageAvailableSemaphores = null!;
     private Semaphore[] renderFinishedSemaphores = null!;
     private Fence[] inFlightFences = null!;
+    //public Fence[] InFlightFences => inFlightFences;
+
     private Fence[] imagesInFlight = null!;
     private int currentFrame = 0;
+    //public int CurrentFrame => currentFrame;
+    //public Fence CurrentFence => inFlightFences[currentFrame];
 
     public uint Width => swapChainExtent.Width;
     public uint Height => swapChainExtent.Height;
@@ -98,13 +105,14 @@ public class LveSwapChain : IDisposable
         createSyncObjects();
     }
 
-    public unsafe Result AcquireNextImage(uint imageIndex)
+    public Result AcquireNextImage(ref uint imageIndex)
     {
-        var fence = inFlightFences[currentFrame];
-        vk.WaitForFences(device.VkDevice, 1, in fence, Vk.True, ulong.MaxValue);
+        //var fence = inFlightFences[currentFrame];
+        //vk.WaitForFences(device.VkDevice, 1, in fence, Vk.True, ulong.MaxValue);
+        vk.WaitForFences(device.VkDevice, 1, inFlightFences[currentFrame], true, ulong.MaxValue);
 
         Result result = khrSwapChain.AcquireNextImage
-            (device.VkDevice, swapChain, ulong.MaxValue, imageAvailableSemaphores[currentFrame], default, &imageIndex);
+            (device.VkDevice, swapChain, ulong.MaxValue, imageAvailableSemaphores[currentFrame], default, ref imageIndex);
 
         return result;
     }
@@ -112,70 +120,64 @@ public class LveSwapChain : IDisposable
 
     public unsafe Result SubmitCommandBuffers(CommandBuffer commandBuffer, uint imageIndex)
     {
-        if (imagesInFlight[imageIndex].Handle != 0)
+        if (imagesInFlight![imageIndex].Handle != default)
         {
-            vk.WaitForFences(device.VkDevice, 1, in imagesInFlight[imageIndex], Vk.True, ulong.MaxValue);
+            vk!.WaitForFences(device.VkDevice, 1, imagesInFlight[imageIndex], true, ulong.MaxValue);
         }
-
         imagesInFlight[imageIndex] = inFlightFences[currentFrame];
 
-        Result result = Result.NotReady;
-
-        var submitInfo = new SubmitInfo { SType = StructureType.SubmitInfo };
-        Semaphore[] waitSemaphores = { imageAvailableSemaphores[currentFrame] };
-        PipelineStageFlags[] waitStages = { PipelineStageFlags.ColorAttachmentOutputBit };
-        submitInfo.WaitSemaphoreCount = 1;
-        var signalSemaphore = renderFinishedSemaphores[currentFrame];
-        fixed (Semaphore* waitSemaphoresPtr = waitSemaphores)
+        SubmitInfo submitInfo = new()
         {
-            fixed (PipelineStageFlags* waitStagesPtr = waitStages)
-            {
-                submitInfo.PWaitSemaphores = waitSemaphoresPtr;
-                submitInfo.PWaitDstStageMask = waitStagesPtr;
+            SType = StructureType.SubmitInfo,
+        };
 
-                submitInfo.CommandBufferCount = 1;
-                var buffer = commandBuffer;
-                submitInfo.PCommandBuffers = &buffer;
+        var waitSemaphores = stackalloc[] { imageAvailableSemaphores[currentFrame] };
+        var waitStages = stackalloc[] { PipelineStageFlags.ColorAttachmentOutputBit };
 
-                submitInfo.SignalSemaphoreCount = 1;
-                submitInfo.PSignalSemaphores = &signalSemaphore;
+        //var buffer = commandBuffers![imageIndex];
 
-                vk.ResetFences(device.VkDevice, 1, inFlightFences[currentFrame]);
+        submitInfo = submitInfo with
+        {
+            WaitSemaphoreCount = 1,
+            PWaitSemaphores = waitSemaphores,
+            PWaitDstStageMask = waitStages,
 
-                if (vk.QueueSubmit
-                        (device.GraphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != Result.Success)
-                {
-                    throw new Exception("failed to submit draw command buffer!");
-                }
-            }
+            CommandBufferCount = 1,
+            PCommandBuffers = &commandBuffer
+        };
+
+        var signalSemaphores = stackalloc[] { renderFinishedSemaphores![currentFrame] };
+        submitInfo = submitInfo with
+        {
+            SignalSemaphoreCount = 1,
+            PSignalSemaphores = signalSemaphores,
+        };
+
+        vk!.ResetFences(device.VkDevice, 1, inFlightFences[currentFrame]);
+
+        if (vk!.QueueSubmit(device.GraphicsQueue, 1, submitInfo, inFlightFences[currentFrame]) != Result.Success)
+        {
+            throw new Exception("failed to submit draw command buffer!");
         }
 
-        fixed (SwapchainKHR* swapChainPtr = &swapChain)
+        var swapChains = stackalloc[] { swapChain };
+        PresentInfoKHR presentInfo = new()
         {
-            PresentInfoKHR presentInfo = new PresentInfoKHR
-            {
-                SType = StructureType.PresentInfoKhr,
-                WaitSemaphoreCount = 1,
-                PWaitSemaphores = &signalSemaphore,
-                SwapchainCount = 1,
-                PSwapchains = swapChainPtr,
-                PImageIndices = &imageIndex
-            };
+            SType = StructureType.PresentInfoKhr,
 
-            result = khrSwapChain.QueuePresent(device.PresentQueue, &presentInfo);
-        }
+            WaitSemaphoreCount = 1,
+            PWaitSemaphores = signalSemaphores,
 
-        //if (result == Result.ErrorOutOfDateKhr || result == Result.SuboptimalKhr || framebufferResized)
-        //{
-        //    framebufferResized = false;
-        //    //RecreateSwapChain();
-        //}
-        //else if (result != Result.Success)
-        //{
-        //    throw new Exception("failed to present swap chain image!");
-        //}
+            SwapchainCount = 1,
+            PSwapchains = swapChains,
+
+            PImageIndices = &imageIndex
+        };
+
+        var result = khrSwapChain.QueuePresent(device.PresentQueue, presentInfo);
 
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
         return result;
     }
 
@@ -239,12 +241,12 @@ public class LveSwapChain : IDisposable
             }
         }
 
-        creatInfo.OldSwapchain = oldSwapChain == null ? default : oldSwapChain.VkSwapChain;
+        creatInfo.OldSwapchain = oldSwapChain == default ? default : oldSwapChain.VkSwapChain;
 
-        var res = khrSwapChain.CreateSwapchain(vkDevice, creatInfo, null, out swapChain);
-        if (res != Result.Success)
+        //var res = khrSwapChain.CreateSwapchain(vkDevice, creatInfo, null, out swapChain);
+        if (khrSwapChain.CreateSwapchain(vkDevice, creatInfo, null, out swapChain) != Result.Success)
         {
-            throw new Exception($"failed to create swap chain!\n{res}");
+            throw new Exception($"failed to create swap chain!");
         }
 
         khrSwapChain.GetSwapchainImages(vkDevice, swapChain, ref imageCount, null);
@@ -261,7 +263,8 @@ public class LveSwapChain : IDisposable
 
     private unsafe void createImageViews()
     {
-        swapChainImageViews = new ImageView[swapChainImages!.Length];
+        Array.Resize(ref swapChainImageViews, swapChainImages.Length);
+        //swapChainImageViews = new ImageView[swapChainImages!.Length];
 
         for (int i = 0; i < swapChainImages.Length; i++)
         {
@@ -349,6 +352,7 @@ public class LveSwapChain : IDisposable
         };
 
         var attachments = new[] { colorAttachment, depthAttachment };
+
         fixed (AttachmentDescription* attachmentsPtr = attachments)
         {
             RenderPassCreateInfo renderPassInfo = new()
@@ -372,7 +376,9 @@ public class LveSwapChain : IDisposable
 
     private unsafe void createFrameBuffers()
     {
-        swapChainFramebuffers = new Framebuffer[swapChainImageViews.Length];
+        Array.Resize(ref swapChainFramebuffers, swapChainImageViews.Length);
+        //swapChainFramebuffers = new Framebuffer[swapChainImageViews.Length];
+
 
         for (int i = 0; i < swapChainImageViews.Length; i++)
         {

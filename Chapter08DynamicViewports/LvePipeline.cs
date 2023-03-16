@@ -1,4 +1,6 @@
 ﻿
+using Silk.NET.Vulkan;
+
 namespace Chapter08DynamicViewports;
 
 public class LvePipeline : IDisposable
@@ -12,6 +14,7 @@ public class LvePipeline : IDisposable
     private ShaderModule vertShaderModule;
     private ShaderModule fragShaderModule;
     private bool disposedValue;
+
 
     public LvePipeline(Vk vk, LveDevice device, string vertPath, string fragPath, PipelineConfigInfo configInfo)
     {
@@ -88,6 +91,7 @@ public class LvePipeline : IDisposable
         fixed (VertexInputBindingDescription* bindingDescriptionsPtr = bindingDescriptions)
         fixed (VertexInputAttributeDescription* attributeDescriptionsPtr = attributeDescriptions)
         {
+
             var vertextInputInfo = new PipelineVertexInputStateCreateInfo()
             {
                 SType = StructureType.PipelineVertexInputStateCreateInfo,
@@ -97,8 +101,11 @@ public class LvePipeline : IDisposable
                 PVertexBindingDescriptions = bindingDescriptionsPtr,
             };
 
-
-
+            Span<DynamicState> dynamic_states = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
+            var dynamic_state = new PipelineDynamicStateCreateInfo();
+            dynamic_state.SType = StructureType.PipelineDynamicStateCreateInfo;
+            dynamic_state.DynamicStateCount = (uint)dynamic_states.Length;
+            dynamic_state.PDynamicStates = (DynamicState*)Unsafe.AsPointer(ref dynamic_states[0]);
 
 
             var pipelineInfo = new GraphicsPipelineCreateInfo()
@@ -110,18 +117,20 @@ public class LvePipeline : IDisposable
                 PInputAssemblyState = &configInfo.InputAssemblyInfo,
                 PViewportState = &configInfo.ViewportInfo,
                 PRasterizationState = &configInfo.RasterizationInfo,
+                PMultisampleState = &configInfo.MultisampleInfo,
                 PColorBlendState = &configInfo.ColorBlendInfo,
                 PDepthStencilState = &configInfo.DepthStencilInfo,
-                PDynamicState = &configInfo.DynamicStateInfo,
-                Layout = configInfo.PipelineLayout, // 
-                RenderPass = configInfo.RenderPass, // 
-                Subpass = configInfo.Subpass,       //
+                PDynamicState = (PipelineDynamicStateCreateInfo*)Unsafe.AsPointer(ref dynamic_state),
+
+                Layout = configInfo.PipelineLayout, 
+                RenderPass = configInfo.RenderPass,  
+                Subpass = configInfo.Subpass,       
+
                 BasePipelineIndex = -1,
                 BasePipelineHandle = default
-
             };
 
-            if (vk.CreateGraphicsPipelines(device.VkDevice, default, 1, pipelineInfo, null, out graphicsPipeline) != Result.Success)
+            if (vk.CreateGraphicsPipelines(device.VkDevice, default, 1, pipelineInfo, default, out graphicsPipeline) != Result.Success)
             {
                 throw new Exception("failed to create graphics pipeline!");
             }
@@ -190,34 +199,14 @@ public class LvePipeline : IDisposable
         configInfo.InputAssemblyInfo.Topology = PrimitiveTopology.TriangleList;
         configInfo.InputAssemblyInfo.PrimitiveRestartEnable = false;
 
-        //var viewportInfo = new PipelineViewportStateCreateInfo()
-        //{
+
         configInfo.ViewportInfo.SType = StructureType.PipelineViewportStateCreateInfo;
         configInfo.ViewportInfo.ViewportCount = 1;
         configInfo.ViewportInfo.PViewports = default;
         configInfo.ViewportInfo.ScissorCount = 1;
         configInfo.ViewportInfo.PScissors = default;
-        //};
-
-        //Viewport viewport = new()
-        //{
-        //    X = 0,
-        //    Y = 0,
-        //    Width = width,
-        //    Height = height,
-        //    MinDepth = 0,
-        //    MaxDepth = 1,
-        //};
-
-        //Rect2D scissor = new()
-        //{
-        //    Offset = { X = 0, Y = 0 },
-        //    Extent = new(width, height),
-        //};
 
 
-        //PipelineRasterizationStateCreateInfo rasterizer = new()
-        //{
         configInfo.RasterizationInfo.SType = StructureType.PipelineRasterizationStateCreateInfo;
         configInfo.RasterizationInfo.DepthClampEnable = false;
         configInfo.RasterizationInfo.RasterizerDiscardEnable = false;
@@ -229,15 +218,13 @@ public class LvePipeline : IDisposable
         configInfo.RasterizationInfo.DepthBiasConstantFactor = 0f;
         configInfo.RasterizationInfo.DepthBiasClamp = 0f;
         configInfo.RasterizationInfo.DepthBiasSlopeFactor = 0f;
-        //};
 
-        //PipelineMultisampleStateCreateInfo multisampling = new()
-        //{
+
         configInfo.MultisampleInfo.SType = StructureType.PipelineMultisampleStateCreateInfo;
         configInfo.MultisampleInfo.SampleShadingEnable = false;
         configInfo.MultisampleInfo.RasterizationSamples = SampleCountFlags.Count1Bit;
         configInfo.MultisampleInfo.MinSampleShading = 1.0f;
-        configInfo.MultisampleInfo.PSampleMask = null;
+        configInfo.MultisampleInfo.PSampleMask = default;
         configInfo.MultisampleInfo.AlphaToCoverageEnable = false;
         configInfo.MultisampleInfo.AlphaToOneEnable = false;
         //};
@@ -283,15 +270,16 @@ public class LvePipeline : IDisposable
         configInfo.DepthStencilInfo.Back = default;
         //};
 
-        var dynamicStateEnables = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
+        //var dynamicStateEnables = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
+        //Span<DynamicState> dynamic_states = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
 
         //PipelineDynamicStateCreateInfo dynamicState = new()
         //{
 
-        configInfo.DynamicStateInfo.SType = StructureType.PipelineDynamicStateCreateInfo;
-        configInfo.DynamicStateInfo.DynamicStateCount = 2;// (uint)dynamicStateEnables.Length;
-        configInfo.DynamicStateInfo.PDynamicStates = dynamicStateEnables;
-        configInfo.DynamicStateInfo.Flags = 0;
+        //configInfo.DynamicStateInfo.SType = StructureType.PipelineDynamicStateCreateInfo;
+        //configInfo.DynamicStateInfo.PDynamicStates = (DynamicState*)Unsafe.AsPointer(ref dynamic_states[0]);
+        //configInfo.DynamicStateInfo.DynamicStateCount = (uint)dynamic_states.Length;
+        //configInfo.DynamicStateInfo.Flags = 0;
         //};
 
 
@@ -354,15 +342,27 @@ public struct PipelineConfigInfo
     public PipelineColorBlendAttachmentState ColorBlendAttachment;
     public PipelineColorBlendStateCreateInfo ColorBlendInfo;
     public PipelineDepthStencilStateCreateInfo DepthStencilInfo;
-    public DynamicState[] DynamicStateEnables;
-    public PipelineDynamicStateCreateInfo DynamicStateInfo;
+    //public DynamicState[] DynamicStateEnables;
+
+    //public PipelineDynamicStateCreateInfo DynamicStateInfo;
     public PipelineLayout PipelineLayout; // no default to be set
     public RenderPass RenderPass; // no default to be set
     public uint Subpass;
+    //public DynamicState[] DynamicStateEnables; //= stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
 
     public PipelineConfigInfo()
     {
         Subpass = 0;
-        DynamicStateEnables = Array.Empty<DynamicState>();
+
+        //PipelineDynamicStateCreateInfo dynamicState = new()
+        //{
+        //unsafe
+        //{
+        //    Span<DynamicState> dynamic_states = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
+        //    DynamicStateEnables = dynamic_states.ToArray();
+        //    DynamicStateInfo.PDynamicStates = (DynamicState*)Unsafe.AsPointer(ref DynamicStateEnables[0]);
+        //}
+
+        //DynamicStateEnables = Array.Empty<DynamicState>();
     }
 }

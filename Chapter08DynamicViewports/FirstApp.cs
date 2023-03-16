@@ -5,7 +5,7 @@ namespace Chapter08DynamicViewports;
 public class FirstApp : IDisposable
 {
     // Window stuff
-    private IWindow window = null!;
+    private IView window = null!;
     private int width = 800;
     private int height = 600;
     private string windowName = "Vulkan Tut";
@@ -60,16 +60,17 @@ public class FirstApp : IDisposable
 
     private void drawFrame(double delta)
     {
+        //vk.WaitForFences(device.VkDevice, 1, swapChain.CurrentFence, true, ulong.MaxValue);
+
         uint imageIndex = 0;
-        var result = swapChain.AcquireNextImage(imageIndex);
+        var result = swapChain.AcquireNextImage(ref imageIndex);
 
         if (result == Result.ErrorOutOfDateKhr)
         {
             recreateSwapChain();
             return;
         }
-
-        if (result != Result.Success && result != Result.SuboptimalKhr)
+        else if (result != Result.Success && result != Result.SuboptimalKhr)
         {
             throw new Exception("failed to acquire next swapchain image");
         }
@@ -138,7 +139,12 @@ public class FirstApp : IDisposable
         if (DateTime.Now.Ticks - fpsLastUpdate < fpsUpdateInterval) return;
 
         fpsLastUpdate = DateTime.Now.Ticks;
-        window.Title = $"{windowName} - {1d / frametime,-8: #,##0.0} fps";
+        if (window is IWindow w)
+        {
+            //w.Title = $"{windowName} | W {window.Size.X}x{window.Size.Y} | FPS {Math.Ceiling(1d / obj)} | ";
+            w.Title = $"{windowName} - {1d / frametime,-8: #,##0.0} fps";
+        }
+
     }
 
     private Extent2D GetWindowExtents()
@@ -150,13 +156,11 @@ public class FirstApp : IDisposable
     private void recreateSwapChain()
     {
         var frameBufferSize = window.FramebufferSize;
-
         while (frameBufferSize.X == 0 || frameBufferSize.Y == 0)
         {
             frameBufferSize = window.FramebufferSize;
             window.DoEvents();
         }
-
         vk.DeviceWaitIdle(device.VkDevice);
 
 
@@ -173,9 +177,48 @@ public class FirstApp : IDisposable
                 createCommandBuffers();
             }
         }
+
+
         createPipeline();
-        
     }
+
+
+    private void createPipeline()
+    {
+        var pipelineConfig = new PipelineConfigInfo();
+        LvePipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
+
+        pipelineConfig.RenderPass = swapChain.GetRenderPass();
+        pipelineConfig.PipelineLayout = pipelineLayout;
+        pipeline = new LvePipeline(
+            vk, device,
+            "simpleShader.vert.spv", "simpleShader.frag.spv",
+            pipelineConfig
+            );
+        log.d("app run", " got pipeline");
+    }
+
+    private unsafe void createCommandBuffers()
+    {
+        commandBuffers = new CommandBuffer[swapChain.ImageCount()];
+
+        CommandBufferAllocateInfo allocInfo = new()
+        {
+            SType = StructureType.CommandBufferAllocateInfo,
+            Level = CommandBufferLevel.Primary,
+            CommandPool = device.GetCommandPool(),
+            CommandBufferCount = (uint)commandBuffers.Length,
+        };
+
+        fixed (CommandBuffer* commandBuffersPtr = commandBuffers)
+        {
+            if (vk!.AllocateCommandBuffers(device.VkDevice, allocInfo, commandBuffersPtr) != Result.Success)
+            {
+                throw new Exception("failed to allocate command buffers!");
+            }
+        }
+    }
+
 
     private unsafe void freeCommandBuffers()
     {
@@ -254,8 +297,6 @@ public class FirstApp : IDisposable
 
 
         vk.CmdEndRenderPass(commandBuffers[imageIndex]);
-
-
         if (vk.EndCommandBuffer(commandBuffers[imageIndex]) != Result.Success)
         {
             throw new Exception("failed to record command buffer!");
@@ -293,105 +334,6 @@ public class FirstApp : IDisposable
         {
             throw new Exception("failed to create pipeline layout!");
         }
-    }
-
-    private void createPipeline()
-    {
-        var pipelineConfig = new PipelineConfigInfo();
-        LvePipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
-        pipelineConfig.RenderPass = swapChain.GetRenderPass();
-        pipelineConfig.PipelineLayout = pipelineLayout;
-        pipeline = new LvePipeline(
-            vk, device,
-            "simpleShader.vert.spv", "simpleShader.frag.spv",
-            pipelineConfig
-            );
-        log.d("app run", " got pipeline");
-    }
-
-    private unsafe void createCommandBuffers()
-    {
-        commandBuffers = new CommandBuffer[swapChain.ImageCount()];
-
-        CommandBufferAllocateInfo allocInfo = new()
-        {
-            SType = StructureType.CommandBufferAllocateInfo,
-            CommandPool = device.GetCommandPool(),
-            Level = CommandBufferLevel.Primary,
-            CommandBufferCount = (uint)commandBuffers.Length,
-        };
-
-        fixed (CommandBuffer* commandBuffersPtr = commandBuffers)
-        {
-            if (vk!.AllocateCommandBuffers(device.VkDevice, allocInfo, commandBuffersPtr) != Result.Success)
-            {
-                throw new Exception("failed to allocate command buffers!");
-            }
-        }
-
-
-        //for (int i = 0; i < commandBuffers.Length; i++)
-        //{
-        //    CommandBufferBeginInfo beginInfo = new()
-        //    {
-        //        SType = StructureType.CommandBufferBeginInfo,
-        //    };
-
-        //    if (vk.BeginCommandBuffer(commandBuffers[i], beginInfo) != Result.Success)
-        //    {
-        //        throw new Exception("failed to begin recording command buffer!");
-        //    }
-
-        //    RenderPassBeginInfo renderPassInfo = new()
-        //    {
-        //        SType = StructureType.RenderPassBeginInfo,
-        //        RenderPass = swapChain.GetRenderPass(),
-        //        Framebuffer = swapChain.GetFrameBufferAt(i),
-        //        RenderArea =
-        //        {
-        //            Offset = { X = 0, Y = 0 },
-        //            Extent = swapChain.GetSwapChainExtent(),
-        //        }
-        //    };
-
-        //    var clearValues = new ClearValue[]
-        //    {
-        //        new()
-        //        {
-        //            Color = new (){ Float32_0 = 0.1f, Float32_1 = 0.1f, Float32_2 = 0.1f, Float32_3 = 1 },
-        //        },
-        //        new()
-        //        {
-        //            DepthStencil = new () { Depth = 1, Stencil = 0 }
-        //        }
-        //    };
-
-
-        //    fixed (ClearValue* clearValuesPtr = clearValues)
-        //    {
-        //        renderPassInfo.ClearValueCount = (uint)clearValues.Length;
-        //        renderPassInfo.PClearValues = clearValuesPtr;
-
-        //        vk.CmdBeginRenderPass(commandBuffers[i], &renderPassInfo, SubpassContents.Inline);
-        //    }
-
-        //    pipeline.Bind(commandBuffers[i]);
-
-        //    model.Bind(commandBuffers[i]);
-        //    model.Draw(commandBuffers[i]);
-        //    //vk.CmdDraw(commandBuffers[i], 3, 1, 0, 0);
-
-
-        //    vk.CmdEndRenderPass(commandBuffers[i]);
-
-
-        //    if (vk.EndCommandBuffer(commandBuffers[i]) != Result.Success)
-        //    {
-        //        throw new Exception("failed to record command buffer!");
-        //    }
-
-        //}
-
     }
 
     protected unsafe virtual void Dispose(bool disposing)

@@ -3,7 +3,7 @@
 public unsafe class LveDevice
 {
     private readonly Vk vk = null!;
-    private readonly IWindow window;
+    private readonly IView window;
 
     public Device VkDevice => device;
 
@@ -44,7 +44,7 @@ public unsafe class LveDevice
     public CommandPool GetCommandPool() => commandPool;
 
 
-    public LveDevice(Vk vk, IWindow window)
+    public LveDevice(Vk vk, IView window)
     {
         this.vk = vk;
         this.window = window;
@@ -184,6 +184,11 @@ public unsafe class LveDevice
         if (!vk.TryGetInstanceExtension<KhrSurface>(instance, out khrSurface))
         {
             throw new NotSupportedException("KHR_surface extension not found.");
+        }
+
+        if (window.VkSurface is null)
+        {
+            throw new ApplicationException("window.VkSurface is null and shouldn't be!");
         }
 
         surface = window.VkSurface.Create<AllocationCallbacks>(instance.ToHandle(), null).ToSurface();
