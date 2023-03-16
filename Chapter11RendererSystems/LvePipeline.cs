@@ -1,7 +1,7 @@
 ﻿
 using Silk.NET.Vulkan;
 
-namespace Chapter102DTransformations;
+namespace Chapter11RendererSystems;
 
 public class LvePipeline : IDisposable
 {

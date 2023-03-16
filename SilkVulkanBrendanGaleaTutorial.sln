@@ -21,7 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter08DynamicViewports",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter09PushConstants", "Chapter09PushConstants\Chapter09PushConstants.csproj", "{BD08014E-6946-43BC-A55A-D118A69EB992}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter102DTransformations", "Chapter102DTransformations\Chapter102DTransformations.csproj", "{1BC90F4A-F199-422B-A8B6-BB77D3E62D79}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter10TwoDTransformations", "Chapter10TwoDTransformations\Chapter10TwoDTransformations.csproj", "{DC25E07E-AB57-4784-BF3D-D16A45EBEBB8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter11RendererSystems", "Chapter11RendererSystems\Chapter11RendererSystems.csproj", "{66B18E95-1051-4C46-A619-7DE53C66BDC3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,10 +67,14 @@ Global
 		{BD08014E-6946-43BC-A55A-D118A69EB992}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD08014E-6946-43BC-A55A-D118A69EB992}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD08014E-6946-43BC-A55A-D118A69EB992}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1BC90F4A-F199-422B-A8B6-BB77D3E62D79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1BC90F4A-F199-422B-A8B6-BB77D3E62D79}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1BC90F4A-F199-422B-A8B6-BB77D3E62D79}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1BC90F4A-F199-422B-A8B6-BB77D3E62D79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC25E07E-AB57-4784-BF3D-D16A45EBEBB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC25E07E-AB57-4784-BF3D-D16A45EBEBB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC25E07E-AB57-4784-BF3D-D16A45EBEBB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC25E07E-AB57-4784-BF3D-D16A45EBEBB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66B18E95-1051-4C46-A619-7DE53C66BDC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66B18E95-1051-4C46-A619-7DE53C66BDC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66B18E95-1051-4C46-A619-7DE53C66BDC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66B18E95-1051-4C46-A619-7DE53C66BDC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

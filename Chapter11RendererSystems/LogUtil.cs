@@ -1,5 +1,5 @@
 ﻿
-namespace Chapter102DTransformations;
+namespace Chapter11RendererSystems;
 
 public enum VerbosityLevels
 {

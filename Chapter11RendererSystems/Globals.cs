@@ -26,5 +26,5 @@ global using Device = Silk.NET.Vulkan.Device;
 
 
 
-namespace Chapter102DTransformations;
+namespace Chapter11RendererSystems;
 

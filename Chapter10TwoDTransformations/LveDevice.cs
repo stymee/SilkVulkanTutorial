@@ -1,4 +1,4 @@
-﻿namespace Chapter102DTransformations;
+﻿namespace Chapter10TwoDTransformations;
 
 public unsafe class LveDevice
 {

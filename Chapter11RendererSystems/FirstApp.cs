@@ -1,4 +1,4 @@
-﻿namespace Chapter102DTransformations;
+﻿namespace Chapter11RendererSystems;
 
 public class FirstApp : IDisposable
 {
