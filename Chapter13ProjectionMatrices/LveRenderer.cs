@@ -23,10 +23,8 @@ public class LveRenderer : IDisposable
 
 
     // public props and methods
-    public RenderPass GetSwapChainRenderPass()
-    {
-        return swapChain.GetRenderPass();
-    }
+    public RenderPass GetSwapChainRenderPass() => swapChain.GetRenderPass();
+    public float GetAspectRatio() => swapChain.GetAspectRatio();
 
     public bool IsFrameStarted => isFrameStarted;
     public CommandBuffer GetCurrentCommandBuffer() => commandBuffers[currentFrameIndex];

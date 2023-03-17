@@ -16,6 +16,7 @@ public class FirstApp : IDisposable
     private LveDevice device = null!;
     private LveRenderer lveRenderer = null!;
     private List<LveGameObject> gameObjects = new();
+    private LveCamera camera = null!;
 
     private bool disposedValue;
 
@@ -46,6 +47,8 @@ public class FirstApp : IDisposable
     {
         simpleRenderSystem = new(vk, device, lveRenderer.GetSwapChainRenderPass());
         log.d("startup", "got render system");
+        camera = new();
+        log.d("startup", "got camera");
         MainLoop();
         CleanUp();
     }
@@ -53,12 +56,16 @@ public class FirstApp : IDisposable
 
     private void render(double delta)
     {
+        float aspect = lveRenderer.GetAspectRatio();
+        //camera.SetOrthographicProjection(-aspect, aspect, -1f, 1f, -1f, 1f);
+        camera.SetPerspectiveProjection(50f * MathF.PI / 180f, aspect, 0.1f, 10f);
+
         var commandBuffer = lveRenderer.BeginFrame();
 
         if (commandBuffer is not null)
         {
             lveRenderer.BeginSwapChainRenderPass(commandBuffer.Value);
-            simpleRenderSystem.RenderGameObjects(commandBuffer.Value, ref gameObjects);
+            simpleRenderSystem.RenderGameObjects(commandBuffer.Value, ref gameObjects, camera);
             lveRenderer.EndSwapChainRenderPass(commandBuffer.Value);
             lveRenderer.EndFrame();
         }
@@ -125,7 +132,7 @@ public class FirstApp : IDisposable
         cube.Model = CreateCubeModel(vk, device, Vector3.Zero);
         cube.Transform = cube.Transform with
         {
-            Translation = new(0.0f, 0.0f, 0.5f),
+            Translation = new(0.0f, 0.0f, 2.5f),
             Scale = new(0.5f)
         };
 

@@ -57,6 +57,9 @@ public class LveSwapChain : IDisposable
     public uint Height => swapChainExtent.Height;
 
     public Extent2D GetSwapChainExtent() => swapChainExtent;
+
+    // need the floats below?
+    public float GetAspectRatio() => (float)swapChainExtent.Width / (float)swapChainExtent.Height;
     public RenderPass GetRenderPass() => renderPass;
 
     public uint ImageCount() => (uint)swapChainImageViews.Length;

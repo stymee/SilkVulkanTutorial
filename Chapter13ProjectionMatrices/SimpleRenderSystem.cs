@@ -61,7 +61,7 @@ class SimpleRenderSystem
         log.d("app run", " got pipeline");
     }
 
-    public void RenderGameObjects(CommandBuffer commandBuffer, ref List<LveGameObject> gameObjects)
+    public void RenderGameObjects(CommandBuffer commandBuffer, ref List<LveGameObject> gameObjects, LveCamera camera)
     {
         pipeline.Bind(commandBuffer);
 
@@ -79,7 +79,7 @@ class SimpleRenderSystem
             SimplePushConstantData push = new()
             {
                 Color = g.Color,
-                Transform = g.Transform.Mat4()
+                Transform = g.Transform.Mat4() * camera.GetProjection() // this is reverse from tutorial?
             };
             vk.CmdPushConstants(commandBuffer, pipelineLayout, ShaderStageFlags.VertexBit | ShaderStageFlags.FragmentBit, 0, SimplePushConstantData.SizeOf(), ref push);
             g.Model.Bind(commandBuffer);
