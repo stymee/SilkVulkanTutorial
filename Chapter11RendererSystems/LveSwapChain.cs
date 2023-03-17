@@ -6,6 +6,7 @@ public class LveSwapChain : IDisposable
     private bool disposedValue;
 
     const int MAX_FRAMES_IN_FLIGHT = 2;
+    public int MaxFramesInFlight => MAX_FRAMES_IN_FLIGHT;
 
     private readonly Vk vk = null!;
     private readonly LveDevice device = null!;
@@ -16,11 +17,17 @@ public class LveSwapChain : IDisposable
     public SwapchainKHR VkSwapChain => swapChain;
 
     private Image[] swapChainImages = null!;
+
     private Format swapChainImageFormat;
+    public Format SwapChainImageFormat => swapChainImageFormat;
+
+    private Format swapChainDepthFormat;
+    public Format SwapChainDepthFormat => swapChainDepthFormat;
+
     private Extent2D swapChainExtent;
     private ImageView[] swapChainImageViews = null!;
     public ImageView[] GetSwapChainImageViews() => swapChainImageViews;
-    
+
 
     private Framebuffer[] swapChainFramebuffers = null!;
     public Framebuffer GetFrameBufferAt(uint i) => swapChainFramebuffers[i];
@@ -29,7 +36,7 @@ public class LveSwapChain : IDisposable
     public uint GetFrameBufferCount() => (uint)swapChainFramebuffers.Length;
 
     private RenderPass renderPass;
-    
+
     // save this for later
     //private SampleCountFlags msaaSamples = SampleCountFlags.Count1Bit;
 
@@ -53,6 +60,7 @@ public class LveSwapChain : IDisposable
     public RenderPass GetRenderPass() => renderPass;
 
     public uint ImageCount() => (uint)swapChainImageViews.Length;
+
 
     private LveSwapChain? oldSwapChain = null!;
 
@@ -87,6 +95,11 @@ public class LveSwapChain : IDisposable
         createSyncObjects();
     }
 
+    public bool CompareSwapFormats(LveSwapChain swapChainToCompare)
+    {
+        return swapChainToCompare.SwapChainDepthFormat == swapChainDepthFormat &&
+               swapChainToCompare.SwapChainImageFormat == swapChainImageFormat;
+    }
     public Result AcquireNextImage(ref uint imageIndex)
     {
         //var fence = inFlightFences[currentFrame];
@@ -245,8 +258,8 @@ public class LveSwapChain : IDisposable
 
     private unsafe void createImageViews()
     {
-        Array.Resize(ref swapChainImageViews, swapChainImages.Length);
-        //swapChainImageViews = new ImageView[swapChainImages!.Length];
+        //Array.Resize(ref swapChainImageViews, swapChainImages.Length);
+        swapChainImageViews = new ImageView[swapChainImages.Length];
 
         for (int i = 0; i < swapChainImages.Length; i++)
         {
@@ -358,8 +371,8 @@ public class LveSwapChain : IDisposable
 
     private unsafe void createFrameBuffers()
     {
-        Array.Resize(ref swapChainFramebuffers, swapChainImageViews.Length);
-        //swapChainFramebuffers = new Framebuffer[swapChainImageViews.Length];
+        //Array.Resize(ref swapChainFramebuffers, swapChainImageViews.Length);
+        swapChainFramebuffers = new Framebuffer[swapChainImageViews.Length];
 
 
         for (int i = 0; i < swapChainImageViews.Length; i++)
@@ -391,6 +404,7 @@ public class LveSwapChain : IDisposable
     private unsafe void createDepthResources()
     {
         Format depthFormat = device.FindDepthFormat();
+        swapChainDepthFormat = depthFormat;
 
         var imageCount = ImageCount();
         depthImages = new Image[imageCount];

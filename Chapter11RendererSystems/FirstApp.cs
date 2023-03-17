@@ -19,30 +19,33 @@ public class FirstApp : IDisposable
 
     private bool disposedValue;
 
-    private SimpleRenderSystem srs = null!;
+    private SimpleRenderSystem simpleRenderSystem = null!;
 
     public FirstApp()
     {
         log.RestartTimer();
-        log.d("app run", "starting Run");
+        log.d("startup", "starting up");
 
         vk = Vk.GetApi();
-        log.d("app run", "got vk");
+        log.d("startup", "got vk");
 
         initWindow();
-        log.d("app run", "got window");
+        log.d("startup", "got window");
 
         device = new LveDevice(vk, window);
-        log.d("app run", "got device");
+        log.d("startup", "got device");
 
         lveRenderer = new LveRenderer(vk, window, device);
+        log.d("startup", "got renderer");
 
-        
-        srs = new(vk, device, lveRenderer.GetSwapChainRenderPass());
+        loadGameObjects();
+        log.d("startup", "objects loaded");
     }
 
     public void Run()
     {
+        simpleRenderSystem = new(vk, device, lveRenderer.GetSwapChainRenderPass());
+        log.d("startup", "got render system");
         MainLoop();
         CleanUp();
     }
@@ -51,18 +54,18 @@ public class FirstApp : IDisposable
     private void render(double delta)
     {
         var commandBuffer = lveRenderer.BeginFrame();
+
         if (commandBuffer is not null)
         {
+            //var check = commandBuffer.Value.Handle;
+            //Console.WriteLine($"  0x{check:X8} [{lveRenderer.GetFrameIndex(),4}] BeginFrame outside");
+
             lveRenderer.BeginSwapChainRenderPass(commandBuffer.Value);
-            srs.RenderGameObjects(commandBuffer.Value, ref gameObjects);
+            simpleRenderSystem.RenderGameObjects(commandBuffer.Value, ref gameObjects);
             lveRenderer.EndSwapChainRenderPass(commandBuffer.Value);
             lveRenderer.EndFrame();
         }
-        
-
     }
-
-
 
     private void MainLoop()
     {
@@ -100,11 +103,6 @@ public class FirstApp : IDisposable
         window.Render += render;
     }
 
-    private void resize(Vector2D<int> newsize)
-    {
-
-    }
-    
     private void updateWindow(double frametime)
     {
 
@@ -118,6 +116,36 @@ public class FirstApp : IDisposable
         }
 
     }
+
+    private void resize(Vector2D<int> newsize)
+    {
+
+    }
+
+    private void loadGameObjects()
+    {
+        var vertices = new Vertex[]
+        {
+            new Vertex(0.0f, -0.5f, 1.0f, 0.0f, 0.0f),
+            new Vertex(0.5f, 0.5f, 0.0f, 1.0f, 0.0f),
+            new Vertex(-0.5f, 0.5f, 0.0f, 0.0f, 1.0f),
+        };
+
+        var model = new LveModel(vk, device, vertices);
+
+        var triangle = LveGameObject.CreateGameObject();
+        triangle.Model = model;
+        triangle.Color = new(0.1f, 0.8f, 0.1f, 0.0f);
+        triangle.Transform2d = triangle.Transform2d with
+        {
+            Translation = new Vector2(0.2f, 0.0f),
+            Scale = new Vector2(2.0f, 0.5f),
+            Rotation = 0.25f * MathF.Tau
+        };
+        gameObjects.Add(triangle);
+
+    }
+
 
 
     protected unsafe virtual void Dispose(bool disposing)

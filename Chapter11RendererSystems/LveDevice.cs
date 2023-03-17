@@ -308,7 +308,7 @@ public unsafe class LveDevice
             SType = StructureType.CommandPoolCreateInfo,
             QueueFamilyIndex = queueFamiliyIndicies.GraphicsFamily!.Value,
             // added flag below to eliminate a validation layer error about clearing command buffer before recording
-            Flags = CommandPoolCreateFlags.ResetCommandBufferBit
+            Flags = CommandPoolCreateFlags.TransientBit | CommandPoolCreateFlags.ResetCommandBufferBit
         };
 
         if (vk.CreateCommandPool(device, poolInfo, null, out commandPool) != Result.Success)

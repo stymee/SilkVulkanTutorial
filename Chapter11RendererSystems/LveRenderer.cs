@@ -9,29 +9,32 @@ public class LveRenderer : IDisposable
     private readonly IView window = null!;
     private readonly LveDevice device = null!;
 
-
     private LveSwapChain swapChain = null!;
     private CommandBuffer[] commandBuffers = null!;
 
     private bool framebufferResized = false;
-    private uint currentImageIndex;
+    private uint currentImageIndex = 0;
+    private int currentFrameIndex = 0;
     private bool isFrameStarted = false;
 
-    public bool IsFrameStarted => isFrameStarted;
+    private LveSwapChain? oldSwapChain = null;
 
-    public CommandBuffer GetCurrentCommandBuffer()
-    {
-        return commandBuffers[currentImageIndex];
-    }
+    private bool disposedValue;
 
+
+    // public props and methods
     public RenderPass GetSwapChainRenderPass()
     {
         return swapChain.GetRenderPass();
     }
 
-    private bool disposedValue;
+    public bool IsFrameStarted => isFrameStarted;
+    public CommandBuffer GetCurrentCommandBuffer() => commandBuffers[currentFrameIndex];
+    public int GetFrameIndex() => currentFrameIndex;
 
 
+
+    // Constructor
     public LveRenderer(Vk vk, IView window, LveDevice device)
     {
         this.vk = vk;
@@ -42,6 +45,77 @@ public class LveRenderer : IDisposable
     }
 
 
+
+    private void recreateSwapChain()
+    {
+        var frameBufferSize = window.FramebufferSize;
+        while (frameBufferSize.X == 0 || frameBufferSize.Y == 0)
+        {
+            frameBufferSize = window.FramebufferSize;
+            window.DoEvents();
+        }
+        vk.DeviceWaitIdle(device.VkDevice);
+
+
+        if (swapChain is null)
+        {
+            swapChain = new LveSwapChain(vk, device, GetWindowExtents());
+        }
+        else
+        {
+            oldSwapChain = swapChain;
+            swapChain = new LveSwapChain(vk, device, GetWindowExtents(), oldSwapChain);
+
+            if (!oldSwapChain.CompareSwapFormats(swapChain))
+            {
+                throw new Exception("Swap chain image(or depth) format has changed!");
+            }
+            //if (swapChain.GetFrameBufferCount() != commandBuffers.Length)
+            //{
+            //    freeCommandBuffers();
+            //    createCommandBuffers();
+            //}
+        }
+
+    }
+
+    private unsafe void createCommandBuffers()
+    {
+        //Array.Resize(ref commandBuffers, swapChain.MaxFramesInFlight);
+        commandBuffers = new CommandBuffer[swapChain.ImageCount()];
+
+        CommandBufferAllocateInfo allocInfo = new()
+        {
+            SType = StructureType.CommandBufferAllocateInfo,
+            Level = CommandBufferLevel.Primary,
+            CommandPool = device.GetCommandPool(),
+            CommandBufferCount = (uint)commandBuffers.Length,
+        };
+
+        fixed (CommandBuffer* commandBuffersPtr = commandBuffers)
+        {
+            if (vk!.AllocateCommandBuffers(device.VkDevice, allocInfo, commandBuffersPtr) != Result.Success)
+            {
+                throw new Exception("failed to allocate command buffers!");
+            }
+        }
+    }
+
+
+    private unsafe void freeCommandBuffers()
+    {
+        fixed (CommandBuffer* commandBuffersPtr = commandBuffers)
+        {
+            vk.FreeCommandBuffers(device.VkDevice, device.GetCommandPool(), (uint)commandBuffers.Length, commandBuffersPtr);
+        }
+        Array.Clear(commandBuffers);
+    }
+
+
+
+
+
+    //public bool BeginFrame(out CommandBuffer? outBuffer)
     public CommandBuffer? BeginFrame()
     {
         Debug.Assert(!isFrameStarted, "Can't call beginFrame while already in progress!");
@@ -51,7 +125,8 @@ public class LveRenderer : IDisposable
         if (result == Result.ErrorOutOfDateKhr)
         {
             recreateSwapChain();
-            return default;
+            return null;
+            //return default;
         }
         else if (result != Result.Success && result != Result.SuboptimalKhr)
         {
@@ -61,6 +136,10 @@ public class LveRenderer : IDisposable
         isFrameStarted = true;
 
         var commandBuffer = GetCurrentCommandBuffer();
+        //if (vk.EndCommandBuffer(commandBuffer) != Result.Success)
+        //{
+        //    throw new Exception("failed to pre end recording command buffer!");
+        //}
 
         CommandBufferBeginInfo beginInfo = new()
         {
@@ -72,12 +151,16 @@ public class LveRenderer : IDisposable
             throw new Exception("failed to begin recording command buffer!");
         }
 
+        //var check = commandBuffer.Handle;
+        //Console.WriteLine($"  0x{check:X8} [{GetFrameIndex(),4}] BeginFrame inside");
+
+        //outBuffer = commandBuffer;
         return commandBuffer;
     }
 
     public void EndFrame()
     {
-        Debug.Assert(isFrameStarted, "Can't call endFram while frame is not in progress");
+        Debug.Assert(isFrameStarted, "Can't call endFrame while frame is not in progress");
 
         var commandBuffer = GetCurrentCommandBuffer();
 
@@ -85,6 +168,8 @@ public class LveRenderer : IDisposable
         {
             throw new Exception("failed to record command buffer!");
         }
+        //var check = commandBuffer.Handle;
+        //Console.WriteLine($"  0x{check:X8} [{GetFrameIndex(),4}] EndFrame, ");
 
         var result = swapChain.SubmitCommandBuffers(commandBuffer, currentImageIndex);
         if (result == Result.ErrorOutOfDateKhr || result == Result.SuboptimalKhr || framebufferResized)
@@ -98,23 +183,23 @@ public class LveRenderer : IDisposable
         }
 
         isFrameStarted = false;
-
+        currentFrameIndex = (currentFrameIndex + 1) % swapChain.MaxFramesInFlight;
     }
 
     public unsafe void BeginSwapChainRenderPass(CommandBuffer commandBuffer)
     {
-        Debug.Assert(isFrameStarted, "Can't call beginSwapChainRenderPass if fram is not in progress");
+        Debug.Assert(isFrameStarted, "Can't call beginSwapChainRenderPass if frame is not in progress");
         Debug.Assert(commandBuffer.Handle == GetCurrentCommandBuffer().Handle, "Can't begin render pass on command buffer from a different frame");
-        
-        CommandBufferBeginInfo beginInfo = new()
-        {
-            SType = StructureType.CommandBufferBeginInfo,
-        };
 
-        if (vk.BeginCommandBuffer(commandBuffer, beginInfo) != Result.Success)
-        {
-            throw new Exception("failed to begin recording command buffer!");
-        }
+        //CommandBufferBeginInfo beginInfo = new()
+        //{
+        //    SType = StructureType.CommandBufferBeginInfo,
+        //};
+
+        //if (vk.BeginCommandBuffer(commandBuffer, beginInfo) != Result.Success)
+        //{
+        //    throw new Exception("failed to begin recording command buffer!");
+        //}
 
         RenderPassBeginInfo renderPassInfo = new()
         {
@@ -167,7 +252,7 @@ public class LveRenderer : IDisposable
 
     public void EndSwapChainRenderPass(CommandBuffer commandBuffer)
     {
-        Debug.Assert(isFrameStarted, "Can't call endSwapChainRenderPass if fram is not in progress");
+        Debug.Assert(isFrameStarted, "Can't call endSwapChainRenderPass if frame is not in progress");
         Debug.Assert(commandBuffer.Handle == GetCurrentCommandBuffer().Handle, "Can't end render pass on command buffer from a different frame");
 
         vk.CmdEndRenderPass(commandBuffer);
@@ -182,71 +267,6 @@ public class LveRenderer : IDisposable
     {
         return new Extent2D((uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
     }
-
-
-    private void recreateSwapChain()
-    {
-        var frameBufferSize = window.FramebufferSize;
-        while (frameBufferSize.X == 0 || frameBufferSize.Y == 0)
-        {
-            frameBufferSize = window.FramebufferSize;
-            window.DoEvents();
-        }
-        vk.DeviceWaitIdle(device.VkDevice);
-
-
-        if (swapChain is null)
-        {
-            swapChain = new LveSwapChain(vk, device, GetWindowExtents());
-        }
-        else
-        {
-            swapChain = new LveSwapChain(vk, device, GetWindowExtents(), swapChain);
-            if (swapChain.GetFrameBufferCount() != commandBuffers.Length)
-            {
-                freeCommandBuffers();
-                createCommandBuffers();
-            }
-        }
-
-    }
-
-
-    private unsafe void createCommandBuffers()
-    {
-        commandBuffers = new CommandBuffer[swapChain.ImageCount()];
-
-        CommandBufferAllocateInfo allocInfo = new()
-        {
-            SType = StructureType.CommandBufferAllocateInfo,
-            Level = CommandBufferLevel.Primary,
-            CommandPool = device.GetCommandPool(),
-            CommandBufferCount = (uint)commandBuffers.Length,
-        };
-
-        fixed (CommandBuffer* commandBuffersPtr = commandBuffers)
-        {
-            if (vk!.AllocateCommandBuffers(device.VkDevice, allocInfo, commandBuffersPtr) != Result.Success)
-            {
-                throw new Exception("failed to allocate command buffers!");
-            }
-        }
-    }
-
-
-    private unsafe void freeCommandBuffers()
-    {
-        fixed (CommandBuffer* commandBuffersPtr = commandBuffers)
-        {
-            vk.FreeCommandBuffers(device.VkDevice, device.GetCommandPool(), (uint)commandBuffers.Length, commandBuffersPtr);
-        }
-        Array.Clear(commandBuffers);
-    }
-
-
-
-
-
 
 
 
