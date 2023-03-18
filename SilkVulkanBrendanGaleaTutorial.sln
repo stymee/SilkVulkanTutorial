@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter15GameLoopUserInput"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter16IndexStagingBuffers", "Chapter16IndexStagingBuffers\Chapter16IndexStagingBuffers.csproj", "{19B7C501-4699-41C0-B128-C918F5FE6379}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter17Loading3DModels", "Chapter17Loading3DModels\Chapter17Loading3DModels.csproj", "{9F0445B9-6C10-4B6B-A98A-45D3FD35055F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +107,10 @@ Global
 		{19B7C501-4699-41C0-B128-C918F5FE6379}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19B7C501-4699-41C0-B128-C918F5FE6379}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19B7C501-4699-41C0-B128-C918F5FE6379}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F0445B9-6C10-4B6B-A98A-45D3FD35055F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F0445B9-6C10-4B6B-A98A-45D3FD35055F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F0445B9-6C10-4B6B-A98A-45D3FD35055F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F0445B9-6C10-4B6B-A98A-45D3FD35055F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

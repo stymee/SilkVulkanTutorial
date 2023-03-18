@@ -1,13 +1,13 @@
-﻿namespace Chapter16IndexStagingBuffers;
+﻿namespace Chapter17Loading3DModels;
 
 public class FirstApp : IDisposable
 {
     // Window stuff
     private IView window = null!;
-    private int width = 800;
-    private int height = 600;
+    private int width = 1600;
+    private int height = 800;
     private string windowName = "Vulkan Tut";
-    private long fpsUpdateInterval = 200 * 10_000;
+    private long fpsUpdateInterval = 5 * 10_000;
     private long fpsLastUpdate;
     //private IInputContext inputContext = null!;
 
@@ -17,14 +17,16 @@ public class FirstApp : IDisposable
     private LveDevice device = null!;
     private LveRenderer lveRenderer = null!;
     private List<LveGameObject> gameObjects = new();
-    private LveCamera camera = null!;
+
+    private OrthographicCamera camera = null!;
 
     private bool disposedValue;
 
     private SimpleRenderSystem simpleRenderSystem = null!;
 
-    private LveGameObject viewerObject = null!;
-    private KeyboardMovementController cameraController = null!;
+    //private LveGameObject viewerObject = null!;
+    //private KeyboardMovementController cameraController = null!;
+    private MouseMovementController cameraController = null!;
 
 
     //long currentTime = 0;
@@ -40,25 +42,27 @@ public class FirstApp : IDisposable
         initWindow();
         log.d("startup", "got window");
 
-
-
         device = new LveDevice(vk, window);
         log.d("startup", "got device");
 
-        lveRenderer = new LveRenderer(vk, window, device);
+        lveRenderer = new LveRenderer(vk, window, device, useFifo: false);
         log.d("startup", "got renderer");
 
         loadGameObjects();
         log.d("startup", "objects loaded");
 
         //inputContext = window.CreateInput();
-        viewerObject = LveGameObject.CreateGameObject();
-        cameraController = new((IWindow)window);
-        log.d("startup", "got input");
+        //viewerObject = LveGameObject.CreateGameObject();
+        //cameraController = new((IWindow)window);
+        //log.d("startup", "got input");
+
 
         simpleRenderSystem = new(vk, device, lveRenderer.GetSwapChainRenderPass());
         log.d("startup", "got render system");
-        camera = new();
+
+        camera = new(new Vector3(0f, 0f, -10f), 2f, 0f, 0f, window.FramebufferSize);
+        cameraController = new(camera, (IWindow)window);
+        cameraController.OnMouseStateChanged += OnMouseStateChanged;
         //camera.SetViewDirection(Vector3.Zero, new(0.5f, 0f, 1f), -Vector3.UnitY);
         //camera.SetViewTarget(new(-1f, -2f, 2f), new(0f, 0f, 2.5f), -Vector3.UnitY);
         log.d("startup", "got camera");
@@ -71,14 +75,42 @@ public class FirstApp : IDisposable
     }
 
 
+    // mouse stuff
+    private MouseState mouseLast;
+
+    private void OnMouseStateChanged(MouseState mouseCurrent) 
+    {
+
+        switch (mouseCurrent.ControlState)
+        {
+            case MouseControlState.Pick:
+                break;
+            case MouseControlState.Pan:
+                camera.Pan(mouseLast.Pos3d, mouseCurrent.Pos3d);
+                break;
+            case MouseControlState.ZoomWheel:
+                camera.ZoomIncremental(mouseCurrent.Wheel);
+                break;
+            case MouseControlState.Rotate:
+                camera.Rotate(mouseLast.Pos2d, mouseCurrent.Pos2d);
+                break;
+            default:
+                break;
+        }
+        mouseLast = mouseCurrent;
+    }
+
     private void render(double delta)
     {
-        cameraController.MoveInPlaceXZ((IWindow)window, delta, ref viewerObject);
-        camera.SetViewYXZ(viewerObject.Transform.Translation, viewerObject.Transform.Rotation);
+        //cameraController.MoveInPlaceXZ((IWindow)window, delta, ref viewerObject);
+        //camera.SetViewYXZ(viewerObject.Transform.Translation, viewerObject.Transform.Rotation);
 
-        float aspect = lveRenderer.GetAspectRatio();
+        //float aspect = lveRenderer.GetAspectRatio();
         //camera.SetOrthographicProjection(-aspect, aspect, -1f, 1f, -1f, 1f);
-        camera.SetPerspectiveProjection(50f * MathF.PI / 180f, aspect, 0.1f, 10f);
+        //camera.SetPerspectiveProjection(50f * MathF.PI / 180f, aspect, 0.1f, 10f);
+
+        //lastMouseState = currentMouseState;
+        //cameraController.DoMouse();
 
         var commandBuffer = lveRenderer.BeginFrame();
 
@@ -136,85 +168,26 @@ public class FirstApp : IDisposable
         if (window is IWindow w)
         {
             //w.Title = $"{windowName} | W {window.Size.X}x{window.Size.Y} | FPS {Math.Ceiling(1d / obj)} | ";
-            w.Title = $"{windowName} - {1d / frametime,-8: #,##0.0} fps";
+            w.Title = $"{windowName} | {mouseLast.Debug} | {1d / frametime,-8: 0,000.0} fps";
         }
 
     }
 
     private void resize(Vector2D<int> newsize)
     {
-
+        camera.Resize(0, 0, (uint)newsize.X, (uint)newsize.Y);
+        cameraController.Resize(newsize);
     }
 
     private void loadGameObjects()
     {
         var cube = LveGameObject.CreateGameObject();
-        cube.Model = CreateCubeModel(vk, device, Vector3.Zero);
-        cube.Transform.Translation = new(0.0f, 0.0f, 2.5f);
+        cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/colored_cube.obj");
+        //cube.Model = CreateCubeModel(vk, device, Vector3.Zero);
+        cube.Transform.Translation = new(0.0f, 0.0f, -5f);
         //cube.Transform.Scale = new(0.5f);
 
         gameObjects.Add(cube);
-    }
-
-
-    public static LveModel CreateCubeModel(Vk vk, LveDevice device, Vector3 offset)
-    {
-        var h = .25f;
-        var builder = new Builder
-        {
-            Vertices = new Vertex[]
-            {
-                // left face (white)
-                new Vertex(new(-h, -h, -h), new(.9f, .9f, .9f)),
-                new Vertex(new(-h, h, h), new(.9f, .9f, .9f)),
-                new Vertex(new(-h, -h, h), new(.9f, .9f, .9f)),
-                new Vertex(new(-h, h, -h), new(.9f, .9f, .9f)),
-            
-                // right face (yellow)
-                new Vertex(new(h, -h, -h), new(.8f, .8f, .1f)),
-                new Vertex(new(h, h, h), new(.8f, .8f, .1f)),
-                new Vertex(new(h, -h, h), new(.8f, .8f, .1f)),
-                new Vertex(new(h, h, -h), new(.8f, .8f, .1f)),
-
-                // top face (orange, remember y axis points down)
-                new Vertex(new(-h, -h, -h), new(.9f, .6f, .1f)),
-                new Vertex(new(h, -h, h), new(.9f, .6f, .1f)),
-                new Vertex(new(-h, -h, h), new(.9f, .6f, .1f)),
-                new Vertex(new(h, -h, -h), new(.9f, .6f, .1f)),
-
-                // bottom face (red)
-                new Vertex(new(-h, h, -h), new(.8f, .1f, .1f)),
-                new Vertex(new(h, h, h), new(.8f, .1f, .1f)),
-                new Vertex(new(-h, h, h), new(.8f, .1f, .1f)),
-                new Vertex(new(h, h, -h), new(.8f, .1f, .1f)),
-
-                // nose face (blue)
-                new Vertex(new(-h, -h, h), new(.1f, .1f, .8f)),
-                new Vertex(new(h, h, h), new(.1f, .1f, .8f)),
-                new Vertex(new(-h, h, h), new(.1f, .1f, .8f)),
-                new Vertex(new(h, -h, h), new(.1f, .1f, .8f)),
-
-                // tail face (green)
-                new Vertex(new(-h, -h, -h), new(.1f, .8f, .1f)),
-                new Vertex(new(h, h, -h), new(.1f, .8f, .1f)),
-                new Vertex(new(-h, h, -h), new(.1f, .8f, .1f)),
-                new Vertex(new(h, -h, -h), new(.1f, .8f, .1f)),
-
-            },
-
-            Indices = new uint[]
-            {
-                0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
-                12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21
-            }
-        };
-        for (var i = 0; i < builder.Vertices.Length; i++)
-        {
-            var v = builder.Vertices[i];
-            builder.Vertices[i].Position = v.Position + offset;
-        }
-
-        return new LveModel(vk, device, builder);
     }
 
 
