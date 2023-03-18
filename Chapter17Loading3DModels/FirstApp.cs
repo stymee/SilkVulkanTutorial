@@ -60,7 +60,7 @@ public class FirstApp : IDisposable
         simpleRenderSystem = new(vk, device, lveRenderer.GetSwapChainRenderPass());
         log.d("startup", "got render system");
 
-        camera = new(new Vector3(0f, 0f, -10f), 2f, 0f, 0f, window.FramebufferSize);
+        camera = new(new Vector3(-10f, 0f, 0f), 2f, 0f, 0f, window.FramebufferSize);
         cameraController = new(camera, (IWindow)window);
         cameraController.OnMouseStateChanged += OnMouseStateChanged;
         //camera.SetViewDirection(Vector3.Zero, new(0.5f, 0f, 1f), -Vector3.UnitY);
@@ -86,7 +86,7 @@ public class FirstApp : IDisposable
             case MouseControlState.Pick:
                 break;
             case MouseControlState.Pan:
-                camera.Pan(mouseLast.Pos3d, mouseCurrent.Pos3d);
+                camera.Pan2d(mouseLast.Pos2d, mouseCurrent.Pos2d);
                 break;
             case MouseControlState.ZoomWheel:
                 camera.ZoomIncremental(mouseCurrent.Wheel);
@@ -184,7 +184,7 @@ public class FirstApp : IDisposable
         var cube = LveGameObject.CreateGameObject();
         cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/colored_cube.obj");
         //cube.Model = CreateCubeModel(vk, device, Vector3.Zero);
-        cube.Transform.Translation = new(0.0f, 0.0f, -5f);
+        //cube.Transform.Translation = new(0.0f, 0.0f, 0.0f);
         //cube.Transform.Scale = new(0.5f);
 
         gameObjects.Add(cube);

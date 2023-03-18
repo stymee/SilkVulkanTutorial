@@ -117,8 +117,8 @@ public class OrthographicCamera
     {
         //Name = name;
         this.frustum = frustum;
-        this.near = 0.1f;
-        this.far = 100f;
+        this.near = 0.0001f;
+        this.far = 1000f;
         Pitch = pitchDeg * MathF.PI / 180f;
         Yaw = yawDeg * MathF.PI / 180f;
         frustumPrevious = frustum;
@@ -225,6 +225,13 @@ public class OrthographicCamera
         return new Vector3(vec.X, vec.Y, vec.Z);
     }
 
+
+    public void Pan2d(Vector2 vStart, Vector2 vStop)
+    {
+        var xDiff = (vStart.X - vStop.X) * frustum;
+        var yDiff = (vStart.Y - vStop.Y) * frustum / aspect;
+        position = new Vector3(position.X, position.Y + yDiff, position.Z + xDiff);
+    }
 
     public void Pan(Vector3 vStart, Vector3 vStop)
     {
