@@ -153,7 +153,7 @@ public class FirstApp : IDisposable
         var cube = LveGameObject.CreateGameObject();
         cube.Model = CreateCubeModel(vk, device, Vector3.Zero);
         cube.Transform.Translation = new(0.0f, 0.0f, 2.5f);
-        cube.Transform.Scale = new(0.5f);
+        //cube.Transform.Scale = new(0.5f);
 
         gameObjects.Add(cube);
     }
@@ -161,57 +161,60 @@ public class FirstApp : IDisposable
 
     public static LveModel CreateCubeModel(Vk vk, LveDevice device, Vector3 offset)
     {
-        var builder = new Builder();
-
-        builder.Vertices = new Vertex[]
+        var h = .25f;
+        var builder = new Builder
         {
-            // left face (white)
-            new Vertex(new Vector3(-.5f, -.5f, -.5f) + offset, new Vector3(.9f, .9f, .9f)),
-            new Vertex(new Vector3(-.5f, .5f, .5f) + offset, new Vector3(.9f, .9f, .9f)),
-            new Vertex(new Vector3(-.5f, -.5f, .5f) + offset, new Vector3(.9f, .9f, .9f)),
-            new Vertex(new Vector3(-.5f, .5f, -.5f) + offset, new Vector3(.9f, .9f, .9f)),
+            Vertices = new Vertex[]
+            {
+                // left face (white)
+                new Vertex(new(-h, -h, -h), new(.9f, .9f, .9f)),
+                new Vertex(new(-h, h, h), new(.9f, .9f, .9f)),
+                new Vertex(new(-h, -h, h), new(.9f, .9f, .9f)),
+                new Vertex(new(-h, h, -h), new(.9f, .9f, .9f)),
             
-            // right face (yellow)
-            new Vertex(new Vector3(.5f, -.5f, -.5f) + offset, new Vector3(.8f, .8f, .1f)),
-            new Vertex(new Vector3(.5f, .5f, .5f) + offset, new Vector3(.8f, .8f, .1f)),
-            new Vertex(new Vector3(.5f, -.5f, .5f) + offset, new Vector3(.8f, .8f, .1f)),
-            new Vertex(new Vector3(.5f, .5f, -.5f) + offset, new Vector3(.8f, .8f, .1f)),
+                // right face (yellow)
+                new Vertex(new(h, -h, -h), new(.8f, .8f, .1f)),
+                new Vertex(new(h, h, h), new(.8f, .8f, .1f)),
+                new Vertex(new(h, -h, h), new(.8f, .8f, .1f)),
+                new Vertex(new(h, h, -h), new(.8f, .8f, .1f)),
 
-            // top face (orange, remember y axis points down)
-            new Vertex(new Vector3(-.5f, -.5f, -.5f) + offset, new Vector3(.9f, .6f, .1f)),
-            new Vertex(new Vector3(.5f, -.5f, .5f) + offset, new Vector3(.9f, .6f, .1f)),
-            new Vertex(new Vector3(-.5f, -.5f, .5f) + offset, new Vector3(.9f, .6f, .1f)),
-            new Vertex(new Vector3(.5f, -.5f, -.5f) + offset, new Vector3(.9f, .6f, .1f)),
+                // top face (orange, remember y axis points down)
+                new Vertex(new(-h, -h, -h), new(.9f, .6f, .1f)),
+                new Vertex(new(h, -h, h), new(.9f, .6f, .1f)),
+                new Vertex(new(-h, -h, h), new(.9f, .6f, .1f)),
+                new Vertex(new(h, -h, -h), new(.9f, .6f, .1f)),
 
-            // bottom face (red)
-            new Vertex(new Vector3(-.5f, .5f, -.5f) + offset, new Vector3(.8f, .1f, .1f)),
-            new Vertex(new Vector3(.5f, .5f, .5f) + offset, new Vector3(.8f, .1f, .1f)),
-            new Vertex(new Vector3(-.5f, .5f, .5f) + offset, new Vector3(.8f, .1f, .1f)),
-            new Vertex(new Vector3(.5f, .5f, -.5f) + offset, new Vector3(.8f, .1f, .1f)),
+                // bottom face (red)
+                new Vertex(new(-h, h, -h), new(.8f, .1f, .1f)),
+                new Vertex(new(h, h, h), new(.8f, .1f, .1f)),
+                new Vertex(new(-h, h, h), new(.8f, .1f, .1f)),
+                new Vertex(new(h, h, -h), new(.8f, .1f, .1f)),
 
-            // nose face (blue)
-            new Vertex(new Vector3(-.5f, -.5f, .5f) + offset, new Vector3(.1f, .1f, .8f)),
-            new Vertex(new Vector3(.5f, .5f, .5f) + offset, new Vector3(.1f, .1f, .8f)),
-            new Vertex(new Vector3(-.5f, .5f, .5f) + offset, new Vector3(.1f, .1f, .8f)),
-            new Vertex(new Vector3(.5f, -.5f, .5f) + offset, new Vector3(.1f, .1f, .8f)),
+                // nose face (blue)
+                new Vertex(new(-h, -h, h), new(.1f, .1f, .8f)),
+                new Vertex(new(h, h, h), new(.1f, .1f, .8f)),
+                new Vertex(new(-h, h, h), new(.1f, .1f, .8f)),
+                new Vertex(new(h, -h, h), new(.1f, .1f, .8f)),
 
-            // tail face (green)
-            new Vertex(new Vector3(-.5f, -.5f, -.5f) + offset, new Vector3(.1f, .8f, .1f)),
-            new Vertex(new Vector3(.5f, .5f, -.5f) + offset, new Vector3(.1f, .8f, .1f)),
-            new Vertex(new Vector3(-.5f, .5f, -.5f) + offset, new Vector3(.1f, .8f, .1f)),
-            new Vertex(new Vector3(.5f, -.5f, -.5f) + offset, new Vector3(.1f, .8f, .1f)),
+                // tail face (green)
+                new Vertex(new(-h, -h, -h), new(.1f, .8f, .1f)),
+                new Vertex(new(h, h, -h), new(.1f, .8f, .1f)),
+                new Vertex(new(-h, h, -h), new(.1f, .8f, .1f)),
+                new Vertex(new(h, -h, -h), new(.1f, .8f, .1f)),
 
-            // ...
+            },
+
+            Indices = new uint[]
+            {
+                0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
+                12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21
+            }
         };
-        //for (var i = 0; i < builder.Vertices.Length; i++)
-        //{
-        //}
-
-        builder.Indices = new uint[]
+        for (var i = 0; i < builder.Vertices.Length; i++)
         {
-            0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
-            12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21
-        };
+            var v = builder.Vertices[i];
+            builder.Vertices[i].Position = v.Position + offset;
+        }
 
         return new LveModel(vk, device, builder);
     }
