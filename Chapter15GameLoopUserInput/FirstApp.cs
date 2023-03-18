@@ -1,4 +1,4 @@
-﻿namespace Chapter14CameraViewTransform;
+﻿namespace Chapter15GameLoopUserInput;
 
 public class FirstApp : IDisposable
 {
@@ -9,6 +9,7 @@ public class FirstApp : IDisposable
     private string windowName = "Vulkan Tut";
     private long fpsUpdateInterval = 200 * 10_000;
     private long fpsLastUpdate;
+    //private IInputContext inputContext = null!;
 
     // Vk api
     private readonly Vk vk = null!;
@@ -22,6 +23,12 @@ public class FirstApp : IDisposable
 
     private SimpleRenderSystem simpleRenderSystem = null!;
 
+    private LveGameObject viewerObject = null!;
+    private KeyboardMovementController cameraController = null!;
+
+
+    //long currentTime = 0;
+
     public FirstApp()
     {
         log.RestartTimer();
@@ -33,6 +40,8 @@ public class FirstApp : IDisposable
         initWindow();
         log.d("startup", "got window");
 
+
+
         device = new LveDevice(vk, window);
         log.d("startup", "got device");
 
@@ -41,17 +50,22 @@ public class FirstApp : IDisposable
 
         loadGameObjects();
         log.d("startup", "objects loaded");
-    }
 
-    public void Run()
-    {
+        //inputContext = window.CreateInput();
+        viewerObject = LveGameObject.CreateGameObject();
+        cameraController = new((IWindow)window);
+        log.d("startup", "got input");
+
         simpleRenderSystem = new(vk, device, lveRenderer.GetSwapChainRenderPass());
         log.d("startup", "got render system");
         camera = new();
         //camera.SetViewDirection(Vector3.Zero, new(0.5f, 0f, 1f), -Vector3.UnitY);
-        camera.SetViewTarget(new(-1f, -2f, 2f), new(0f, 0f, 2.5f), -Vector3.UnitY);
-
+        //camera.SetViewTarget(new(-1f, -2f, 2f), new(0f, 0f, 2.5f), -Vector3.UnitY);
         log.d("startup", "got camera");
+    }
+
+    public void Run()
+    {
         MainLoop();
         CleanUp();
     }
@@ -59,9 +73,12 @@ public class FirstApp : IDisposable
 
     private void render(double delta)
     {
+        cameraController.MoveInPlaceXZ((IWindow)window, delta, ref viewerObject);
+        camera.SetViewYXZ(viewerObject.Transform.Translation, viewerObject.Transform.Rotation);
+
         float aspect = lveRenderer.GetAspectRatio();
         //camera.SetOrthographicProjection(-aspect, aspect, -1f, 1f, -1f, 1f);
-        camera.SetPerspectiveProjection(50f * MathF.PI / 180f, aspect, 0.1f, 40f);
+        camera.SetPerspectiveProjection(50f * MathF.PI / 180f, aspect, 0.1f, 10f);
 
         var commandBuffer = lveRenderer.BeginFrame();
 
@@ -133,11 +150,8 @@ public class FirstApp : IDisposable
     {
         var cube = LveGameObject.CreateGameObject();
         cube.Model = CreateCubeModel(vk, device, Vector3.Zero);
-        cube.Transform = cube.Transform with
-        {
-            Translation = new(0.0f, 0.0f, 2.5f),
-            Scale = new(0.5f)
-        };
+        cube.Transform.Translation = new(0.0f, 0.0f, 2.5f);
+        cube.Transform.Scale = new(0.5f);
 
         gameObjects.Add(cube);
     }

@@ -1,5 +1,5 @@
 ﻿
-namespace Chapter14CameraViewTransform;
+namespace Chapter15GameLoopUserInput;
 
 class SimpleRenderSystem
 {
@@ -69,14 +69,6 @@ class SimpleRenderSystem
 
         foreach (var g in gameObjects)
         {
-            g.Transform = g.Transform with
-            {
-                Rotation = g.Transform.Rotation with
-                {
-                    Y = g.Transform.Rotation.Y + .0001f * MathF.Tau,
-                    X = g.Transform.Rotation.X + .00005f * MathF.Tau
-                }
-            };
             SimplePushConstantData push = new()
             {
                 Color = g.Color,

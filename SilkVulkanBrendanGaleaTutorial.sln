@@ -31,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter13ProjectionMatrices
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter14CameraViewTransform", "Chapter14CameraViewTransform\Chapter14CameraViewTransform.csproj", "{57E06F94-37E3-4EFB-94A1-F58E98C2E86E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter15GameLoopUserInput", "Chapter15GameLoopUserInput\Chapter15GameLoopUserInput.csproj", "{A3E24E0D-8556-4B17-89CE-7B2FA06C4BA5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,10 @@ Global
 		{57E06F94-37E3-4EFB-94A1-F58E98C2E86E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57E06F94-37E3-4EFB-94A1-F58E98C2E86E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57E06F94-37E3-4EFB-94A1-F58E98C2E86E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3E24E0D-8556-4B17-89CE-7B2FA06C4BA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3E24E0D-8556-4B17-89CE-7B2FA06C4BA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3E24E0D-8556-4B17-89CE-7B2FA06C4BA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3E24E0D-8556-4B17-89CE-7B2FA06C4BA5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
