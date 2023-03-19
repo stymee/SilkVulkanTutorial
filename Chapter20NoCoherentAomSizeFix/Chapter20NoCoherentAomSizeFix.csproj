@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<!--<PublishAot>true</PublishAot>-->
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="JeremyAnsel.Media.WavefrontObj" Version="3.0.26" />
+		<PackageReference Include="Silk.NET" Version="2.16.0" />
+		<PackageReference Include="Silk.NET.Vulkan.Extensions.EXT" Version="2.16.0" />
+		<PackageReference Include="Silk.NET.Vulkan.Extensions.KHR" Version="2.16.0" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<VulkanBinPath>C:\VulkanSDK\1.3.239.0\Bin</VulkanBinPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="**/*.spv" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<VertexShader Include="**/*.vert" />
+		<FragmentShader Include="**/*.frag" />
+	</ItemGroup>
+
+	<!--<ItemGroup>
+		<EmbeddedResource Include="**/*.obj" />
+		<EmbeddedResource Include="**/*.png" />
+	</ItemGroup>-->
+
+	<ItemGroup>
+	  <Content Include="Assets\**\*.*">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+
+	<Target Name="CleanVulkanShader" BeforeTargets="Clean">
+		<Message Text="......................................SHADERS.clean..........................................................." Importance="high" />
+		<ItemGroup>
+			<FilesToDelete Include="**\*.spv" />
+		</ItemGroup>
+		<Delete Files="@(FilesToDelete)" />
+		<Message Text="......................................SHADERS.clean done......................................................" Importance="high" />
+	</Target>
+
+	<Target Name="BuildVulkanShader" BeforeTargets="BeforeBuild">
+		<Message Text="......................................SHADERS.compile........................................................." Importance="high" />
+		<Message Text="   Starting Vulkan Shader Compilation..." Importance="high" />
+		<Message Text="     VulkanBinPath: $(VulkanBinPath)" Importance="high" />
+		<Message Text="     VertexShader: @(VertexShader)" Importance="high" />
+		<Message Text="     FragmentShader: @(FragmentShader)" Importance="high" />
+		<Exec Command="$(VulkanBinPath)\glslc.exe &quot;%(VertexShader.FullPath)&quot; -o &quot;%(VertexShader.FullPath).spv&quot;" Condition="'@(VertexShader)'!=''" />
+		<Exec Command="$(VulkanBinPath)\glslc.exe &quot;%(FragmentShader.FullPath)&quot; -o &quot;%(FragmentShader.FullPath).spv&quot;" Condition="'@(FragmentShader)'!=''" />
+		<Message Text="......................................SHADERS.compile done...................................................." Importance="high" />
+	</Target>
+
+</Project>

@@ -41,6 +41,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter18DiffuseShading", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter19UniformBuffers", "Chapter19UniformBuffers\Chapter19UniformBuffers.csproj", "{D2352FB1-C313-4BC6-99D2-66AD7DEFB683}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter20NoCoherentAomSizeFix", "Chapter20NoCoherentAomSizeFix\Chapter20NoCoherentAomSizeFix.csproj", "{93CDA673-F839-4D74-A1D2-0131551FD248}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -123,6 +125,10 @@ Global
 		{D2352FB1-C313-4BC6-99D2-66AD7DEFB683}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2352FB1-C313-4BC6-99D2-66AD7DEFB683}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2352FB1-C313-4BC6-99D2-66AD7DEFB683}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93CDA673-F839-4D74-A1D2-0131551FD248}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93CDA673-F839-4D74-A1D2-0131551FD248}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93CDA673-F839-4D74-A1D2-0131551FD248}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93CDA673-F839-4D74-A1D2-0131551FD248}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
