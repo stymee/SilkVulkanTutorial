@@ -13,8 +13,8 @@ public class OrthographicCamera
     private float top = -40;
     private float near = 0.01f;
     private float far = 100f;
-    private float width = 80f;
-    private float height = 80f;
+    //private float width = 80f;
+    //private float height = 80f;
 
     private uint wp;  // viewport width in pixel
     public uint Wp => wp;
@@ -62,44 +62,23 @@ public class OrthographicCamera
 
     private float pitchClamp = 89.99f * MathF.PI / 180f;
 
-    // We convert from degrees to radians as soon as the property is set to improve performance
     public float Pitch
     {
         get => pitch;
         set
         {
-            // We clamp the pitch value between -89 and 89 to prevent the camera from going upside down, and a bunch
-            // of weird "bugs" when you are using euler angles for rotation.
-            // If you want to read more about this you can try researching a topic called gimbal lock
-            //var clamp = 89f * MathF.PI / 180f;
-            //var ahi = 89f;
-            //var alo = -89f;
-            //var deg = value * 180f / MathF.PI;
             var angle = (float)Math.Clamp(value, -pitchClamp, pitchClamp);
-            //var degClamped = angle * 180f / MathF.PI;
-            //if (deg < alo)
-            //{
-            //    Console.WriteLine($"LO {deg:0.00}°, clamped at {degClamped:0.00}");
-            //}
-            //if (deg > ahi)
-            //{
-            //    Console.WriteLine($"HI {deg:0.00}°, clamped at {degClamped:0.00}");
-            //}
             pitch = angle;
-            //pitch = value;
             UpdateVectors();
         }
     }
     public float PitchDegrees => pitch / MathF.PI * 180f;
 
-    // We convert from degrees to radians as soon as the property is set to improve performance
     public float Yaw
     {
         get => yaw;
         set
         {
-            //var angle = (float)Math.Clamp(value, -Math.PI / 1.9f, Math.PI / 1.9f);
-
             yaw = value;
             UpdateVectors();
         }
@@ -107,46 +86,43 @@ public class OrthographicCamera
     public float YawDegrees => yaw / MathF.PI * 180f;
 
 
-    //    public OrthographicCamera(Vector3 position, float frustum, uint width, uint height, float near, float far, string name = "none")
     public OrthographicCamera(Vector3 position, float frustum, float pitchDeg, float yawDeg, Vector2D<int> frameBufferSize)
     {
-        //Name = name;
         this.frustum = frustum;
-        this.near = -20f;
-        this.far = 20f;
+        near = -20f;
+        far = 20f;
         Pitch = pitchDeg * MathF.PI / 180f;
         Yaw = yawDeg * MathF.PI / 180f;
         frustumPrevious = frustum;
 
-        //Console.WriteLine($" camera {Name} | Created");
-        Resize(0, 0, (uint)frameBufferSize.X, (uint)frameBufferSize.Y);
 
         this.position = position;
 
         frontVec = Vector3.UnitZ;
         upVec = globalUp;
         rightVec = Vector3.UnitX;
+
+        Resize(0, 0, (uint)frameBufferSize.X, (uint)frameBufferSize.Y);
     }
 
 
-    public void FitHeight(float fitHeight)
+    private void updateOrtho()
     {
-        frustum = fitHeight;
-        frustumPrevious = frustum;
-        updateOrtho();
-        //left = (frustum * aspect) / -2f;
-        //right = (frustum * aspect) / 2f;
+        // Vulkan does top = negative
+        left = (frustum * aspect) / -2f;
+        right = (frustum * aspect) / 2f;
         //width = right - left;
-        //top = frustum / -2f;
-        //bottom = frustum / 2f;
+        top = frustum / -2f;
+        bottom = frustum / 2f;
         //height = bottom - top;
     }
+
+
+
 
     // Get the view matrix using the amazing LookAt function described more in depth on the web tutorials
     public Matrix4x4 GetViewMatrix()
     {
-        //Matrix4x4.Invert(Matrix4x4.CreateLookAt(position, position + frontVec, upVec), out Matrix4x4 inverted);
-        //return inverted;
         return Matrix4x4.CreateLookAt(position, position + frontVec, upVec);
     }
 
@@ -196,8 +172,6 @@ public class OrthographicCamera
     // Get the projection matrix using the same method we have used up until this point
     public Matrix4x4 GetProjectionMatrix()
     {
-        //Matrix4x4.Invert(Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, near, far), out Matrix4x4 inverted);
-        //return inverted;
         return Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, near, far);
     }
     public Matrix4x4 GetProjectionMatrixGlm()
@@ -228,7 +202,6 @@ public class OrthographicCamera
         };
 
     }
-
 
 
     // This function is going to update the direction vertices using some of the math learned in the web tutorials
@@ -322,13 +295,6 @@ public class OrthographicCamera
         frustum = Math.Clamp(frustum, zoomMin, zoomMax);
         frustumPrevious = frustum;
         updateOrtho();
-        //left = (frustum * aspect) / -2f;
-        //right = (frustum * aspect) / 2f;
-        //width = right - left;
-        //top = frustum / -2f;
-        //bottom = frustum / 2f;
-        //height = bottom - top;
-
     }
 
     //public void ZoomMouse(float amount)
@@ -347,16 +313,13 @@ public class OrthographicCamera
     {
         frustumPrevious = frustum;
     }
-
-    public void updateOrtho()
+    public void FitHeight(float fitHeight)
     {
-        left = (frustum * aspect) / -2f;
-        right = (frustum * aspect) / 2f;
-        width = right - left;
-        top = frustum / -2f;
-        bottom = frustum / 2f;
-        height = bottom - top;
+        frustum = fitHeight;
+        frustumPrevious = frustum;
+        updateOrtho();
     }
+
 
     public void Resize(int xp, int yp, uint wp, uint hp)
     {
@@ -368,16 +331,9 @@ public class OrthographicCamera
         aspect = (float)wp / (float)hp;
 
         updateOrtho();
-        //left = (frustum * aspect) / -2f;
-        //right = (frustum * aspect) / 2f;
-        //width = right - left;
-        //top = frustum / -2f;
-        //bottom = frustum / 2f;
-        //height = bottom - top;
 
         UpdateVectors();
         //Console.WriteLine($" camera {Name} | Resized {wp}x{hp}");
-
     }
 
     public void Reset()

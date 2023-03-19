@@ -3,7 +3,7 @@ namespace Chapter17Loading3DModels;
 
 
 
-public class KeyboardMovementController
+public class KeyboardController
 {
     //private double dt;
     //private LveGameObject gameObject = null!;
@@ -54,7 +54,7 @@ public class KeyboardMovementController
 
     }
 
-    public KeyboardMovementController(IWindow window)
+    public KeyboardController(IWindow window)
     {
         //this.dt = dt;
         //this.gameObject = gameObject;

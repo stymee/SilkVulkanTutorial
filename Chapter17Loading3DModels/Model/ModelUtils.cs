@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace Chapter17Loading3DModels;
+﻿namespace Chapter17Loading3DModels;
 
 public static class ModelUtils
 {

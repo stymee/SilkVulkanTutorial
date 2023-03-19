@@ -9,7 +9,6 @@ public class FirstApp : IDisposable
     private string windowName = "Vulkan Tut";
     private long fpsUpdateInterval = 5 * 10_000;
     private long fpsLastUpdate;
-    //private IInputContext inputContext = null!;
 
     // Vk api
     private readonly Vk vk = null!;
@@ -24,12 +23,8 @@ public class FirstApp : IDisposable
 
     private SimpleRenderSystem simpleRenderSystem = null!;
 
-    //private LveGameObject viewerObject = null!;
-    //private KeyboardMovementController cameraController = null!;
     private CameraController cameraController = null!;
 
-
-    //long currentTime = 0;
 
     public FirstApp()
     {
@@ -45,17 +40,11 @@ public class FirstApp : IDisposable
         device = new LveDevice(vk, window);
         log.d("startup", "got device");
 
-        lveRenderer = new LveRenderer(vk, window, device, useFifo: true);
+        lveRenderer = new LveRenderer(vk, window, device, useFifo: false);
         log.d("startup", "got renderer");
 
         loadGameObjects();
         log.d("startup", "objects loaded");
-
-        //inputContext = window.CreateInput();
-        //viewerObject = LveGameObject.CreateGameObject();
-        //cameraController = new((IWindow)window);
-        //log.d("startup", "got input");
-
 
         simpleRenderSystem = new(vk, device, lveRenderer.GetSwapChainRenderPass());
         log.d("startup", "got render system");
@@ -63,20 +52,6 @@ public class FirstApp : IDisposable
         camera = new(Vector3.Zero, 10f, -20f, -140f, window.FramebufferSize);
         cameraController = new(camera, (IWindow)window);
         resize(window.FramebufferSize);
-
-        //Console.WriteLine("");
-        //var viewMatrix = camera.GetViewMatrix();
-        //Console.WriteLine("view matrix");
-        //Console.WriteLine(viewMatrix.PrintRows());
-        //Console.WriteLine("");
-        //var projectionMatrix = camera.GetProjectionMatrix();
-        //Console.WriteLine("projection matrix");
-        //Console.WriteLine(projectionMatrix.PrintRows());
-        //Console.WriteLine("");
-
-        //cameraController.OnMouseStateChanged += OnMouseStateChanged;
-        //camera.SetViewDirection(Vector3.Zero, new(0.5f, 0f, 1f), -Vector3.UnitY);
-        //camera.SetViewTarget(new(-1f, -2f, 2f), new(0f, 0f, 2.5f), -Vector3.UnitY);
         log.d("startup", "got camera");
     }
 
@@ -120,7 +95,6 @@ public class FirstApp : IDisposable
 
     private void initWindow()
     {
-        //Create a window.
         var options = WindowOptions.DefaultVulkan with
         {
             Size = new Vector2D<int>(width, height),
@@ -166,12 +140,10 @@ public class FirstApp : IDisposable
     {
         var cube = LveGameObject.CreateGameObject();
         //cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/colored_cube.obj");
+        //cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/viking_room.obj");
+        //cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/colored_cube.obj");
         cube.Model = ModelUtils.CreateCubeModel3(vk, device);
         cube.Transform.Translation = new(0.0f, 0.0f, 0.0f);
-
-        //cube.Model = CreateCubeModel(vk, device, Vector3.Zero);
-        //cube.Transform.Translation = new(0.0f, 0.0f, 0.0f);
-        //cube.Transform.Scale = new(0.5f);
 
         gameObjects.Add(cube);
     }

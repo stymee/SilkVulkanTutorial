@@ -21,7 +21,7 @@ public class CameraController
     private MouseControlState controlState = MouseControlState.None;
     private MouseControlState controlStatePrevious = MouseControlState.None;
 
-
+    // debugging data for output to screen
     private string getMouseString()
     {
         var ml = btnLeft == MouseButtonState.Down ? "LX" : "L_";
@@ -53,7 +53,7 @@ public class CameraController
     //public Action<MouseState> OnMouseStateChanged = null!;
 
     
-
+    // send changes to camera
     private void updateCamera()
     {
         switch (controlState)
@@ -61,13 +61,14 @@ public class CameraController
             case MouseControlState.Pick:
                 break;
             case MouseControlState.Context:
-                Console.WriteLine("");
-                Console.WriteLine("view matrix");
-                Console.WriteLine(camera.GetViewMatrix().PrintCols());
-                Console.WriteLine(camera.GetViewMatrixGlm().PrintCols());
-                Console.WriteLine("projection matrix");
-                Console.WriteLine(camera.GetProjectionMatrix().PrintCols());
-                Console.WriteLine(camera.GetProjectionMatrixGlm().PrintCols());
+                //// Debugging view/projection matrices
+                //Console.WriteLine("");
+                //Console.WriteLine("view matrix");
+                //Console.WriteLine(camera.GetViewMatrix().PrintCols());
+                //Console.WriteLine(camera.GetViewMatrixGlm().PrintCols());
+                //Console.WriteLine("projection matrix");
+                //Console.WriteLine(camera.GetProjectionMatrix().PrintCols());
+                //Console.WriteLine(camera.GetProjectionMatrixGlm().PrintCols());
 
                 break;
             case MouseControlState.Pan:
@@ -181,8 +182,6 @@ public class CameraController
         mouse3d = camera.UnProject(mouse2d);
         mouseWheel = 0;
         updateCamera();
-        //OnMouseStateChanged?.Invoke(GetMouseState());
-        //UpdateMouseState();
     }
 
     private void MouseOnScroll(IMouse arg1, ScrollWheel arg2)
@@ -190,8 +189,6 @@ public class CameraController
         mouseWheel = (float)-arg2.Y;
         mouseButton();
         updateCamera();
-        //OnMouseStateChanged?.Invoke(GetMouseState());
-        //UpdateMouseState();
     }
 
     private void MouseOnMouseDown(IMouse arg1, MouseButton arg2)
@@ -209,10 +206,8 @@ public class CameraController
                 btnRight = MouseButtonState.Down;
                 break;
         }
-        //UpdateMouseState();
         mouseButton();
         updateCamera();
-        //OnMouseStateChanged?.Invoke(GetMouseState());
 
     }
 
@@ -234,9 +229,6 @@ public class CameraController
         }
         mouseButton();
         updateCamera();
-        //OnMouseStateChanged?.Invoke(GetMouseState());
-
-        //UpdateMouseState();
     }
 
     private void MouseOnClick(IMouse arg1, MouseButton arg2, Vector2 pos)
