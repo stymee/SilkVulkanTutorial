@@ -42,16 +42,15 @@ public struct Builder
 
                 var textureIndex = vFace.Texture;
                 var texture = objFile.TextureVertices[textureIndex - 1];
-                var textureOut = new Vector2(texture.X, texture.Y);
+                //Flip Y for OBJ in Vulkan
+                var textureOut = new Vector2(texture.X, -texture.Y);
 
-                Vertex vertexOut = new Vertex
+                Vertex vertexOut = new()
                 {
                     Position = positionOut,
                     Color = colorOut,
                     Normal = normalOut,
                     UV = textureOut
-                    //Flip Y for OBJ in Vulkan
-                    //textCoord = new Vector2D<float>(texture.X, 1.0f - texture.Y)
                 };
                 if (vertexMap.TryGetValue(vertexOut, out var meshIndex))
                 {

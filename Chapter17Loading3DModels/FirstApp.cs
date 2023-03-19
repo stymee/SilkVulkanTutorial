@@ -139,6 +139,8 @@ public class FirstApp : IDisposable
     private void loadGameObjects()
     {
         var cube = LveGameObject.CreateGameObject();
+        //cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/flat_vase.obj");
+        //cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/smooth_vase.obj");
         //cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/colored_cube.obj");
         //cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/viking_room.obj");
         //cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/colored_cube.obj");
