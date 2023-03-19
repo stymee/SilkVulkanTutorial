@@ -39,6 +39,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter17Loading3DModels", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter18DiffuseShading", "Chapter18DiffuseShading\Chapter18DiffuseShading.csproj", "{4BCD4F5C-62BC-4ABC-BF01-D3632568ED42}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter19UniformBuffers", "Chapter19UniformBuffers\Chapter19UniformBuffers.csproj", "{D2352FB1-C313-4BC6-99D2-66AD7DEFB683}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,10 @@ Global
 		{4BCD4F5C-62BC-4ABC-BF01-D3632568ED42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4BCD4F5C-62BC-4ABC-BF01-D3632568ED42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4BCD4F5C-62BC-4ABC-BF01-D3632568ED42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2352FB1-C313-4BC6-99D2-66AD7DEFB683}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2352FB1-C313-4BC6-99D2-66AD7DEFB683}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2352FB1-C313-4BC6-99D2-66AD7DEFB683}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2352FB1-C313-4BC6-99D2-66AD7DEFB683}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
