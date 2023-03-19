@@ -9,13 +9,13 @@ public class LveModel : IDisposable
 
     private bool disposedValue;
 
-    private Buffer vertexBuffer;
-    private DeviceMemory vertexBufferMemory;
+    private LveBuffer vertexBuffer;
+    //private DeviceMemory vertexBufferMemory;
     private uint vertexCount;
 
     private bool hasIndexBuffer = false;
-    private Buffer indexBuffer;
-    private DeviceMemory indexBufferMemory;
+    private LveBuffer indexBuffer;
+    //private DeviceMemory indexBufferMemory;
     private uint indexCount;
 
     public LveModel(Vk vk, LveDevice device, Builder builder)
@@ -34,61 +34,92 @@ public class LveModel : IDisposable
 
     private unsafe void createVertexBuffers(Vertex[] vertices)
     {
-        ulong bufferSize = (ulong)(Unsafe.SizeOf<Vertex>() * vertices.Length);
+        var instanceSize = (ulong)Vertex.SizeOf();
+        ulong bufferSize = instanceSize * (ulong)vertices.Length;
 
-        Buffer stagingBuffer = default;
-        DeviceMemory stagingBufferMemory = default;
-        createBuffer(bufferSize, 
-            BufferUsageFlags.TransferSrcBit, 
-            MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit, 
-            ref stagingBuffer, ref stagingBufferMemory);
+        LveBuffer stagingBuffer = new(vk, device, 
+            instanceSize, vertexCount, 
+            BufferUsageFlags.TransferSrcBit,
+            MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit
+            );
+        stagingBuffer.Map();
+        stagingBuffer.WriteToBuffer(vertices);
 
-        void* data;
-        vk!.MapMemory(device.VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-        vertices.AsSpan().CopyTo(new Span<Vertex>(data, vertices.Length));
-        vk!.UnmapMemory(device.VkDevice, stagingBufferMemory);
+        //Buffer stagingBuffer = default;
+        //DeviceMemory stagingBufferMemory = default;
+        //createBuffer(bufferSize, 
+        //    BufferUsageFlags.TransferSrcBit, 
+        //    MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit, 
+        //    ref stagingBuffer, ref stagingBufferMemory);
 
-        createBuffer(bufferSize, 
-            BufferUsageFlags.VertexBufferBit | BufferUsageFlags.TransferDstBit, 
-            MemoryPropertyFlags.DeviceLocalBit, 
-            ref vertexBuffer, ref vertexBufferMemory);
+        //void* data;
+        //vk!.MapMemory(device.VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+        //vertices.AsSpan().CopyTo(new Span<Vertex>(data, vertices.Length));
+        //vk!.UnmapMemory(device.VkDevice, stagingBufferMemory);
 
-        copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+        vertexBuffer = new(vk, device,
+            instanceSize, vertexCount,
+            BufferUsageFlags.VertexBufferBit | BufferUsageFlags.TransferDstBit,
+            MemoryPropertyFlags.DeviceLocalBit
+            );
 
-        vk!.DestroyBuffer(device.VkDevice, stagingBuffer, null);
-        vk!.FreeMemory(device.VkDevice, stagingBufferMemory, null);
+
+        //createBuffer(bufferSize, 
+        //    BufferUsageFlags.VertexBufferBit | BufferUsageFlags.TransferDstBit, 
+        //    MemoryPropertyFlags.DeviceLocalBit, 
+        //    ref vertexBuffer, ref vertexBufferMemory);
+
+        copyBuffer(stagingBuffer.VkBuffer, vertexBuffer.VkBuffer, bufferSize);
+
+        //vk!.DestroyBuffer(device.VkDevice, stagingBuffer, null);
+        //vk!.FreeMemory(device.VkDevice, stagingBufferMemory, null);
     }
 
     private unsafe void createIndexBuffers(uint[] indices)
     {
-        ulong bufferSize = (ulong)(Unsafe.SizeOf<uint>() * indices.Length);
+        var instanceSize = (ulong)(Unsafe.SizeOf<uint>());
+        ulong bufferSize = instanceSize * (ulong)indices.Length;
 
-        Buffer stagingBuffer = default;
-        DeviceMemory stagingBufferMemory = default;
-        createBuffer(bufferSize, 
-            BufferUsageFlags.TransferSrcBit, 
-            MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit, 
-            ref stagingBuffer, ref stagingBufferMemory);
+        LveBuffer stagingBuffer = new(vk, device,
+            instanceSize, indexCount,
+            BufferUsageFlags.TransferSrcBit,
+            MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit
+            );
+        stagingBuffer.Map();
+        stagingBuffer.WriteToBuffer(indices);
 
-        void* data;
-        vk!.MapMemory(device.VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-        indices.AsSpan().CopyTo(new Span<uint>(data, indices.Length));
-        vk!.UnmapMemory(device.VkDevice, stagingBufferMemory);
+        //Buffer stagingBuffer = default;
+        //DeviceMemory stagingBufferMemory = default;
+        //createBuffer(bufferSize, 
+        //    BufferUsageFlags.TransferSrcBit, 
+        //    MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit, 
+        //    ref stagingBuffer, ref stagingBufferMemory);
 
-        createBuffer(bufferSize, 
-            BufferUsageFlags.IndexBufferBit | BufferUsageFlags.TransferDstBit, 
-            MemoryPropertyFlags.DeviceLocalBit, 
-            ref indexBuffer, ref indexBufferMemory);
+        //void* data;
+        //vk!.MapMemory(device.VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+        //indices.AsSpan().CopyTo(new Span<uint>(data, indices.Length));
+        //vk!.UnmapMemory(device.VkDevice, stagingBufferMemory);
 
-        copyBuffer(stagingBuffer, indexBuffer, bufferSize);
+        indexBuffer = new(vk, device,
+            instanceSize, indexCount,
+            BufferUsageFlags.IndexBufferBit | BufferUsageFlags.TransferDstBit,
+            MemoryPropertyFlags.DeviceLocalBit
+            );
 
-        vk!.DestroyBuffer(device.VkDevice, stagingBuffer, null);
-        vk!.FreeMemory(device.VkDevice, stagingBufferMemory, null);
+        //createBuffer(bufferSize, 
+        //    BufferUsageFlags.IndexBufferBit | BufferUsageFlags.TransferDstBit, 
+        //    MemoryPropertyFlags.DeviceLocalBit, 
+        //    ref indexBuffer, ref indexBufferMemory);
+
+        copyBuffer(stagingBuffer.VkBuffer, indexBuffer.VkBuffer, bufferSize);
+
+        //vk!.DestroyBuffer(device.VkDevice, stagingBuffer, null);
+        //vk!.FreeMemory(device.VkDevice, stagingBufferMemory, null);
     }
 
     public unsafe void Bind(CommandBuffer commandBuffer)
     {
-        var vertexBuffers = new Buffer[] { vertexBuffer };
+        var vertexBuffers = new Buffer[] { vertexBuffer.VkBuffer };
         var offsets = new ulong[] { 0 };
 
         fixed (ulong* offsetsPtr = offsets)
@@ -99,7 +130,7 @@ public class LveModel : IDisposable
 
         if (hasIndexBuffer)
         {
-            vk.CmdBindIndexBuffer(commandBuffer, indexBuffer, 0, IndexType.Uint32);
+            vk.CmdBindIndexBuffer(commandBuffer, indexBuffer.VkBuffer, 0, IndexType.Uint32);
         }
     }
 
@@ -212,14 +243,14 @@ public class LveModel : IDisposable
                 // TODO: dispose managed state (managed objects)
             }
 
-            vk.DestroyBuffer(device.VkDevice, vertexBuffer, null);
-            vk.FreeMemory(device.VkDevice, vertexBufferMemory, null);
+            //vk.DestroyBuffer(device.VkDevice, vertexBuffer, null);
+            //vk.FreeMemory(device.VkDevice, vertexBufferMemory, null);
 
-            if (hasIndexBuffer)
-            {
-                vk.DestroyBuffer(device.VkDevice, indexBuffer, null);
-                vk.FreeMemory(device.VkDevice, indexBufferMemory, null);
-            }
+            //if (hasIndexBuffer)
+            //{
+            //    vk.DestroyBuffer(device.VkDevice, indexBuffer, null);
+            //    vk.FreeMemory(device.VkDevice, indexBufferMemory, null);
+            //}
             // TODO: free unmanaged resources (unmanaged objects) and override finalizer
             // TODO: set large fields to null
             disposedValue = true;
@@ -227,11 +258,11 @@ public class LveModel : IDisposable
     }
 
     // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~LveModel()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
+    //~LveModel()
+    //{
+    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //    Dispose(disposing: false);
+    //}
 
     public void Dispose()
     {

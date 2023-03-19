@@ -14,6 +14,7 @@ public struct Vertex
         Color = color;
     }
 
+    public static uint SizeOf() => (uint)Unsafe.SizeOf<Vertex>();
 
 
     public static VertexInputBindingDescription[] GetBindingDescriptions()
