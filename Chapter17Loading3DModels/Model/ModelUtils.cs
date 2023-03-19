@@ -51,4 +51,101 @@ public static class ModelUtils
         return new LveModel(vk, device, builder);
     }
 
+    public static LveModel CreateCubeModel6(Vk vk, LveDevice device)
+    {
+        var h = .5f;
+        var builder = new Builder
+        {
+            Vertices = new Vertex[]
+            {
+                // left face (white)
+                new(new(-h, -h, -h), Color3.White),
+                new(new(-h, h, h), Color3.White),
+                new(new(-h, -h, h), Color3.White),
+                new(new(-h, h, -h), Color3.White),
+            
+                // x+ right face (red)
+                new(new(h, -h, -h), Color3.Red),
+                new(new(h, h, h), Color3.Red),
+                new(new(h, -h, h), Color3.Red),
+                new(new(h, h, -h), Color3.Red),
+
+                // y+ top face (green, remember y axis points down)
+                new(new(-h, -h, -h), Color3.Green),
+                new(new(h, -h, h), Color3.Green),
+                new(new(-h, -h, h), Color3.Green),
+                new(new(h, -h, -h), Color3.Green),
+
+                // bottom face (cyan)
+                new(new(-h, h, -h), Color3.Cyan),
+                new(new(h, h, h), Color3.Cyan),
+                new(new(-h, h, h), Color3.Cyan),
+                new(new(h, h, -h), Color3.Cyan),
+
+                // z+ nose face (blue)
+                new(new(-h, -h, h), Color3.Blue),
+                new(new(h, h, h), Color3.Blue),
+                new(new(-h, h, h), Color3.Blue),
+                new(new(h, -h, h), Color3.Blue),
+
+                // tail face (orange)
+                new(new(-h, -h, -h), Color3.Orange),
+                new(new(h, h, -h), Color3.Orange),
+                new(new(-h, h, -h), Color3.Orange),
+                new(new(h, -h, -h), Color3.Orange),
+
+            },
+
+            Indices = new uint[]
+            {
+                0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
+                12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21
+            }
+        };
+
+        return new LveModel(vk, device, builder);
+    }
+
+
+
+    public static LveModel CreateCubeModel3(Vk vk, LveDevice device)
+    {
+        var h = .5f;
+        var builder = new Builder
+        {
+            Vertices = new Vertex[]
+            {
+           
+                // x+ right face (red)
+                new(new(h, -h, -h), Color3.Red),
+                new(new(h, h, h), Color3.Red),
+                new(new(h, -h, h), Color3.Red),
+                new(new(h, h, -h), Color3.Red),
+
+                // y+ top face (green, remember y axis points down)
+                new(new(-h, h, -h), Color3.Green),
+                new(new(h, h, h), Color3.Green),
+                new(new(-h, h, h), Color3.Green),
+                new(new(h, h, -h), Color3.Green),
+
+                // z+ nose face (blue)
+                new(new(-h, -h, h), Color3.Blue),
+                new(new(h, h, h), Color3.Blue),
+                new(new(-h, h, h), Color3.Blue),
+                new(new(h, -h, h), Color3.Blue),
+
+            },
+
+            Indices = new uint[]
+            {
+                0,  1,  2,  0,  3,  1,  
+                4,  5,  6,  4,  7,  5,  
+                8,  9,  10, 8,  11, 9
+            }
+        };
+
+        return new LveModel(vk, device, builder);
+    }
+
+
 }

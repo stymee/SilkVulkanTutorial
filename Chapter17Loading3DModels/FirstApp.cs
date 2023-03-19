@@ -4,8 +4,8 @@ public class FirstApp : IDisposable
 {
     // Window stuff
     private IView window = null!;
-    private int width = 1600;
-    private int height = 800;
+    private int width = 1800;
+    private int height = 1200;
     private string windowName = "Vulkan Tut";
     private long fpsUpdateInterval = 5 * 10_000;
     private long fpsLastUpdate;
@@ -26,7 +26,7 @@ public class FirstApp : IDisposable
 
     //private LveGameObject viewerObject = null!;
     //private KeyboardMovementController cameraController = null!;
-    private MouseMovementController cameraController = null!;
+    private CameraController cameraController = null!;
 
 
     //long currentTime = 0;
@@ -45,7 +45,7 @@ public class FirstApp : IDisposable
         device = new LveDevice(vk, window);
         log.d("startup", "got device");
 
-        lveRenderer = new LveRenderer(vk, window, device, useFifo: false);
+        lveRenderer = new LveRenderer(vk, window, device, useFifo: true);
         log.d("startup", "got renderer");
 
         loadGameObjects();
@@ -60,9 +60,21 @@ public class FirstApp : IDisposable
         simpleRenderSystem = new(vk, device, lveRenderer.GetSwapChainRenderPass());
         log.d("startup", "got render system");
 
-        camera = new(new Vector3(-10f, 0f, 0f), 2f, 0f, 0f, window.FramebufferSize);
+        camera = new(Vector3.Zero, 10f, -20f, -140f, window.FramebufferSize);
         cameraController = new(camera, (IWindow)window);
-        cameraController.OnMouseStateChanged += OnMouseStateChanged;
+        resize(window.FramebufferSize);
+
+        //Console.WriteLine("");
+        //var viewMatrix = camera.GetViewMatrix();
+        //Console.WriteLine("view matrix");
+        //Console.WriteLine(viewMatrix.PrintRows());
+        //Console.WriteLine("");
+        //var projectionMatrix = camera.GetProjectionMatrix();
+        //Console.WriteLine("projection matrix");
+        //Console.WriteLine(projectionMatrix.PrintRows());
+        //Console.WriteLine("");
+
+        //cameraController.OnMouseStateChanged += OnMouseStateChanged;
         //camera.SetViewDirection(Vector3.Zero, new(0.5f, 0f, 1f), -Vector3.UnitY);
         //camera.SetViewTarget(new(-1f, -2f, 2f), new(0f, 0f, 2.5f), -Vector3.UnitY);
         log.d("startup", "got camera");
@@ -78,39 +90,10 @@ public class FirstApp : IDisposable
     // mouse stuff
     private MouseState mouseLast;
 
-    private void OnMouseStateChanged(MouseState mouseCurrent) 
-    {
-
-        switch (mouseCurrent.ControlState)
-        {
-            case MouseControlState.Pick:
-                break;
-            case MouseControlState.Pan:
-                camera.Pan2d(mouseLast.Pos2d, mouseCurrent.Pos2d);
-                break;
-            case MouseControlState.ZoomWheel:
-                camera.ZoomIncremental(mouseCurrent.Wheel);
-                break;
-            case MouseControlState.Rotate:
-                camera.Rotate(mouseLast.Pos2d, mouseCurrent.Pos2d);
-                break;
-            default:
-                break;
-        }
-        mouseLast = mouseCurrent;
-    }
 
     private void render(double delta)
     {
-        //cameraController.MoveInPlaceXZ((IWindow)window, delta, ref viewerObject);
-        //camera.SetViewYXZ(viewerObject.Transform.Translation, viewerObject.Transform.Rotation);
-
-        //float aspect = lveRenderer.GetAspectRatio();
-        //camera.SetOrthographicProjection(-aspect, aspect, -1f, 1f, -1f, 1f);
-        //camera.SetPerspectiveProjection(50f * MathF.PI / 180f, aspect, 0.1f, 10f);
-
-        //lastMouseState = currentMouseState;
-        //cameraController.DoMouse();
+        mouseLast = cameraController.GetMouseState();
 
         var commandBuffer = lveRenderer.BeginFrame();
 
@@ -182,7 +165,10 @@ public class FirstApp : IDisposable
     private void loadGameObjects()
     {
         var cube = LveGameObject.CreateGameObject();
-        cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/colored_cube.obj");
+        //cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/colored_cube.obj");
+        cube.Model = ModelUtils.CreateCubeModel3(vk, device);
+        cube.Transform.Translation = new(0.0f, 0.0f, 0.0f);
+
         //cube.Model = CreateCubeModel(vk, device, Vector3.Zero);
         //cube.Transform.Translation = new(0.0f, 0.0f, 0.0f);
         //cube.Transform.Scale = new(0.5f);

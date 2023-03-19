@@ -79,11 +79,6 @@ public class LveRenderer : IDisposable
             {
                 throw new Exception("Swap chain image(or depth) format has changed!");
             }
-            //if (swapChain.GetFrameBufferCount() != commandBuffers.Length)
-            //{
-            //    freeCommandBuffers();
-            //    createCommandBuffers();
-            //}
         }
 
     }
@@ -145,10 +140,6 @@ public class LveRenderer : IDisposable
         isFrameStarted = true;
 
         var commandBuffer = GetCurrentCommandBuffer();
-        //if (vk.EndCommandBuffer(commandBuffer) != Result.Success)
-        //{
-        //    throw new Exception("failed to pre end recording command buffer!");
-        //}
 
         CommandBufferBeginInfo beginInfo = new()
         {
@@ -160,10 +151,6 @@ public class LveRenderer : IDisposable
             throw new Exception("failed to begin recording command buffer!");
         }
 
-        //var check = commandBuffer.Handle;
-        //Console.WriteLine($"  0x{check:X8} [{GetFrameIndex(),4}] BeginFrame inside");
-
-        //outBuffer = commandBuffer;
         return commandBuffer;
     }
 
@@ -177,8 +164,6 @@ public class LveRenderer : IDisposable
         {
             throw new Exception("failed to record command buffer!");
         }
-        //var check = commandBuffer.Handle;
-        //Console.WriteLine($"  0x{check:X8} [{GetFrameIndex(),4}] EndFrame, ");
 
         var result = swapChain.SubmitCommandBuffers(commandBuffer, currentImageIndex);
         if (result == Result.ErrorOutOfDateKhr || result == Result.SuboptimalKhr || framebufferResized)
@@ -199,16 +184,6 @@ public class LveRenderer : IDisposable
     {
         Debug.Assert(isFrameStarted, "Can't call beginSwapChainRenderPass if frame is not in progress");
         Debug.Assert(commandBuffer.Handle == GetCurrentCommandBuffer().Handle, "Can't begin render pass on command buffer from a different frame");
-
-        //CommandBufferBeginInfo beginInfo = new()
-        //{
-        //    SType = StructureType.CommandBufferBeginInfo,
-        //};
-
-        //if (vk.BeginCommandBuffer(commandBuffer, beginInfo) != Result.Success)
-        //{
-        //    throw new Exception("failed to begin recording command buffer!");
-        //}
 
         RenderPassBeginInfo renderPassInfo = new()
         {
