@@ -5,7 +5,7 @@ public class LveSwapChain : IDisposable
 {
     private bool disposedValue;
 
-    const int MAX_FRAMES_IN_FLIGHT = 2;
+    public static int MAX_FRAMES_IN_FLIGHT = 2;
     public int MaxFramesInFlight => MAX_FRAMES_IN_FLIGHT;
 
     private readonly Vk vk = null!;

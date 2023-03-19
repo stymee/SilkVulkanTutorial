@@ -41,6 +41,11 @@ public unsafe class LveBuffer : IDisposable
     {
         this.vk = vk;
         this.device = device;
+        this.instanceCount = instanceCount;
+        this.instanceSize = instanceSize;
+        this.usageFlags = usageFlags;
+        this.memoryPropertyFlags = memoryPropertyFlags;
+
 
         alignmentSize = getAlignment(instanceSize, minOffsetAlignment);
         bufferSize = alignmentSize * instanceCount;
@@ -105,57 +110,62 @@ public unsafe class LveBuffer : IDisposable
      * @param offset (Optional) Byte offset from beginning of mapped region
      *
     */
-    //public void WriteToBuffer(void* data, ulong size = ulong.MaxValue, ulong offset = 0)
-    //{
-    //    if (mapped is null)
-    //    {
-    //        throw new InvalidOperationException("Cannot copy to unmapped buffer");
-    //    }
-
-    //    if (size == ulong.MaxValue)
-    //    {
-    //        Marshal.Copy(data, 0, mapped, (int)bufferSize);
-    //    }
-    //    else
-    //    {
-    //        IntPtr memOffset = IntPtr.Add(mapped, (int)offset);
-    //        Marshal.Copy(data, 0, memOffset, (int)size);
-    //    }
-    //}
     public void WriteToBuffer<T>(T[] data, ulong size = Vk.WholeSize, ulong offset = 0)
     {
         if (size == Vk.WholeSize)
         {
-            data.AsSpan().CopyTo(new Span<T>(mapped, data.Length));
+            var tmpSpan = new Span<T>(mapped, data.Length);
+            data.AsSpan().CopyTo(tmpSpan);
         }
         else
         {
-            throw new NotImplementedException("Can't handle offsets yet when writing to vertex buffers");
+            //https://github.com/dotnet/runtime/discussions/73108
+            //You can just do span1.CopyTo(span2.Slice(index)) or span1.CopyTo[span2[index..]]. No more overload is needed.
+            //var tmpSpan = new Span<T>(mapped, (int)instanceCount);
+            //data.AsSpan().CopyTo(tmpSpan[(int)offset..]);
+
+            throw new NotImplementedException("don't have offset stuff working yet");
         }
     }
+    /**
+     * Copies "instanceSize" bytes of data to the mapped buffer at an offset of index * alignmentSize
+     *
+     * @param data Pointer to the data to copy
+     * @param index Used in offset calculation
+     *
+    */
+    //void LveBuffer::writeToIndex(void* data, int index)
+    //{
+    //    writeToBuffer(data, instanceSize, index * alignmentSize);
+    //}
+    //public unsafe void UpdateUbo(GlobalUbo ubo, int index)
+    //{
+    //    void* data;
+    //    vk.MapMemory(device.VkDevice, memory, 0, (ulong)Unsafe.SizeOf<GlobalUbo>(), 0, &data);
+    //    new Span<GlobalUbo>(data, 1)[0] = ubo;
+    //    vk.UnmapMemory(device.VkDevice, memory);
 
-    //public void WriteVertexArrayToBuffer(Vertex[] vertices, ulong size = Vk.WholeSize, ulong offset = 0)
-    //{
-    //    if (size == Vk.WholeSize)
-    //    {
-    //        vertices.AsSpan().CopyTo(new Span<Vertex>(mapped, vertices.Length));
-    //    }
-    //    else
-    //    {
-    //        throw new NotImplementedException("Can't handle offsets yet when writing to vertex buffers");
-    //    }
+    //    //data.CopyTo(new Span<T>(mapped, data.Length));
     //}
-    //public void WriteIndexArrayToBuffer(uint[] indices, ulong size = Vk.WholeSize, ulong offset = 0)
-    //{
-    //    if (size == Vk.WholeSize)
-    //    {
-    //        indices.AsSpan().CopyTo(new Span<uint>(mapped, indices.Length));
-    //    }
-    //    else
-    //    {
-    //        throw new NotImplementedException("Can't handle offsets yet when writing to vertex buffers");
-    //    }
-    //}
+    public unsafe void WriteToIndex<T>(T item, int index)
+    {
+        //new Span<T>(data, (int)instanceCount)[index] = item;
+        var data = new T[] { item };
+        //WriteToBuffer(data, instanceSize, (ulong)index * alignmentSize);
+        var tmpSpan = new Span<T>(mapped, (int)instanceCount);
+        data.AsSpan().CopyTo(tmpSpan[index..]);
+
+
+        //void* data;
+        //vk.MapMemory(device.VkDevice, memory, (ulong)index * instanceSize, (ulong)Unsafe.SizeOf<T>(), 0, &data);
+        //new Span<T>(data, (int)instanceCount)[index] = item;
+        //vk.UnmapMemory(device.VkDevice, memory);
+
+        //data.CopyTo(new Span<T>(mapped, data.Length));
+    }
+
+
+
 
 
     /**
@@ -228,19 +238,6 @@ public unsafe class LveBuffer : IDisposable
             Range = size
         };
     }
-
-
-    /**
-     * Copies "instanceSize" bytes of data to the mapped buffer at an offset of index * alignmentSize
-     *
-     * @param data Pointer to the data to copy
-     * @param index Used in offset calculation
-     *
-    */
-    //public void WriteToIndex(void* data, int index)
-    //{
-    //    //writeToBuffer(data, instanceSize, index * alignmentSize);
-    //}
 
 
 

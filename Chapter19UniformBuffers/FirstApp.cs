@@ -1,4 +1,6 @@
-﻿namespace Chapter19UniformBuffers;
+﻿using Silk.NET.Vulkan;
+
+namespace Chapter19UniformBuffers;
 
 public class FirstApp : IDisposable
 {
@@ -25,6 +27,8 @@ public class FirstApp : IDisposable
 
     private CameraController cameraController = null!;
 
+
+    private LveBuffer globalUboBuffer = null!;
 
     public FirstApp()
     {
@@ -53,6 +57,16 @@ public class FirstApp : IDisposable
         cameraController = new(camera, (IWindow)window);
         resize(window.FramebufferSize);
         log.d("startup", "got camera");
+
+
+        globalUboBuffer = new(
+            vk, device,
+            (ulong)Unsafe.SizeOf<GlobalUbo>(), (uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT,
+            BufferUsageFlags.UniformBufferBit, MemoryPropertyFlags.HostVisibleBit,
+            device.GetProperties().Limits.MinUniformBufferOffsetAlignment
+            );
+        globalUboBuffer.Map();
+
     }
 
     public void Run()
@@ -74,6 +88,15 @@ public class FirstApp : IDisposable
 
         if (commandBuffer is not null)
         {
+            int frameIndex = lveRenderer.GetFrameIndex();
+            var ubo = new GlobalUbo()
+            {
+                ProjectionView = camera.GetViewMatrix() * camera.GetProjectionMatrix()
+            };
+
+            globalUboBuffer.WriteToIndex(ubo, frameIndex);
+            globalUboBuffer.FlushIndex(frameIndex);
+            
             lveRenderer.BeginSwapChainRenderPass(commandBuffer.Value);
             simpleRenderSystem.RenderGameObjects(commandBuffer.Value, ref gameObjects, camera);
             lveRenderer.EndSwapChainRenderPass(commandBuffer.Value);

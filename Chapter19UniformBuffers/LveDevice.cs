@@ -28,7 +28,15 @@ public unsafe class LveDevice
     public SurfaceKHR Surface => surface;
 
     private PhysicalDevice physicalDevice;
-    //public PhysicalDevice VkPhysicalDevice => physicalDevice;
+
+    private string deviceName = "unknown";
+    public string DeviceName => deviceName;
+
+    public PhysicalDeviceProperties GetProperties()
+    {
+        vk.GetPhysicalDeviceProperties(physicalDevice, out PhysicalDeviceProperties properties);
+        return properties;
+    }
 
     private SampleCountFlags msaaSamples = SampleCountFlags.Count1Bit;
     private Device device;
@@ -194,7 +202,7 @@ public unsafe class LveDevice
     }
 
 
-    private void pickPhysicalDevice()
+    private unsafe void pickPhysicalDevice()
     {
         uint devicedCount = 0;
         vk.EnumeratePhysicalDevices(instance, ref devicedCount, null);
@@ -224,8 +232,19 @@ public unsafe class LveDevice
         {
             throw new Exception("failed to find a suitable GPU!");
         }
+
+        vk.GetPhysicalDeviceProperties(physicalDevice, out PhysicalDeviceProperties properties);
+        deviceName = getStringFromBytePointer(properties.DeviceName, 50).Trim();
+        log.d("device", $"using {deviceName}");
     }
 
+
+    private static string getStringFromBytePointer(byte* pointer, int length)
+    {
+        // Create a span from the byte pointer and decode the string
+        Span<byte> span = new Span<byte>(pointer, length);
+        return Encoding.UTF8.GetString(span);
+    }
 
     private void createLogicalDevice()
     {
