@@ -89,6 +89,12 @@ public class FirstApp : IDisposable
         if (commandBuffer is not null)
         {
             int frameIndex = lveRenderer.GetFrameIndex();
+            FrameInfo frameInfo = new()
+            {
+                FrameIndex = frameIndex,
+                CommandBuffer = commandBuffer.Value,
+                Camera = camera
+            };
             var ubo = new GlobalUbo()
             {
                 ProjectionView = camera.GetViewMatrix() * camera.GetProjectionMatrix()
@@ -98,7 +104,7 @@ public class FirstApp : IDisposable
             globalUboBuffer.FlushIndex(frameIndex);
             
             lveRenderer.BeginSwapChainRenderPass(commandBuffer.Value);
-            simpleRenderSystem.RenderGameObjects(commandBuffer.Value, ref gameObjects, camera);
+            simpleRenderSystem.RenderGameObjects(frameInfo, ref gameObjects);
             lveRenderer.EndSwapChainRenderPass(commandBuffer.Value);
             lveRenderer.EndFrame();
         }

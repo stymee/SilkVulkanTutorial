@@ -61,11 +61,15 @@ class SimpleRenderSystem
         log.d("app run", " got pipeline");
     }
 
-    public void RenderGameObjects(CommandBuffer commandBuffer, ref List<LveGameObject> gameObjects, OrthographicCamera camera)
-    {
-        pipeline.Bind(commandBuffer);
 
-        var projectionView = camera.GetViewMatrix() * camera.GetProjectionMatrix() ;
+
+
+
+    public void RenderGameObjects(FrameInfo frameInfo, ref List<LveGameObject> gameObjects)
+    {
+        pipeline.Bind(frameInfo.CommandBuffer);
+
+        var projectionView = frameInfo.Camera.GetViewMatrix() * frameInfo.Camera.GetProjectionMatrix() ;
 
         foreach (var g in gameObjects)
         {
@@ -76,9 +80,9 @@ class SimpleRenderSystem
                 Transform = modelMatrix * projectionView, // this is reverse from tutorial?
                 NormalMatrix = g.Transform.NormalMatrix()
             };
-            vk.CmdPushConstants(commandBuffer, pipelineLayout, ShaderStageFlags.VertexBit | ShaderStageFlags.FragmentBit, 0, SimplePushConstantData.SizeOf(), ref push);
-            g.Model.Bind(commandBuffer);
-            g.Model.Draw(commandBuffer);
+            vk.CmdPushConstants(frameInfo.CommandBuffer, pipelineLayout, ShaderStageFlags.VertexBit | ShaderStageFlags.FragmentBit, 0, SimplePushConstantData.SizeOf(), ref push);
+            g.Model.Bind(frameInfo.CommandBuffer);
+            g.Model.Draw(frameInfo.CommandBuffer);
 
         }
     }
