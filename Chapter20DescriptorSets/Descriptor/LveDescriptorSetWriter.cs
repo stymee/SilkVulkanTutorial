@@ -6,16 +6,16 @@ public unsafe class LveDescriptorSetWriter
     private LveDescriptorSetLayout setLayout = null!;
     private LveDescriptorPool pool = null!;
 
-    private List<WriteDescriptorSet> writes = new();
+    private WriteDescriptorSet[] writes = Array.Empty<WriteDescriptorSet>();
 
-    public LveDescriptorSetWriter(Vk vk, LveDescriptorSetLayout setLayout, LveDescriptorPool pool)
+    public LveDescriptorSetWriter(Vk vk, ref LveDescriptorSetLayout setLayout, ref LveDescriptorPool pool)
     {
         this.vk = vk;
         this.setLayout = setLayout;
         this.pool = pool;
     }
 
-    public LveDescriptorSetWriter writeBuffer(uint binding, DescriptorBufferInfo bufferInfo)
+    public LveDescriptorSetWriter WriteBuffer(uint binding, DescriptorBufferInfo bufferInfo)
     {
         if (!setLayout.Bindings.ContainsKey(binding))
         {
@@ -29,20 +29,22 @@ public unsafe class LveDescriptorSetWriter
             throw new ApplicationException($"Binding single descriptor info, but binding expects multiple");
         }
 
-            WriteDescriptorSet write = new()
-            {
-                SType = StructureType.WriteDescriptorSet,
-                DescriptorType = bindingDescription.DescriptorType,
-                DstBinding = binding,
-                PBufferInfo = &bufferInfo,
-                DescriptorCount = 1,
-            };
+        WriteDescriptorSet write = new()
+        {
+            SType = StructureType.WriteDescriptorSet,
+            DescriptorType = bindingDescription.DescriptorType,
+            DstBinding = binding,
+            PBufferInfo = &bufferInfo,
+            DescriptorCount = 1,
+        };
 
-        writes.Add(write);
+        var writesLen = writes.Length;
+        Array.Resize(ref writes, writesLen + 1);
+        writes[writesLen] = write;
         return this;
     }
 
-    public LveDescriptorSetWriter writeImage(uint binding, DescriptorImageInfo imageInfo)
+    public LveDescriptorSetWriter WriteImage(uint binding, DescriptorImageInfo imageInfo)
     {
         if (!setLayout.Bindings.ContainsKey(binding))
         {
@@ -56,42 +58,44 @@ public unsafe class LveDescriptorSetWriter
             throw new ApplicationException($"Binding single descriptor info, but binding expects multiple");
         }
 
-            WriteDescriptorSet write = new()
-            {
-                SType = StructureType.WriteDescriptorSet,
-                DescriptorType = bindingDescription.DescriptorType,
-                DstBinding = binding,
-                PImageInfo = &imageInfo,
-                DescriptorCount = 1,
-            };
+        WriteDescriptorSet write = new()
+        {
+            SType = StructureType.WriteDescriptorSet,
+            DescriptorType = bindingDescription.DescriptorType,
+            DstBinding = binding,
+            PImageInfo = &imageInfo,
+            DescriptorCount = 1,
+        };
 
-        writes.Add(write);
+        var writesLen = writes.Length;
+        Array.Resize(ref writes, writesLen + 1);
+        writes[writesLen] = write;
         return this;
     }
 
     public bool Build(DescriptorSet set)
     {
-        var success = pool.AllocateDescriptor(setLayout.GetDescriptorSetLayout(), set);
+        var success = pool.AllocateDescriptorSet(setLayout.GetDescriptorSetLayout(), ref set);
         if (!success)
         {
             return false;
         }
-        overwrite(set);
+        overwrite(ref set);
         return true;
     }
 
 
-    private void overwrite(DescriptorSet set)
+    private void overwrite(ref DescriptorSet set)
     {
-        for (var i = 0; i < writes.Count; i++)
+        for (var i = 0; i < writes.Length; i++)
         {
-            var write = writes[i];
-            write.DstSet = set;
+            writes[i].DstSet = set;
+            //write.DstSet = set;
         }
-        fixed (WriteDescriptorSet* writesPtr = writes.ToArray())
+        fixed (WriteDescriptorSet* writesPtr = writes)
         {
-            vk.UpdateDescriptorSets(pool.LveDevice.VkDevice, (uint)writes.Count, writesPtr, 0, null);   
-        }    
+            vk.UpdateDescriptorSets(pool.LveDevice.VkDevice, (uint)writes.Length, writesPtr, 0, null);
+        }
     }
 
 }

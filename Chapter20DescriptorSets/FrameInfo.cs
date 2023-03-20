@@ -9,6 +9,7 @@ public class FrameInfo
 
     public OrthographicCamera Camera { get; init; } = null!;
 
+    public DescriptorSet GlobalDescriptorSet { get; init; }
 
 }
 

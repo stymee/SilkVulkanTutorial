@@ -16,6 +16,8 @@ public class FirstApp : IDisposable
 
     private LveDevice device = null!;
     private LveRenderer lveRenderer = null!;
+    private LveDescriptorPool globalPool = null!;
+
     private List<LveGameObject> gameObjects = new();
 
     private OrthographicCamera camera = null!;
@@ -27,7 +29,10 @@ public class FirstApp : IDisposable
     private CameraController cameraController = null!;
 
 
-    private LveBuffer[] globalUboBuffer = null!;
+    private LveBuffer[] uboBuffers = null!;
+    private LveDescriptorSetLayout globalSetLayout = null!;
+    private DescriptorSet[] globalDescriptorSets = null!;
+
 
     public FirstApp()
     {
@@ -46,36 +51,61 @@ public class FirstApp : IDisposable
         lveRenderer = new LveRenderer(vk, window, device, useFifo: false);
         log.d("startup", "got renderer");
 
+        globalPool = new LveDescriptorPool.Builder(vk,device)
+            .setMaxSets((uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(DescriptorType.UniformBuffer, (uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT)
+            .Build();
+
         loadGameObjects();
         log.d("startup", "objects loaded");
-
-        simpleRenderSystem = new(vk, device, lveRenderer.GetSwapChainRenderPass());
-        log.d("startup", "got render system");
-
-        camera = new(Vector3.Zero, 2f, -20f, -140f, window.FramebufferSize);
-        cameraController = new(camera, (IWindow)window);
-        resize(window.FramebufferSize);
-        log.d("startup", "got camera");
-
-
-        globalUboBuffer = new LveBuffer[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
-        for (int i =0; i < LveSwapChain.MAX_FRAMES_IN_FLIGHT; i++)
-        {
-            globalUboBuffer[i] = new(
-                vk, device,
-                (ulong)Unsafe.SizeOf<GlobalUbo>(), 
-                1,
-                BufferUsageFlags.UniformBufferBit, 
-                MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit
-                );
-            globalUboBuffer[i].Map();
-
-        }
 
     }
 
     public void Run()
     {
+        uboBuffers = new LveBuffer[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
+        for (int i = 0; i < LveSwapChain.MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            uboBuffers[i] = new(
+                vk, device,
+                (ulong)Unsafe.SizeOf<GlobalUbo>(),
+                1,
+                BufferUsageFlags.UniformBufferBit,
+                MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit
+                );
+            uboBuffers[i].Map();
+        }
+
+        globalSetLayout = new LveDescriptorSetLayout.Builder(vk, device)
+            .AddBinding(0, DescriptorType.UniformBuffer, ShaderStageFlags.VertexBit)
+            .Build();
+
+
+        globalDescriptorSets = new DescriptorSet[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
+        for (var i = 0; i < globalDescriptorSets.Length; i++)
+        {
+            var bufferInfo = uboBuffers[i].DescriptorInfo();
+            new LveDescriptorSetWriter(vk, ref globalSetLayout, ref globalPool)
+                .WriteBuffer(0, bufferInfo)
+                .Build(globalDescriptorSets[i]);
+        }
+
+        simpleRenderSystem = new(
+            vk, device, 
+            lveRenderer.GetSwapChainRenderPass(), 
+            globalSetLayout.GetDescriptorSetLayout()
+            );
+        log.d("run", "got render system");
+
+        camera = new(Vector3.Zero, 2f, -20f, -140f, window.FramebufferSize);
+        cameraController = new(camera, (IWindow)window);
+        resize(window.FramebufferSize);
+        log.d("run", "got camera");
+
+
+
+
+
         MainLoop();
         CleanUp();
     }
@@ -98,7 +128,8 @@ public class FirstApp : IDisposable
             {
                 FrameIndex = frameIndex,
                 CommandBuffer = commandBuffer.Value,
-                Camera = camera
+                Camera = camera,
+                GlobalDescriptorSet = globalDescriptorSets[frameIndex],
             };
 
             var ubo = new GlobalUbo[1]
@@ -109,7 +140,7 @@ public class FirstApp : IDisposable
                 }
             };
 
-            globalUboBuffer[frameIndex].WriteToBuffer(ubo);
+            uboBuffers[frameIndex].WriteToBuffer(ubo);
             // using coherent bit in ubo construction, so don't need to flush?  confusing
             //globalUboBuffer[frameIndex].Flush();
             

@@ -9,11 +9,13 @@ class SimpleRenderSystem
     private LvePipeline pipeline = null!;
     private PipelineLayout pipelineLayout;
 
-    public SimpleRenderSystem(Vk vk, LveDevice device, RenderPass renderPass)
+    private DescriptorSetLayout[] descriptorSetLayouts;
+
+    public SimpleRenderSystem(Vk vk, LveDevice device, RenderPass renderPass, DescriptorSetLayout globalSetlayout)
 	{
 		this.vk = vk;
 		this.device = device;
-
+        descriptorSetLayouts = new DescriptorSetLayout[] { globalSetlayout };
         createPipelineLayout();
         createPipeline(renderPass);
 	}
@@ -28,18 +30,21 @@ class SimpleRenderSystem
         };
 
 
-        PipelineLayoutCreateInfo pipelineLayoutInfo = new()
+        fixed (DescriptorSetLayout* descriptorSetLayoutPtr = descriptorSetLayouts)
         {
-            SType = StructureType.PipelineLayoutCreateInfo,
-            SetLayoutCount = 0,
-            PSetLayouts = default,
-            PushConstantRangeCount = 1,
-            PPushConstantRanges = &pushConstantRange,
-        };
+            PipelineLayoutCreateInfo pipelineLayoutInfo = new()
+            {
+                SType = StructureType.PipelineLayoutCreateInfo,
+                SetLayoutCount = (uint)descriptorSetLayouts.Length,
+                PSetLayouts = descriptorSetLayoutPtr,
+                PushConstantRangeCount = 1,
+                PPushConstantRanges = &pushConstantRange,
+            };
 
-        if (vk.CreatePipelineLayout(device.VkDevice, pipelineLayoutInfo, null, out pipelineLayout) != Result.Success)
-        {
-            throw new Exception("failed to create pipeline layout!");
+            if (vk.CreatePipelineLayout(device.VkDevice, pipelineLayoutInfo, null, out pipelineLayout) != Result.Success)
+            {
+                throw new Exception("failed to create pipeline layout!");
+            }
         }
     }
 
@@ -65,22 +70,37 @@ class SimpleRenderSystem
 
 
 
-    public void RenderGameObjects(FrameInfo frameInfo, ref List<LveGameObject> gameObjects)
+    public unsafe void RenderGameObjects(FrameInfo frameInfo, ref List<LveGameObject> gameObjects)
     {
         pipeline.Bind(frameInfo.CommandBuffer);
 
-        var projectionView = frameInfo.Camera.GetViewMatrix() * frameInfo.Camera.GetProjectionMatrix() ;
+        vk.CmdBindDescriptorSets(
+            frameInfo.CommandBuffer,
+            PipelineBindPoint.Graphics,
+            pipelineLayout,
+            0,
+            1,
+            frameInfo.GlobalDescriptorSet,
+            0,
+            null
+        );
+
 
         foreach (var g in gameObjects)
         {
-            var modelMatrix = g.Transform.Mat4();
             SimplePushConstantData push = new()
             {
-                //Color = g.Color,
-                Transform = modelMatrix * projectionView, // this is reverse from tutorial?
+                ModelMatrix = g.Transform.Mat4(),
                 NormalMatrix = g.Transform.NormalMatrix()
             };
-            vk.CmdPushConstants(frameInfo.CommandBuffer, pipelineLayout, ShaderStageFlags.VertexBit | ShaderStageFlags.FragmentBit, 0, SimplePushConstantData.SizeOf(), ref push);
+            vk.CmdPushConstants(
+                frameInfo.CommandBuffer, 
+                pipelineLayout, 
+                ShaderStageFlags.VertexBit | ShaderStageFlags.FragmentBit, 
+                0, 
+                SimplePushConstantData.SizeOf(), 
+                ref push
+            );
             g.Model.Bind(frameInfo.CommandBuffer);
             g.Model.Draw(frameInfo.CommandBuffer);
 
@@ -94,13 +114,13 @@ class SimpleRenderSystem
 
 public struct SimplePushConstantData
 {
-    public Matrix4x4 Transform;
+    public Matrix4x4 ModelMatrix;
     public Matrix4x4 NormalMatrix;
     //public Vector4 Color;
 
     public SimplePushConstantData()
     {
-        Transform = Matrix4x4.Identity;
+        ModelMatrix = Matrix4x4.Identity;
         NormalMatrix = Matrix4x4.Identity;
     }
 

@@ -1,4 +1,7 @@
 ﻿
+using Silk.NET.OpenAL;
+using Silk.NET.Vulkan;
+
 namespace Chapter20DescriptorSets;
 
 public unsafe class LveDescriptorPool : IDisposable
@@ -9,13 +12,18 @@ public unsafe class LveDescriptorPool : IDisposable
     private bool disposedValue;
 
     private DescriptorPool descriptorPool;
+    private List<DescriptorPoolSize> poolSizes = new();
+    private DescriptorPoolCreateFlags poolFlags = DescriptorPoolCreateFlags.None;
+    private uint maxSets;
 
     public LveDescriptorPool(Vk vk, LveDevice device, uint maxSets, DescriptorPoolCreateFlags poolFlags, DescriptorPoolSize[] poolSizes)
     {
         this.vk = vk;
         this.device = device;
-
-        fixed (DescriptorPoolSize* poolSizesPtr = poolSizes)
+        this.maxSets = maxSets;
+        this.poolSizes.AddRange(poolSizes);
+        this.poolFlags = poolFlags;
+        fixed (DescriptorPoolSize* poolSizesPtr = poolSizes.ToArray())
         {
             DescriptorPoolCreateInfo descriptorPoolInfo = new()
             {
@@ -34,21 +42,42 @@ public unsafe class LveDescriptorPool : IDisposable
 
     }
 
-    public bool AllocateDescriptor(DescriptorSetLayout descriptorSetLayout, DescriptorSet descriptor)
+    public bool AllocateDescriptorSet(DescriptorSetLayout descriptorSetLayout, ref DescriptorSet descriptorSet)
     {
-        DescriptorSetAllocateInfo allocInfo = new()
+        //fixed (DescriptorSetLayout* pg_DescriptorSetLayout = descriptorSetLayout)
+        //{
+        var allocInfo = new DescriptorSetAllocateInfo()
         {
             SType = StructureType.DescriptorSetAllocateInfo,
             DescriptorPool = descriptorPool,
+            DescriptorSetCount = 1,
             PSetLayouts = &descriptorSetLayout,
-            DescriptorSetCount = 1
         };
-
-        if (vk.AllocateDescriptorSets(device.VkDevice, &allocInfo, &descriptor) != Result.Success)
+        if (vk.AllocateDescriptorSets(device.VkDevice, allocInfo, out descriptorSet) != Result.Success)
         {
             return false;
+            //throw new Exception($"Unable to create descriptor sets");
         }
         return true;
+        //}
+
+        //DescriptorSetAllocateInfo allocInfo = new()
+        //{
+        //    SType = StructureType.DescriptorSetAllocateInfo,
+        //    DescriptorPool = descriptorPool,
+        //    PSetLayouts = &descriptorSetLayout,
+        //    DescriptorSetCount = 1
+        //};
+
+        //fixed (DescriptorSet* descriptorSetsPtr = descriptorSets)
+        //{
+        //    if (vk.AllocateDescriptorSets(device.VkDevice, &allocInfo, descriptorSetsPtr) != Result.Success)
+        //    {
+        //        return false;
+        //    }
+        //    return true;
+
+        //}
     }
 
     private void freeDescriptors(DescriptorSet[] descriptors)
@@ -62,20 +91,40 @@ public unsafe class LveDescriptorPool : IDisposable
     }
 
 
-    private class Builder
+    public class Builder
     {
-        private readonly Vk vk = null!;
-        private readonly LveDevice device = null!;
-
+        //private readonly Vk vk = null!;
+        //private readonly LveDevice device = null!;
+        private readonly LveDescriptorPool pool = null!;
 
         public Builder(Vk vk, LveDevice device)
         {
-            this.vk = vk;
-            this.device = device;
-
+            pool = new LveDescriptorPool(vk, device, 1, DescriptorPoolCreateFlags.None, new DescriptorPoolSize[0]);
         }
 
 
+        public Builder AddPoolSize(DescriptorType descriptorType, uint count)
+        {
+            pool.poolSizes.Add(new DescriptorPoolSize(descriptorType, count));
+
+            return this;
+        }
+
+        public Builder setPoolFlags(DescriptorPoolCreateFlags flags)
+        {
+            pool.poolFlags = flags;
+            return this;
+        }
+        public Builder setMaxSets(uint count)
+        {
+            pool.maxSets = count;
+            return this;
+        }
+
+        public LveDescriptorPool Build()
+        {
+            return pool;// new LveDescriptorPool(pool.vk, pool.device, pool.maxSets, pool.poolFlags, pool.poolSizes.ToArray());
+        }
 
 
     }

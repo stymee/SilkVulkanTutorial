@@ -43,7 +43,7 @@ public unsafe class LveDescriptorSetLayout : IDisposable
 
 
     // builder class...
-    private class Builder
+    public class Builder
     {
         private readonly Vk vk = null!;
         private readonly LveDevice device = null!;
@@ -57,7 +57,7 @@ public unsafe class LveDescriptorSetLayout : IDisposable
 
         }
 
-        public LveDescriptorSetLayout build()
+        public LveDescriptorSetLayout Build()
         {
             return new LveDescriptorSetLayout(vk, device, bindings);
         }
