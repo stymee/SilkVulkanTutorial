@@ -10,7 +10,7 @@ layout(location = 0) out vec3 fragColor;
 layout(set = 0, binding = 0) uniform GlobalUbo
 {
 	mat4 projectionViewMatrix;
-	vec3 directionToLight;
+	vec4 directionToLight;
 } ubo;
 
 layout(push_constant) uniform Push 
@@ -38,7 +38,7 @@ void main() {
 	// precompute normalMatrix and send it in with the attributes
 	vec3 normalWorldSpace = normalize(mat3(push.normalMatrix) * normal);
 
-	float lightIntensity = AMBIENT + max(dot(normalWorldSpace, ubo.directionToLight), 0);
+	float lightIntensity = AMBIENT + max(dot(normalWorldSpace, ubo.directionToLight.xyz), 0);
 
 	fragColor = lightIntensity * color;
 }

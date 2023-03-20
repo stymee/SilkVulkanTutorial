@@ -1,16 +1,13 @@
 ﻿
 namespace Chapter20DescriptorSets;
 
-public class FrameInfo
+public struct FrameInfo
 {
-    public int FrameIndex { get; set; }
-    public float FrameTime { get; set; }
-    public CommandBuffer CommandBuffer { get; init; }
-
-    public OrthographicCamera Camera { get; init; } = null!;
-
-    public DescriptorSet GlobalDescriptorSet { get; init; }
-
+    public int FrameIndex;// { get; set; }
+    public float FrameTime;// { get; set; }
+    public CommandBuffer CommandBuffer;// { get; init; }
+    public OrthographicCamera Camera;// { get; init; } = null!;
+    public DescriptorSet GlobalDescriptorSet;// { get; init; }
 }
 
 

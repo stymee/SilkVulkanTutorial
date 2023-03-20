@@ -57,12 +57,7 @@ public unsafe class LveDescriptorSetLayout : IDisposable
 
         }
 
-        public LveDescriptorSetLayout Build()
-        {
-            return new LveDescriptorSetLayout(vk, device, bindings);
-        }
-
-        public LveDescriptorSetLayout.Builder AddBinding(uint binding, DescriptorType descriptorType, ShaderStageFlags stageFlags, uint count = 1)
+        public Builder AddBinding(uint binding, DescriptorType descriptorType, ShaderStageFlags stageFlags, uint count = 1)
         {
             //Debug.Assert(bindings.Count(binding) == 0 && "Binding already in use");
             if (bindings.ContainsKey(binding))
@@ -78,6 +73,11 @@ public unsafe class LveDescriptorSetLayout : IDisposable
             };
             bindings[binding] = layoutBinding;
             return this;
+        }
+
+        public LveDescriptorSetLayout Build()
+        {
+            return new LveDescriptorSetLayout(vk, device, bindings);
         }
 
 

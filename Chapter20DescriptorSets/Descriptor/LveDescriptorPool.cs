@@ -1,7 +1,4 @@
 ﻿
-using Silk.NET.OpenAL;
-using Silk.NET.Vulkan;
-
 namespace Chapter20DescriptorSets;
 
 public unsafe class LveDescriptorPool : IDisposable
@@ -12,18 +9,19 @@ public unsafe class LveDescriptorPool : IDisposable
     private bool disposedValue;
 
     private DescriptorPool descriptorPool;
-    private List<DescriptorPoolSize> poolSizes = new();
-    private DescriptorPoolCreateFlags poolFlags = DescriptorPoolCreateFlags.None;
+    private DescriptorPoolSize[] poolSizes = null!;// = new();
+    private DescriptorPoolCreateFlags poolFlags;// = DescriptorPoolCreateFlags.None;
     private uint maxSets;
 
     public LveDescriptorPool(Vk vk, LveDevice device, uint maxSets, DescriptorPoolCreateFlags poolFlags, DescriptorPoolSize[] poolSizes)
     {
         this.vk = vk;
         this.device = device;
+        this.poolSizes = poolSizes;
         this.maxSets = maxSets;
-        this.poolSizes.AddRange(poolSizes);
         this.poolFlags = poolFlags;
-        fixed (DescriptorPoolSize* poolSizesPtr = poolSizes.ToArray())
+
+        fixed (DescriptorPoolSize* poolSizesPtr = poolSizes)
         {
             DescriptorPoolCreateInfo descriptorPoolInfo = new()
             {
@@ -53,7 +51,8 @@ public unsafe class LveDescriptorPool : IDisposable
             DescriptorSetCount = 1,
             PSetLayouts = &descriptorSetLayout,
         };
-        if (vk.AllocateDescriptorSets(device.VkDevice, allocInfo, out descriptorSet) != Result.Success)
+        var result = vk.AllocateDescriptorSets(device.VkDevice, allocInfo, out descriptorSet);
+        if (result != Result.Success)
         {
             return false;
             //throw new Exception($"Unable to create descriptor sets");
@@ -80,7 +79,7 @@ public unsafe class LveDescriptorPool : IDisposable
         //}
     }
 
-    private void freeDescriptors(DescriptorSet[] descriptors)
+    private void freeDescriptors(ref DescriptorSet[] descriptors)
     {
         vk.FreeDescriptorSets(device.VkDevice, descriptorPool, descriptors);
     }
@@ -105,7 +104,10 @@ public unsafe class LveDescriptorPool : IDisposable
 
         public Builder AddPoolSize(DescriptorType descriptorType, uint count)
         {
-            pool.poolSizes.Add(new DescriptorPoolSize(descriptorType, count));
+            var poolLen = pool.poolSizes.Length;
+            Array.Resize(ref pool.poolSizes, poolLen + 1);
+            pool.poolSizes[poolLen] = new DescriptorPoolSize(descriptorType, count);
+            //pool.poolSizes.Add(new DescriptorPoolSize(descriptorType, count));
 
             return this;
         }

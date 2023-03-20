@@ -8,7 +8,7 @@ public unsafe class LveDescriptorSetWriter
 
     private WriteDescriptorSet[] writes = Array.Empty<WriteDescriptorSet>();
 
-    public LveDescriptorSetWriter(Vk vk, ref LveDescriptorSetLayout setLayout, ref LveDescriptorPool pool)
+    public LveDescriptorSetWriter(Vk vk, LveDescriptorSetLayout setLayout, LveDescriptorPool pool)
     {
         this.vk = vk;
         this.setLayout = setLayout;
@@ -73,7 +73,7 @@ public unsafe class LveDescriptorSetWriter
         return this;
     }
 
-    public bool Build(DescriptorSet set)
+    public bool Build(ref DescriptorSet set)
     {
         var success = pool.AllocateDescriptorSet(setLayout.GetDescriptorSetLayout(), ref set);
         if (!success)

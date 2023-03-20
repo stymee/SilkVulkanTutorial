@@ -48,7 +48,7 @@ public class FirstApp : IDisposable
         device = new LveDevice(vk, window);
         log.d("startup", "got device");
 
-        lveRenderer = new LveRenderer(vk, window, device, useFifo: false);
+        lveRenderer = new LveRenderer(vk, window, device, useFifo: true);
         log.d("startup", "got renderer");
 
         globalPool = new LveDescriptorPool.Builder(vk,device)
@@ -68,7 +68,7 @@ public class FirstApp : IDisposable
         {
             uboBuffers[i] = new(
                 vk, device,
-                (ulong)Unsafe.SizeOf<GlobalUbo>(),
+                GlobalUbo.SizeOf(),
                 1,
                 BufferUsageFlags.UniformBufferBit,
                 MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit
@@ -85,9 +85,10 @@ public class FirstApp : IDisposable
         for (var i = 0; i < globalDescriptorSets.Length; i++)
         {
             var bufferInfo = uboBuffers[i].DescriptorInfo();
-            new LveDescriptorSetWriter(vk, ref globalSetLayout, ref globalPool)
+            _ = new LveDescriptorSetWriter(vk, globalSetLayout, globalPool)
                 .WriteBuffer(0, bufferInfo)
-                .Build(globalDescriptorSets[i]);
+                .Build(ref globalDescriptorSets[i]);
+            Console.WriteLine($"got a  built globalDescriptorSet[{i}]={globalDescriptorSets[i].Handle}");
         }
 
         simpleRenderSystem = new(
@@ -124,6 +125,17 @@ public class FirstApp : IDisposable
         if (commandBuffer is not null)
         {
             int frameIndex = lveRenderer.GetFrameIndex();
+            var checkHandle = globalDescriptorSets[frameIndex].Handle;
+            if (checkHandle == 0)
+            {
+                Console.WriteLine($"in render...globalDescriptorSets[{frameIndex}] handle is ZERO!");
+                var crap = 0;
+            }
+            else
+            {
+                Console.WriteLine($"in render...globalDescriptorSets[{frameIndex}] handle is {checkHandle}!");
+                var crap = 0;
+            }
             FrameInfo frameInfo = new()
             {
                 FrameIndex = frameIndex,

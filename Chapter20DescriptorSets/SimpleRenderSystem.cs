@@ -1,27 +1,28 @@
 ﻿
 namespace Chapter20DescriptorSets;
 
-class SimpleRenderSystem
+class SimpleRenderSystem : IDisposable
 {
 	private readonly Vk vk = null!;
 	private readonly LveDevice device = null!;
+    private bool disposedValue;
 
     private LvePipeline pipeline = null!;
     private PipelineLayout pipelineLayout;
 
-    private DescriptorSetLayout[] descriptorSetLayouts;
+    //private DescriptorSetLayout[] descriptorSetLayouts;
 
-    public SimpleRenderSystem(Vk vk, LveDevice device, RenderPass renderPass, DescriptorSetLayout globalSetlayout)
+    public SimpleRenderSystem(Vk vk, LveDevice device, RenderPass renderPass, DescriptorSetLayout globalSetLayout)
 	{
 		this.vk = vk;
 		this.device = device;
-        descriptorSetLayouts = new DescriptorSetLayout[] { globalSetlayout };
-        createPipelineLayout();
+        createPipelineLayout(globalSetLayout);
         createPipeline(renderPass);
 	}
     
-    private unsafe void createPipelineLayout()
+    private unsafe void createPipelineLayout(DescriptorSetLayout globalSetLayout)
     {
+        var descriptorSetLayouts = new DescriptorSetLayout[] { globalSetLayout };
         PushConstantRange pushConstantRange = new()
         {
             StageFlags = ShaderStageFlags.VertexBit | ShaderStageFlags.FragmentBit,
@@ -60,10 +61,11 @@ class SimpleRenderSystem
         pipelineConfig.PipelineLayout = pipelineLayout;
         pipeline = new LvePipeline(
             vk, device,
-            "simpleShader.vert.spv", "simpleShader.frag.spv",
+            "simpleShader.vert.spv", 
+            "simpleShader.frag.spv",
             pipelineConfig
             );
-        log.d("app run", " got pipeline");
+        //log.d("app run", " got pipeline");
     }
 
 
@@ -107,8 +109,35 @@ class SimpleRenderSystem
         }
     }
 
+    protected unsafe virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                // TODO: dispose managed state (managed objects)
+            }
 
+            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+            // TODO: set large fields to null
+            vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
+            disposedValue = true;
+        }
+    }
 
+    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    ~SimpleRenderSystem()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: false);
+    }
+
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
 }
 
 

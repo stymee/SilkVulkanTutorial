@@ -8,7 +8,7 @@ public unsafe class LveBuffer : IDisposable
     private bool disposedValue;
 
     private ulong bufferSize;
-    public ulong BufferSize => BufferSize;
+    public ulong BufferSize => bufferSize;
 
     private uint instanceCount;
     public uint InstanceCount => instanceCount;
