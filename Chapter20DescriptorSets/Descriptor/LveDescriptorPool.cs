@@ -9,6 +9,8 @@ public unsafe class LveDescriptorPool : IDisposable
     private bool disposedValue;
 
     private DescriptorPool descriptorPool;
+    public DescriptorPool GetDescriptorPool() => descriptorPool;
+
     private DescriptorPoolSize[] poolSizes = null!;// = new();
     private DescriptorPoolCreateFlags poolFlags;// = DescriptorPoolCreateFlags.None;
     private uint maxSets;

@@ -18,7 +18,7 @@ public class FirstApp : IDisposable
 
     private LveDevice device = null!;
     private LveRenderer lveRenderer = null!;
-    private LveDescriptorPool globalPool = null!;
+    //private LveDescriptorPool globalPool = null!;
 
     private List<LveGameObject> gameObjects = new();
 
@@ -32,12 +32,12 @@ public class FirstApp : IDisposable
 
 
     private LveBuffer[] uboBuffers = null!;
-    //private LveDescriptorSetLayout globalSetLayout = null!;
+    private LveDescriptorSetLayout globalSetLayout = null!;
     //private DescriptorSet[] globalDescriptorSets = null!;
 
     private DescriptorPool descriptorPool;
-    private DescriptorSet[]? descriptorSets;
-    private DescriptorSetLayout descriptorSetLayout;
+    private DescriptorSet[] descriptorSets;
+    //private DescriptorSetLayout descriptorSetLayout;
 
     public FirstApp()
     {
@@ -56,7 +56,7 @@ public class FirstApp : IDisposable
         lveRenderer = new LveRenderer(vk, window, device, useFifo: true);
         log.d("startup", "got renderer");
 
-        //globalPool = new LveDescriptorPool.Builder(vk,device)
+        //globalPool = new LveDescriptorPool.Builder(vk, device)
         //    .setMaxSets((uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT)
         //    .AddPoolSize(DescriptorType.UniformBuffer, (uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT)
         //    .Build();
@@ -65,10 +65,10 @@ public class FirstApp : IDisposable
         //    .AddPoolSize(DescriptorType.UniformBuffer, 3)
         //    .Build();
         //log.d("startup", "global descriptor pool created");
-        CreateDescriptorSetLayout();
-        CreateDescriptorPool();
-        
+        //CreateDescriptorSetLayout();
+
         //CreateDescriptorSets();
+        CreateDescriptorPool();
 
         loadGameObjects();
         log.d("startup", "objects loaded");
@@ -90,18 +90,21 @@ public class FirstApp : IDisposable
             uboBuffers[i].Map();
         }
 
-        CreateDescriptorSets();
+        globalSetLayout = new LveDescriptorSetLayout.Builder(vk, device)
+            .AddBinding(0, DescriptorType.UniformBuffer, ShaderStageFlags.VertexBit)
+            .Build();
+
+        
 
         simpleRenderSystem = new(
             vk, device, 
             lveRenderer.GetSwapChainRenderPass(), 
-            descriptorSetLayout
+            globalSetLayout.GetDescriptorSetLayout()
+            //descriptorSetLayout
             );
         log.d("run", "got render system");
 
-        //globalSetLayout = new LveDescriptorSetLayout.Builder(vk, device)
-        //    .AddBinding(0, DescriptorType.UniformBuffer, ShaderStageFlags.VertexBit)
-        //    .Build();
+        CreateDescriptorSets();
 
 
         //globalDescriptorSets = new DescriptorSet[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
@@ -312,6 +315,7 @@ public class FirstApp : IDisposable
             MaxSets = (uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT,
         };
 
+        //fixed (DescriptorPool* descriptorPoolPtr = &descriptorPool)
         fixed (DescriptorPool* descriptorPoolPtr = &descriptorPool)
         {
             if (vk!.CreateDescriptorPool(device.VkDevice, poolInfo, null, descriptorPoolPtr) != Result.Success)
@@ -322,45 +326,46 @@ public class FirstApp : IDisposable
         }
     }
 
-    private unsafe void CreateDescriptorSetLayout()
-    {
-        DescriptorSetLayoutBinding uboLayoutBinding = new()
-        {
-            Binding = 0,
-            DescriptorCount = 1,
-            DescriptorType = DescriptorType.UniformBuffer,
-            PImmutableSamplers = null,
-            StageFlags = ShaderStageFlags.VertexBit,
-        };
+    //private unsafe void CreateDescriptorSetLayout()
+    //{
+    //    DescriptorSetLayoutBinding uboLayoutBinding = new()
+    //    {
+    //        Binding = 0,
+    //        DescriptorCount = 1,
+    //        DescriptorType = DescriptorType.UniformBuffer,
+    //        PImmutableSamplers = null,
+    //        StageFlags = ShaderStageFlags.VertexBit,
+    //    };
 
-        DescriptorSetLayoutCreateInfo layoutInfo = new()
-        {
-            SType = StructureType.DescriptorSetLayoutCreateInfo,
-            BindingCount = 1,
-            PBindings = &uboLayoutBinding,
-        };
+    //    DescriptorSetLayoutCreateInfo layoutInfo = new()
+    //    {
+    //        SType = StructureType.DescriptorSetLayoutCreateInfo,
+    //        BindingCount = 1,
+    //        PBindings = &uboLayoutBinding,
+    //    };
 
-        fixed (DescriptorSetLayout* descriptorSetLayoutPtr = &descriptorSetLayout)
-        {
-            if (vk!.CreateDescriptorSetLayout(device.VkDevice, layoutInfo, null, descriptorSetLayoutPtr) != Result.Success)
-            {
-                throw new Exception("failed to create descriptor set layout!");
-            }
-        }
-    }
+    //    fixed (DescriptorSetLayout* descriptorSetLayoutPtr = &descriptorSetLayout)
+    //    {
+    //        if (vk!.CreateDescriptorSetLayout(device.VkDevice, layoutInfo, null, descriptorSetLayoutPtr) != Result.Success)
+    //        {
+    //            throw new Exception("failed to create descriptor set layout!");
+    //        }
+    //    }
+    //}
 
 
     private unsafe void CreateDescriptorSets()
     {
         var layouts = new DescriptorSetLayout[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
-        Array.Fill(layouts, descriptorSetLayout);
+        //Array.Fill(layouts, descriptorSetLayout);
+        Array.Fill(layouts, globalSetLayout.GetDescriptorSetLayout());
 
         fixed (DescriptorSetLayout* layoutsPtr = layouts)
         {
             DescriptorSetAllocateInfo allocateInfo = new()
             {
                 SType = StructureType.DescriptorSetAllocateInfo,
-                DescriptorPool = descriptorPool,
+                DescriptorPool = descriptorPool,// globalPool.GetDescriptorPool(),
                 DescriptorSetCount = (uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT,
                 PSetLayouts = layoutsPtr,
             };
