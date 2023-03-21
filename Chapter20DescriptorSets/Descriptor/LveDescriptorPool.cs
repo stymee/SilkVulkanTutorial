@@ -48,8 +48,8 @@ public unsafe class LveDescriptorPool : IDisposable
         {
             SType = StructureType.DescriptorSetAllocateInfo,
             DescriptorPool = descriptorPool,
-            DescriptorSetCount = 1,
             PSetLayouts = &descriptorSetLayout,
+            DescriptorSetCount = 1,
         };
         var result = vk.AllocateDescriptorSets(device.VkDevice, allocInfo, out descriptorSet);
         if (result != Result.Success)

@@ -1,4 +1,6 @@
 ﻿
+using Silk.NET.Vulkan;
+
 namespace Chapter20DescriptorSets;
 
 public class FirstApp : IDisposable
@@ -30,9 +32,12 @@ public class FirstApp : IDisposable
 
 
     private LveBuffer[] uboBuffers = null!;
-    private LveDescriptorSetLayout globalSetLayout = null!;
-    private DescriptorSet[] globalDescriptorSets = null!;
+    //private LveDescriptorSetLayout globalSetLayout = null!;
+    //private DescriptorSet[] globalDescriptorSets = null!;
 
+    private DescriptorPool descriptorPool;
+    private DescriptorSet[]? descriptorSets;
+    private DescriptorSetLayout descriptorSetLayout;
 
     public FirstApp()
     {
@@ -51,10 +56,19 @@ public class FirstApp : IDisposable
         lveRenderer = new LveRenderer(vk, window, device, useFifo: true);
         log.d("startup", "got renderer");
 
-        globalPool = new LveDescriptorPool.Builder(vk,device)
-            .setMaxSets((uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT)
-            .AddPoolSize(DescriptorType.UniformBuffer, (uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT)
-            .Build();
+        //globalPool = new LveDescriptorPool.Builder(vk,device)
+        //    .setMaxSets((uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT)
+        //    .AddPoolSize(DescriptorType.UniformBuffer, (uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT)
+        //    .Build();
+        //globalPool = new LveDescriptorPool.Builder(vk,device)
+        //    .setMaxSets(3)
+        //    .AddPoolSize(DescriptorType.UniformBuffer, 3)
+        //    .Build();
+        //log.d("startup", "global descriptor pool created");
+        CreateDescriptorSetLayout();
+        CreateDescriptorPool();
+        
+        //CreateDescriptorSets();
 
         loadGameObjects();
         log.d("startup", "objects loaded");
@@ -76,27 +90,36 @@ public class FirstApp : IDisposable
             uboBuffers[i].Map();
         }
 
-        globalSetLayout = new LveDescriptorSetLayout.Builder(vk, device)
-            .AddBinding(0, DescriptorType.UniformBuffer, ShaderStageFlags.VertexBit)
-            .Build();
-
-
-        globalDescriptorSets = new DescriptorSet[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
-        for (var i = 0; i < globalDescriptorSets.Length; i++)
-        {
-            var bufferInfo = uboBuffers[i].DescriptorInfo();
-            _ = new LveDescriptorSetWriter(vk, globalSetLayout, globalPool)
-                .WriteBuffer(0, bufferInfo)
-                .Build(ref globalDescriptorSets[i]);
-            Console.WriteLine($"got a  built globalDescriptorSet[{i}]={globalDescriptorSets[i].Handle}");
-        }
+        CreateDescriptorSets();
 
         simpleRenderSystem = new(
             vk, device, 
             lveRenderer.GetSwapChainRenderPass(), 
-            globalSetLayout.GetDescriptorSetLayout()
+            descriptorSetLayout
             );
         log.d("run", "got render system");
+
+        //globalSetLayout = new LveDescriptorSetLayout.Builder(vk, device)
+        //    .AddBinding(0, DescriptorType.UniformBuffer, ShaderStageFlags.VertexBit)
+        //    .Build();
+
+
+        //globalDescriptorSets = new DescriptorSet[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
+        //for (var i = 0; i < globalDescriptorSets.Length; i++)
+        //{
+        //    var bufferInfo = uboBuffers[i].DescriptorInfo();
+        //    _ = new LveDescriptorSetWriter(vk, globalSetLayout, globalPool)
+        //        .WriteBuffer(0, bufferInfo)
+        //        .Build(ref globalDescriptorSets[i]);
+        //    Console.WriteLine($"got a  built globalDescriptorSet[{i}]={globalDescriptorSets[i].Handle}");
+        //}
+
+        //simpleRenderSystem = new(
+        //    vk, device, 
+        //    lveRenderer.GetSwapChainRenderPass(), 
+        //    globalSetLayout.GetDescriptorSetLayout()
+        //    );
+        //log.d("run", "got render system");
 
         camera = new(Vector3.Zero, 2f, -20f, -140f, window.FramebufferSize);
         cameraController = new(camera, (IWindow)window);
@@ -125,23 +148,23 @@ public class FirstApp : IDisposable
         if (commandBuffer is not null)
         {
             int frameIndex = lveRenderer.GetFrameIndex();
-            var checkHandle = globalDescriptorSets[frameIndex].Handle;
-            if (checkHandle == 0)
-            {
-                Console.WriteLine($"in render...globalDescriptorSets[{frameIndex}] handle is ZERO!");
-                var crap = 0;
-            }
-            else
-            {
-                Console.WriteLine($"in render...globalDescriptorSets[{frameIndex}] handle is {checkHandle}!");
-                var crap = 0;
-            }
+            //var checkHandle = descriptorSets[frameIndex].Handle;
+            //if (checkHandle == 0)
+            //{
+            //    Console.WriteLine($"in render...globalDescriptorSets[{frameIndex}] handle is ZERO!");
+            //    var crap = 0;
+            //}
+            //else
+            //{
+            //    Console.WriteLine($"in render...globalDescriptorSets[{frameIndex}] handle is {checkHandle}!");
+            //    var crap = 0;
+            //}
             FrameInfo frameInfo = new()
             {
                 FrameIndex = frameIndex,
                 CommandBuffer = commandBuffer.Value,
                 Camera = camera,
-                GlobalDescriptorSet = globalDescriptorSets[frameIndex],
+                GlobalDescriptorSet = descriptorSets[frameIndex],
             };
 
             var ubo = new GlobalUbo[1]
@@ -271,4 +294,113 @@ public class FirstApp : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
+    private unsafe void CreateDescriptorPool()
+    {
+        DescriptorPoolSize poolSize = new()
+        {
+            Type = DescriptorType.UniformBuffer,
+            DescriptorCount = (uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT,
+        };
+
+
+        DescriptorPoolCreateInfo poolInfo = new()
+        {
+            SType = StructureType.DescriptorPoolCreateInfo,
+            PoolSizeCount = 1,
+            PPoolSizes = &poolSize,
+            MaxSets = (uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT,
+        };
+
+        fixed (DescriptorPool* descriptorPoolPtr = &descriptorPool)
+        {
+            if (vk!.CreateDescriptorPool(device.VkDevice, poolInfo, null, descriptorPoolPtr) != Result.Success)
+            {
+                throw new Exception("failed to create descriptor pool!");
+            }
+
+        }
+    }
+
+    private unsafe void CreateDescriptorSetLayout()
+    {
+        DescriptorSetLayoutBinding uboLayoutBinding = new()
+        {
+            Binding = 0,
+            DescriptorCount = 1,
+            DescriptorType = DescriptorType.UniformBuffer,
+            PImmutableSamplers = null,
+            StageFlags = ShaderStageFlags.VertexBit,
+        };
+
+        DescriptorSetLayoutCreateInfo layoutInfo = new()
+        {
+            SType = StructureType.DescriptorSetLayoutCreateInfo,
+            BindingCount = 1,
+            PBindings = &uboLayoutBinding,
+        };
+
+        fixed (DescriptorSetLayout* descriptorSetLayoutPtr = &descriptorSetLayout)
+        {
+            if (vk!.CreateDescriptorSetLayout(device.VkDevice, layoutInfo, null, descriptorSetLayoutPtr) != Result.Success)
+            {
+                throw new Exception("failed to create descriptor set layout!");
+            }
+        }
+    }
+
+
+    private unsafe void CreateDescriptorSets()
+    {
+        var layouts = new DescriptorSetLayout[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
+        Array.Fill(layouts, descriptorSetLayout);
+
+        fixed (DescriptorSetLayout* layoutsPtr = layouts)
+        {
+            DescriptorSetAllocateInfo allocateInfo = new()
+            {
+                SType = StructureType.DescriptorSetAllocateInfo,
+                DescriptorPool = descriptorPool,
+                DescriptorSetCount = (uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT,
+                PSetLayouts = layoutsPtr,
+            };
+
+            descriptorSets = new DescriptorSet[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
+            fixed (DescriptorSet* descriptorSetsPtr = descriptorSets)
+            {
+                var result = vk!.AllocateDescriptorSets(device.VkDevice, allocateInfo, descriptorSetsPtr);
+                if (result != Result.Success)
+                {
+                    throw new Exception("failed to allocate descriptor sets!");
+                }
+            }
+        }
+
+
+        for (int i = 0; i < LveSwapChain.MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            DescriptorBufferInfo bufferInfo = new()
+            {
+                Buffer = uboBuffers[i].VkBuffer,
+                Offset = 0,
+                Range = (ulong)Unsafe.SizeOf<GlobalUbo>(),
+
+            };
+
+            WriteDescriptorSet descriptorWrite = new()
+            {
+                SType = StructureType.WriteDescriptorSet,
+                DstSet = descriptorSets[i],
+                DstBinding = 0,
+                DstArrayElement = 0,
+                DescriptorType = DescriptorType.UniformBuffer,
+                DescriptorCount = 1,
+                PBufferInfo = &bufferInfo,
+            };
+
+            vk!.UpdateDescriptorSets(device.VkDevice, 1, descriptorWrite, 0, null);
+        }
+
+    }
+
 }
