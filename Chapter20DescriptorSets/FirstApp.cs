@@ -104,18 +104,18 @@ public class FirstApp : IDisposable
             );
         log.d("run", "got render system");
 
-        //CreateDescriptorSets();
+        CreateDescriptorSets();
 
 
-        globalDescriptorSets = new DescriptorSet[LveSwapChain.MAX_FRAMES_IN_FLIGHT][];
-        for (var i = 0; i < globalDescriptorSets.Length; i++)
-        {
-            var bufferInfo = uboBuffers[i].DescriptorInfo();
-            _ = new LveDescriptorSetWriter(vk, device, globalSetLayout)
-                .WriteBuffer(0, bufferInfo)
-                .Build(descriptorPool, globalSetLayout.GetDescriptorSetLayout(), ref globalDescriptorSets[i]);
-            //Console.WriteLine($"got a  built globalDescriptorSet[{i}]={globalDescriptorSets[i].Handle}");
-        }
+        //globalDescriptorSets = new DescriptorSet[LveSwapChain.MAX_FRAMES_IN_FLIGHT][];
+        //for (var i = 0; i < globalDescriptorSets.Length; i++)
+        //{
+        //    var bufferInfo = uboBuffers[i].DescriptorInfo();
+        //    _ = new LveDescriptorSetWriter(vk, device, globalSetLayout)
+        //        .WriteBuffer(0, bufferInfo)
+        //        .Build(descriptorPool, globalSetLayout.GetDescriptorSetLayout(), ref globalDescriptorSets[i]);
+        //    //Console.WriteLine($"got a  built globalDescriptorSet[{i}]={globalDescriptorSets[i].Handle}");
+        //}
 
         //simpleRenderSystem = new(
         //    vk, device, 
@@ -167,7 +167,8 @@ public class FirstApp : IDisposable
                 FrameIndex = frameIndex,
                 CommandBuffer = commandBuffer.Value,
                 Camera = camera,
-                GlobalDescriptorSet = globalDescriptorSets[frameIndex][0],
+                //GlobalDescriptorSet = globalDescriptorSets[frameIndex][0],
+                GlobalDescriptorSet = descriptorSets[frameIndex],
             };
 
             var ubo = new GlobalUbo[1]
