@@ -33,7 +33,7 @@ public class FirstApp : IDisposable
 
     private LveBuffer[] uboBuffers = null!;
     private LveDescriptorSetLayout globalSetLayout = null!;
-    //private DescriptorSet[] globalDescriptorSets = null!;
+    private DescriptorSet[][] globalDescriptorSets = null!;
 
     private DescriptorPool descriptorPool;
     private DescriptorSet[] descriptorSets;
@@ -104,18 +104,18 @@ public class FirstApp : IDisposable
             );
         log.d("run", "got render system");
 
-        CreateDescriptorSets();
+        //CreateDescriptorSets();
 
 
-        //globalDescriptorSets = new DescriptorSet[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
-        //for (var i = 0; i < globalDescriptorSets.Length; i++)
-        //{
-        //    var bufferInfo = uboBuffers[i].DescriptorInfo();
-        //    _ = new LveDescriptorSetWriter(vk, globalSetLayout, globalPool)
-        //        .WriteBuffer(0, bufferInfo)
-        //        .Build(ref globalDescriptorSets[i]);
-        //    Console.WriteLine($"got a  built globalDescriptorSet[{i}]={globalDescriptorSets[i].Handle}");
-        //}
+        globalDescriptorSets = new DescriptorSet[LveSwapChain.MAX_FRAMES_IN_FLIGHT][];
+        for (var i = 0; i < globalDescriptorSets.Length; i++)
+        {
+            var bufferInfo = uboBuffers[i].DescriptorInfo();
+            _ = new LveDescriptorSetWriter(vk, device, globalSetLayout)
+                .WriteBuffer(0, bufferInfo)
+                .Build(descriptorPool, globalSetLayout.GetDescriptorSetLayout(), ref globalDescriptorSets[i]);
+            //Console.WriteLine($"got a  built globalDescriptorSet[{i}]={globalDescriptorSets[i].Handle}");
+        }
 
         //simpleRenderSystem = new(
         //    vk, device, 
@@ -167,7 +167,7 @@ public class FirstApp : IDisposable
                 FrameIndex = frameIndex,
                 CommandBuffer = commandBuffer.Value,
                 Camera = camera,
-                GlobalDescriptorSet = descriptorSets[frameIndex],
+                GlobalDescriptorSet = globalDescriptorSets[frameIndex][0],
             };
 
             var ubo = new GlobalUbo[1]
