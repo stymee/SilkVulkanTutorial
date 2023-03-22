@@ -18,6 +18,11 @@ layout(set = 0, binding = 0) uniform GlobalUbo
 	mat4 view;
 	vec4 ambientColor;
 	PointLight pointLight1;
+	PointLight pointLight2;
+	PointLight pointLight3;
+	PointLight pointLight4;
+	PointLight pointLight5;
+	PointLight pointLight6;
 	int numLights;
 } ubo;
 
@@ -35,13 +40,14 @@ void main() {
 	
 	for (int i = 0; i < ubo.numLights; i++)
 	{
-//		PointLight light = ubo.pointLight1;
-//		if (i == 1)
-//		{
-//			light = ubo.pointLight2;
-//		}
-//		
 		PointLight light = ubo.pointLight1;
+		if (i == 1) light = ubo.pointLight2;
+		else if (i == 2) light = ubo.pointLight3;
+		else if (i == 3) light = ubo.pointLight4;
+		else if (i == 4) light = ubo.pointLight5;
+		else if (i == 5) light = ubo.pointLight6;
+		
+		//PointLight light = ubo.pointLight1;
 		vec3 directionToLight = light.position.xyz - fragPosWorld;
 		float attenuation = 1.0 / dot(directionToLight, directionToLight); // distance squared
 		float cosAngIncidence = max(dot(surfaceNormal, normalize(directionToLight)), 0);

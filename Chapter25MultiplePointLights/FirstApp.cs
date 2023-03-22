@@ -140,6 +140,7 @@ public class FirstApp : IDisposable
             FrameInfo frameInfo = new()
             {
                 FrameIndex = frameIndex,
+                FrameTime = (float)delta,
                 CommandBuffer = commandBuffer.Value,
                 Camera = camera,
                 GlobalDescriptorSet = globalDescriptorSets[frameIndex],
@@ -251,11 +252,31 @@ public class FirstApp : IDisposable
         floor.Transform.Scale = new(3f, 1f, 3f);
         gameObjects.Add(floor.Id, floor);
 
-        var pointLight = LveGameObject.MakePointLight(
-            0.2f, 0.05f, new Vector4(1)
-            );
-        pointLight.Transform.Translation = new(0f, 1f, 0f);
-        gameObjects.Add(pointLight.Id, pointLight);
+
+        var lightColors = new Vector4[]
+        {
+          new(1f, .1f, .1f, 1f),
+          new(.1f, .1f, 1f, 1f),
+          new(.1f, 1f, .1f, 1f),
+          new(1f, 1f, .1f, 1f),
+          new(.1f, 1f, 1f, 1f),
+          new(1f, 1f, 1f, 1f) 
+        };
+        for (var i = 0; i < 6; i++)
+        {
+            var pointLight = LveGameObject.MakePointLight(
+                0.2f, 0.05f, lightColors[i]
+                );
+            var rotateLight = Matrix4x4.CreateRotationY(i * MathF.PI / lightColors.Length * 2f);
+            pointLight.Transform.Translation = Vector3.Transform(new(1.25f, 1.25f, 0f), rotateLight);
+            gameObjects.Add(pointLight.Id, pointLight);
+        }
+        
+        //var pointLight2 = LveGameObject.MakePointLight(
+        //    0.8f, 0.05f, new Vector4(0.5f, 1f, 0.5f, 1f)
+        //    );
+        //pointLight2.Transform.Translation = new(2f, 1f, 2f);
+        //gameObjects.Add(pointLight2.Id, pointLight2);
         
     }
 

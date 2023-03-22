@@ -75,11 +75,52 @@ class PointLightRenderSystem : IDisposable
         {
             if (g.PointLight is null) continue;
 
+            var rotateLight = Matrix4x4.CreateRotationY(frameInfo.FrameTime);
+            g.Transform.Translation = Vector3.Transform(g.Transform.Translation, rotateLight);
+            //pointLight.Transform.Translation = Vector3.Transform(new(1.25f, 1.25f, 0f), rotateLight);
             // copy light to ubo
             //if (lightIndex == 0)
             //{
-            ubo.PointLight1.Position = new Vector4(g.Transform.Translation, 0.0f);
-            ubo.PointLight1.Color = new Vector4(g.Color.X, g.Color.Y, g.Color.Z, g.PointLight.Value.LightIntensity);
+            switch (lightIndex + 1)
+            {
+                case 1:
+                    ubo.PointLight1.Position = new Vector4(g.Transform.Translation, 0.0f);
+                    ubo.PointLight1.Color = new Vector4(g.Color.X, g.Color.Y, g.Color.Z, g.PointLight.Value.LightIntensity);
+                    break;
+                
+                case 2:
+                    ubo.PointLight2.Position = new Vector4(g.Transform.Translation, 0.0f);
+                    ubo.PointLight2.Color = new Vector4(g.Color.X, g.Color.Y, g.Color.Z, g.PointLight.Value.LightIntensity);
+                    break;
+                
+                case 3:
+                    ubo.PointLight3.Position = new Vector4(g.Transform.Translation, 0.0f);
+                    ubo.PointLight3.Color = new Vector4(g.Color.X, g.Color.Y, g.Color.Z, g.PointLight.Value.LightIntensity);
+                    break;
+                
+                case 4:
+                    ubo.PointLight4.Position = new Vector4(g.Transform.Translation, 0.0f);
+                    ubo.PointLight4.Color = new Vector4(g.Color.X, g.Color.Y, g.Color.Z, g.PointLight.Value.LightIntensity);
+                    break;
+                
+                case 5:
+                    ubo.PointLight5.Position = new Vector4(g.Transform.Translation, 0.0f);
+                    ubo.PointLight5.Color = new Vector4(g.Color.X, g.Color.Y, g.Color.Z, g.PointLight.Value.LightIntensity);
+                    break;
+                
+                case 6:
+                    ubo.PointLight6.Position = new Vector4(g.Transform.Translation, 0.0f);
+                    ubo.PointLight6.Color = new Vector4(g.Color.X, g.Color.Y, g.Color.Z, g.PointLight.Value.LightIntensity);
+                    break;
+
+                default:
+                    break;
+                
+
+            };
+
+            //ubo.PointLight1.Position = new Vector4(g.Transform.Translation, 0.0f);
+            //ubo.PointLight1.Color = new Vector4(g.Color.X, g.Color.Y, g.Color.Z, g.PointLight.Value.LightIntensity);
             //}
             //else if (lightIndex == 1)
             //{

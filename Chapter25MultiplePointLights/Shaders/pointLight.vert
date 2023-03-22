@@ -24,6 +24,11 @@ layout(set = 0, binding = 0) uniform GlobalUbo
 	mat4 view;
 	vec4 ambientColor;
 	PointLight pointLight1;
+	PointLight pointLight2;
+	PointLight pointLight3;
+	PointLight pointLight4;
+	PointLight pointLight5;
+	PointLight pointLight6;
 	int numLights;
 } ubo;
 
