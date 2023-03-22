@@ -45,6 +45,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter19zNoCoherentAomSize
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter20DescriptorSets", "Chapter20DescriptorSets\Chapter20DescriptorSets.csproj", "{496696AF-32AC-49A6-820C-F41DADF716F3}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter20zDescriptorSetsAlt", "Chapter20zDescriptorSetsAlt\Chapter20zDescriptorSetsAlt.csproj", "{0062762D-4DD6-49FD-9740-E2E85B2E3FC6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -135,6 +137,10 @@ Global
 		{496696AF-32AC-49A6-820C-F41DADF716F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{496696AF-32AC-49A6-820C-F41DADF716F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{496696AF-32AC-49A6-820C-F41DADF716F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0062762D-4DD6-49FD-9740-E2E85B2E3FC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0062762D-4DD6-49FD-9740-E2E85B2E3FC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0062762D-4DD6-49FD-9740-E2E85B2E3FC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0062762D-4DD6-49FD-9740-E2E85B2E3FC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
