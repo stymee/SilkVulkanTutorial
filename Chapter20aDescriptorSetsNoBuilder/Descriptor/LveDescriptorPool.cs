@@ -1,5 +1,5 @@
 ﻿
-namespace Chapter20DescriptorSets;
+namespace Chapter20aDescriptorSetsNoBuilder;
 
 public unsafe class LveDescriptorPool : IDisposable
 {
@@ -23,7 +23,6 @@ public unsafe class LveDescriptorPool : IDisposable
         this.maxSets = maxSets;
         this.poolFlags = poolFlags;
 
-        fixed (DescriptorPool* descriptorPoolPtr = &descriptorPool)
         fixed (DescriptorPoolSize* poolSizesPtr = poolSizes)
         {
             DescriptorPoolCreateInfo descriptorPoolInfo = new()
@@ -35,7 +34,7 @@ public unsafe class LveDescriptorPool : IDisposable
                 Flags = poolFlags
             };
 
-            if (vk.CreateDescriptorPool(device.VkDevice, &descriptorPoolInfo, null, descriptorPoolPtr) != Result.Success)
+            if (vk.CreateDescriptorPool(device.VkDevice, &descriptorPoolInfo, null, out descriptorPool) != Result.Success)
             {
                 throw new ApplicationException($"Failed to create descriptor pool");
             }
@@ -45,6 +44,8 @@ public unsafe class LveDescriptorPool : IDisposable
 
     public bool AllocateDescriptorSet(DescriptorSetLayout descriptorSetLayout, ref DescriptorSet descriptorSet)
     {
+        //fixed (DescriptorSetLayout* pg_DescriptorSetLayout = descriptorSetLayout)
+        //{
         var allocInfo = new DescriptorSetAllocateInfo()
         {
             SType = StructureType.DescriptorSetAllocateInfo,
@@ -56,8 +57,28 @@ public unsafe class LveDescriptorPool : IDisposable
         if (result != Result.Success)
         {
             return false;
+            //throw new Exception($"Unable to create descriptor sets");
         }
         return true;
+        //}
+
+        //DescriptorSetAllocateInfo allocInfo = new()
+        //{
+        //    SType = StructureType.DescriptorSetAllocateInfo,
+        //    DescriptorPool = descriptorPool,
+        //    PSetLayouts = &descriptorSetLayout,
+        //    DescriptorSetCount = 1
+        //};
+
+        //fixed (DescriptorSet* descriptorSetsPtr = descriptorSets)
+        //{
+        //    if (vk.AllocateDescriptorSets(device.VkDevice, &allocInfo, descriptorSetsPtr) != Result.Success)
+        //    {
+        //        return false;
+        //    }
+        //    return true;
+
+        //}
     }
 
     private void freeDescriptors(ref DescriptorSet[] descriptors)
@@ -71,44 +92,42 @@ public unsafe class LveDescriptorPool : IDisposable
     }
 
 
-
-    // helper builder class for chaining calls
     public class Builder
     {
-        private readonly Vk vk = null!;
-        private readonly LveDevice device = null!;
-
-        private List<DescriptorPoolSize> poolSizes = new();
-        private DescriptorPoolCreateFlags poolFlags;
-        private uint maxSets;
+        //private readonly Vk vk = null!;
+        //private readonly LveDevice device = null!;
+        private readonly LveDescriptorPool pool = null!;
 
         public Builder(Vk vk, LveDevice device)
         {
-            this.vk = vk;
-            this.device = device;
+            pool = new LveDescriptorPool(vk, device, 1, DescriptorPoolCreateFlags.None, new DescriptorPoolSize[0]);
         }
 
 
         public Builder AddPoolSize(DescriptorType descriptorType, uint count)
         {
-            poolSizes.Add(new DescriptorPoolSize(descriptorType, count));
+            var poolLen = pool.poolSizes.Length;
+            Array.Resize(ref pool.poolSizes, poolLen + 1);
+            pool.poolSizes[poolLen] = new DescriptorPoolSize(descriptorType, count);
+            //pool.poolSizes.Add(new DescriptorPoolSize(descriptorType, count));
+
             return this;
         }
 
-        public Builder SetPoolFlags(DescriptorPoolCreateFlags flags)
+        public Builder setPoolFlags(DescriptorPoolCreateFlags flags)
         {
-            poolFlags = flags;
+            pool.poolFlags = flags;
             return this;
         }
-        public Builder SetMaxSets(uint count)
+        public Builder setMaxSets(uint count)
         {
-            maxSets = count;
+            pool.maxSets = count;
             return this;
         }
 
         public LveDescriptorPool Build()
         {
-            return new LveDescriptorPool(vk, device, maxSets, poolFlags, poolSizes.ToArray());
+            return pool;// new LveDescriptorPool(pool.vk, pool.device, pool.maxSets, pool.poolFlags, pool.poolSizes.ToArray());
         }
 
 

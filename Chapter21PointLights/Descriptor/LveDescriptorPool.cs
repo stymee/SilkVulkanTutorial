@@ -1,5 +1,5 @@
 ﻿
-namespace Chapter20DescriptorSets;
+namespace Chapter21PointLights;
 
 public unsafe class LveDescriptorPool : IDisposable
 {

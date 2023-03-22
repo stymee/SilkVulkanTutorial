@@ -1,19 +1,23 @@
-﻿
-namespace Chapter20DescriptorSets;
+﻿using Silk.NET.Vulkan;
+
+namespace Chapter20aDescriptorSetsNoBuilder;
 
 public unsafe class LveDescriptorSetWriter
 {
     private readonly Vk vk = null!;
     private readonly LveDevice device = null!;
     private LveDescriptorSetLayout setLayout = null!;
+    //private LveDescriptorPool pool = null!;
+    private DescriptorPool pool;
 
     private WriteDescriptorSet[] writes = Array.Empty<WriteDescriptorSet>();
 
-    public LveDescriptorSetWriter(Vk vk, LveDevice device, LveDescriptorSetLayout setLayout)
+    public LveDescriptorSetWriter(Vk vk, LveDevice device, LveDescriptorSetLayout setLayout)//, DescriptorPool pool)// LveDescriptorPool pool)
     {
         this.vk = vk;
         this.device = device;
         this.setLayout = setLayout;
+        //this.pool = pool;
     }
 
     public LveDescriptorSetWriter WriteBuffer(uint binding, DescriptorBufferInfo bufferInfo)
@@ -74,15 +78,41 @@ public unsafe class LveDescriptorSetWriter
         return this;
     }
 
-    public bool Build(LveDescriptorPool pool, DescriptorSetLayout layout, ref DescriptorSet set)
+    public bool Build(DescriptorPool pool, DescriptorSetLayout layout, ref DescriptorSet[] sets)
     {
-        var success = pool.AllocateDescriptorSet(setLayout.GetDescriptorSetLayout(), ref set);
-        if (!success)
+        var layouts = new DescriptorSetLayout[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
+        //Array.Fill(layouts, descriptorSetLayout);
+        Array.Fill(layouts, layout);
+
+        fixed (DescriptorSetLayout* layoutsPtr = layouts)
         {
-            return false;
+            DescriptorSetAllocateInfo allocateInfo = new()
+            {
+                SType = StructureType.DescriptorSetAllocateInfo,
+                DescriptorPool = pool,// globalPool.GetDescriptorPool(),
+                DescriptorSetCount = (uint)LveSwapChain.MAX_FRAMES_IN_FLIGHT,
+                PSetLayouts = layoutsPtr,
+            };
+
+            sets = new DescriptorSet[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
+            fixed (DescriptorSet* descriptorSetsPtr = sets)
+            {
+                var result = vk!.AllocateDescriptorSets(device.VkDevice, allocateInfo, descriptorSetsPtr);
+                if (result != Result.Success)
+                {
+                    throw new Exception("failed to allocate descriptor sets!");
+                }
+                overwrite(ref sets);
+            }
         }
-        overwrite(ref set);
+
         return true;
+        //var success = pool.AllocateDescriptorSet(setLayout.GetDescriptorSetLayout(), ref set);
+        //if (!success)
+        //{
+        //    return false;
+        //}
+        //return true;
     }
 
 
@@ -91,6 +121,24 @@ public unsafe class LveDescriptorSetWriter
         for (var i = 0; i < writes.Length; i++)
         {
             writes[i].DstSet = set;
+            //write.DstSet = set;
+        }
+        fixed (WriteDescriptorSet* writesPtr = writes)
+        {
+            vk.UpdateDescriptorSets(device.VkDevice, (uint)writes.Length, writesPtr, 0, null);
+        }
+    }
+
+    private void overwrite(ref DescriptorSet[] sets)
+    {
+        for (var i = 0; i < writes.Length; i++)
+        {
+            for (var j = 0; j < sets.Length; j++)
+            {
+                writes[i].DstSet = sets[j];
+
+            }
+            //write.DstSet = set;
         }
         fixed (WriteDescriptorSet* writesPtr = writes)
         {
