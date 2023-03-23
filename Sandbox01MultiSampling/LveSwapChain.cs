@@ -46,6 +46,10 @@ public class LveSwapChain : IDisposable
     private DeviceMemory[] depthImageMemorys = null!;
     private ImageView[] depthImageViews = null!;
 
+    private Image[] colorImages = null!;
+    private DeviceMemory[] colorImageMemorys = null!;
+    private ImageView[] colorImageViews = null!;
+
     private Extent2D windowExtent;
 
     private Semaphore[] imageAvailableSemaphores = null!;
@@ -97,6 +101,7 @@ public class LveSwapChain : IDisposable
         createSwapChain();
         createImageViews();
         createRenderPass();
+        createColorResources();
         createDepthResources();
         createFrameBuffers();
         createSyncObjects();
@@ -301,7 +306,8 @@ public class LveSwapChain : IDisposable
         AttachmentDescription depthAttachment = new()
         {
             Format = device.FindDepthFormat(),
-            Samples = SampleCountFlags.Count1Bit,
+            //Samples = SampleCountFlags.Count1Bit,
+            Samples = device.GetMsaaSamples(),
             LoadOp = AttachmentLoadOp.Clear,
             StoreOp = AttachmentStoreOp.DontCare,
             StencilLoadOp = AttachmentLoadOp.DontCare,
@@ -319,13 +325,15 @@ public class LveSwapChain : IDisposable
         AttachmentDescription colorAttachment = new()
         {
             Format = swapChainImageFormat,
-            Samples = SampleCountFlags.Count1Bit,
+            //Samples = SampleCountFlags.Count1Bit,
+            Samples = device.GetMsaaSamples(),
             LoadOp = AttachmentLoadOp.Clear,
             StoreOp = AttachmentStoreOp.Store,
             StencilLoadOp = AttachmentLoadOp.DontCare,
             StencilStoreOp = AttachmentStoreOp.DontCare,
             InitialLayout = ImageLayout.Undefined,
-            FinalLayout = ImageLayout.PresentSrcKhr,
+            //FinalLayout = ImageLayout.PresentSrcKhr,
+            FinalLayout = ImageLayout.ColorAttachmentOptimal,
         };
 
         AttachmentReference colorAttachmentRef = new()
@@ -335,12 +343,31 @@ public class LveSwapChain : IDisposable
         };
 
 
+        AttachmentDescription colorAttachmentResolve = new()
+        {
+            Format = swapChainImageFormat,
+            Samples = SampleCountFlags.Count1Bit,
+            LoadOp = AttachmentLoadOp.DontCare,
+            StoreOp = AttachmentStoreOp.Store,
+            StencilLoadOp = AttachmentLoadOp.DontCare,
+            StencilStoreOp = AttachmentStoreOp.DontCare,
+            InitialLayout = ImageLayout.Undefined,
+            FinalLayout = ImageLayout.PresentSrcKhr
+        };
+
+        AttachmentReference colorAttachmentResolveRef = new()
+        {
+            Attachment = 2,
+            Layout = ImageLayout.AttachmentOptimal
+        };
+
         SubpassDescription subpass = new()
         {
             PipelineBindPoint = PipelineBindPoint.Graphics,
             ColorAttachmentCount = 1,
             PColorAttachments = &colorAttachmentRef,
             PDepthStencilAttachment = &depthAttachmentRef,
+            PResolveAttachments = & colorAttachmentResolveRef
         };
 
         SubpassDependency dependency = new()
@@ -353,7 +380,7 @@ public class LveSwapChain : IDisposable
             SrcStageMask = PipelineStageFlags.ColorAttachmentOutputBit | PipelineStageFlags.EarlyFragmentTestsBit,
         };
 
-        var attachments = new[] { colorAttachment, depthAttachment };
+        var attachments = new[] { colorAttachment, depthAttachment, colorAttachmentResolve };
 
         fixed (AttachmentDescription* attachmentsPtr = attachments)
         {
@@ -384,7 +411,7 @@ public class LveSwapChain : IDisposable
 
         for (int i = 0; i < swapChainImageViews.Length; i++)
         {
-            var attachments = new[] { swapChainImageViews[i], depthImageViews[i] };
+            var attachments = new[] { colorImageViews[i], depthImageViews[i], swapChainImageViews[i] };
 
             fixed (ImageView* attachmentsPtr = attachments)
             {
@@ -408,6 +435,103 @@ public class LveSwapChain : IDisposable
     }
 
 
+    private unsafe void createColorResources()
+    {
+        Format colorFormat = swapChainImageFormat;
+
+        var imageCount = ImageCount();
+        colorImages = new Image[imageCount];
+        colorImageMemorys = new DeviceMemory[imageCount];
+        colorImageViews = new ImageView[imageCount];
+
+        for (int i = 0; i < imageCount; i++)
+        {
+            ImageCreateInfo imageInfo = new()
+            {
+                SType = StructureType.ImageCreateInfo,
+                ImageType = ImageType.Type2D,
+                Extent =
+                {
+                    Width = swapChainExtent.Width,
+                    Height = swapChainExtent.Height,
+                    Depth = 1,
+                },
+                MipLevels = 1,
+                ArrayLayers = 1,
+                Format = colorFormat,
+                Tiling = ImageTiling.Optimal,
+                InitialLayout = ImageLayout.Undefined,
+                Usage = ImageUsageFlags.TransientAttachmentBit | ImageUsageFlags.ColorAttachmentBit,
+                //Samples = SampleCountFlags.Count1Bit,
+                Samples = device.GetMsaaSamples(),
+                SharingMode = SharingMode.Exclusive,
+                Flags = 0
+            };
+
+            fixed (Image* imagePtr = &colorImages[i])
+            {
+                if (vk.CreateImage(vkDevice, imageInfo, null, imagePtr) != Result.Success)
+                {
+                    throw new Exception("failed to create color image!");
+                }
+            }
+
+            MemoryRequirements memRequirements;
+            vk.GetImageMemoryRequirements(vkDevice, colorImages[i], out memRequirements);
+
+            MemoryAllocateInfo allocInfo = new()
+            {
+                SType = StructureType.MemoryAllocateInfo,
+                AllocationSize = memRequirements.Size,
+                MemoryTypeIndex = device.FindMemoryType(memRequirements.MemoryTypeBits, MemoryPropertyFlags.DeviceLocalBit),
+            };
+
+            fixed (DeviceMemory* imageMemoryPtr = &colorImageMemorys[i])
+            {
+                if (vk.AllocateMemory(vkDevice, allocInfo, null, imageMemoryPtr) != Result.Success)
+                {
+                    throw new Exception("failed to allocate color image memory!");
+                }
+            }
+
+            vk.BindImageMemory(vkDevice, colorImages[i], colorImageMemorys[i], 0);
+
+
+            // color image view
+            ImageViewCreateInfo createInfo = new()
+            {
+                SType = StructureType.ImageViewCreateInfo,
+                Image = colorImages[i],
+                ViewType = ImageViewType.Type2D,
+                Format = colorFormat,
+                //Components =
+                //    {
+                //        R = ComponentSwizzle.Identity,
+                //        G = ComponentSwizzle.Identity,
+                //        B = ComponentSwizzle.Identity,
+                //        A = ComponentSwizzle.Identity,
+                //    },
+                SubresourceRange =
+                {
+                    AspectMask = ImageAspectFlags.ColorBit,
+                    BaseMipLevel = 0,
+                    LevelCount = 1,
+                    BaseArrayLayer = 0,
+                    LayerCount = 1,
+                }
+
+            };
+
+            if (vk.CreateImageView(vkDevice, createInfo, null, out colorImageViews[i]) != Result.Success)
+            {
+                throw new Exception("failed to create color image views!");
+            }
+
+
+
+        }
+    }
+
     private unsafe void createDepthResources()
     {
         Format depthFormat = device.FindDepthFormat();
@@ -425,18 +549,19 @@ public class LveSwapChain : IDisposable
                 SType = StructureType.ImageCreateInfo,
                 ImageType = ImageType.Type2D,
                 Extent =
-            {
-                Width = swapChainExtent.Width,
-                Height = swapChainExtent.Height,
-                Depth = 1,
-            },
+                {
+                    Width = swapChainExtent.Width,
+                    Height = swapChainExtent.Height,
+                    Depth = 1,
+                },
                 MipLevels = 1,
                 ArrayLayers = 1,
                 Format = depthFormat,
                 Tiling = ImageTiling.Optimal,
                 InitialLayout = ImageLayout.Undefined,
                 Usage = ImageUsageFlags.DepthStencilAttachmentBit,
-                Samples = SampleCountFlags.Count1Bit,
+                //Samples = SampleCountFlags.Count1Bit,
+                Samples = device.GetMsaaSamples(),
                 SharingMode = SharingMode.Exclusive,
                 Flags = 0
             };

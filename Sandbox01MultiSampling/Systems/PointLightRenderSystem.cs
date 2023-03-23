@@ -62,6 +62,9 @@ class PointLightRenderSystem : IDisposable
 
         var pipelineConfig = LvePipeline.GetDefaultPipelineConfigInfo();
         LvePipeline.EnableAlphaBlending(ref pipelineConfig);
+        
+        LvePipeline.EnableMultiSampling(ref pipelineConfig, device.GetMsaaSamples());
+        
         pipelineConfig.BindingDescriptions = Array.Empty<VertexInputBindingDescription>();
         pipelineConfig.AttributeDescriptions = Array.Empty<VertexInputAttributeDescription>();
 

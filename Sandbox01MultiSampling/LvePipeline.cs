@@ -285,6 +285,10 @@ public class LvePipeline : IDisposable
         //configInfo.ColorBlendAttachment.AlphaBlendOp = BlendOp.Add;
 
     }
+    public static void EnableMultiSampling(ref PipelineConfigInfo configInfo, SampleCountFlags msaaSamples)
+    {
+        configInfo.MultisampleInfo.RasterizationSamples = msaaSamples;
+    }
 
 
     #region Dispose

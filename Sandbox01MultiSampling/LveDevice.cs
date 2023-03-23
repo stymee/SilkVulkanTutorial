@@ -39,6 +39,7 @@ public unsafe class LveDevice
     }
 
     private SampleCountFlags msaaSamples = SampleCountFlags.Count1Bit;
+    public SampleCountFlags GetMsaaSamples() => msaaSamples;
     private Device device;
 
     private uint graphicsFamilyIndex;

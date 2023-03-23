@@ -4,7 +4,8 @@ namespace Sandbox01MultiSampling;
 public class FirstApp : IDisposable
 {
     // set to true to force FIFO swapping
-    private const bool USE_FIFO = true;
+    private const bool USE_FIFO = false;
+    
 
     // Window stuff
     private IView window = null!;
