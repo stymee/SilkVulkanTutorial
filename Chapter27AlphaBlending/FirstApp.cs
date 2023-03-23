@@ -35,6 +35,8 @@ public class FirstApp : IDisposable
 
 
     private LveBuffer[] uboBuffers = null!;
+    private LveBuffer[] uboBuffers2 = null!;
+    private GlobalUbo2[] ubos2 = null!;
     private LveDescriptorSetLayout globalSetLayout = null!;
     private DescriptorSet[] globalDescriptorSets = null!;
 
@@ -68,17 +70,39 @@ public class FirstApp : IDisposable
 
     public void Run()
     {
-        uboBuffers = new LveBuffer[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
+        //uboBuffers = new LveBuffer[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
+        //for (int i = 0; i < LveSwapChain.MAX_FRAMES_IN_FLIGHT; i++)
+        //{
+        //    uboBuffers[i] = new(
+        //        vk, device,
+        //        GlobalUbo.SizeOf(),
+        //        1,
+        //        BufferUsageFlags.UniformBufferBit,
+        //        MemoryPropertyFlags.HostVisibleBit // | MemoryPropertyFlags.HostCoherentBit
+        //        );
+        //    uboBuffers[i].Map();
+        //}
+
+        // testing new ubo structure that has AsBytes() ability
+
+        ubos2 = new GlobalUbo2[]
+        {
+            new GlobalUbo2(),
+            new GlobalUbo2()
+        };
+
+
+        uboBuffers2 = new LveBuffer[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
         for (int i = 0; i < LveSwapChain.MAX_FRAMES_IN_FLIGHT; i++)
         {
-            uboBuffers[i] = new(
+            uboBuffers2[i] = new(
                 vk, device,
-                GlobalUbo.SizeOf(),
+                GlobalUbo2.SizeOf(),
                 1,
                 BufferUsageFlags.UniformBufferBit,
-                MemoryPropertyFlags.HostVisibleBit // | MemoryPropertyFlags.HostCoherentBit
+                MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit
                 );
-            uboBuffers[i].Map();
+            uboBuffers2[i].Map();
         }
 
         globalSetLayout = new LveDescriptorSetLayout.Builder(vk, device)
@@ -88,7 +112,7 @@ public class FirstApp : IDisposable
         globalDescriptorSets = new DescriptorSet[LveSwapChain.MAX_FRAMES_IN_FLIGHT];
         for (var i = 0; i < globalDescriptorSets.Length; i++)
         {
-            var bufferInfo = uboBuffers[i].DescriptorInfo();
+            var bufferInfo = uboBuffers2[i].DescriptorInfo();
             _ = new LveDescriptorSetWriter(vk, device, globalSetLayout)
                 .WriteBuffer(0, bufferInfo)
                 .Build(
@@ -104,7 +128,7 @@ public class FirstApp : IDisposable
             lveRenderer.GetSwapChainRenderPass(),
             globalSetLayout.GetDescriptorSetLayout()
             );
-        
+
         pointLightRenderSystem = new(
             vk, device,
             lveRenderer.GetSwapChainRenderPass(),
@@ -181,24 +205,35 @@ public class FirstApp : IDisposable
                 GameObjects = gameObjects
             };
 
-            var ubo = new GlobalUbo[1]
-            {
-                new()
-                {
-                    Projection = camera.GetProjectionMatrix(),
-                    View = camera.GetViewMatrix(),
-                    FrontVec = camera.GetFrontVec4()
-                }
-            };
+            //var ubo = new GlobalUbo[1]
+            //{
+            //    new()
+            //    {
+            //        Projection = camera.GetProjectionMatrix(),
+            //        View = camera.GetViewMatrix(),
+            //        FrontVec = camera.GetFrontVec4()
+            //    }
+            //};
 
+
+
+            var ubo2 = ubos2[frameIndex];
+            //pointLightRenderSystem.Update(frameInfo, ref ubo[0]);
+            pointLightRenderSystem.Update2(frameInfo, ref ubo2);
             
-            pointLightRenderSystem.Update(frameInfo, ref ubo[0]);
-            
-            uboBuffers[frameIndex].WriteToBuffer(ubo);
-            // using coherent bit in ubo construction, so don't need to flush?  confusing
-            uboBuffers[frameIndex].Flush();
+            var uboBuffer2 = uboBuffers2[frameIndex];
+            ubo2.Update(camera.GetProjectionMatrix(), camera.GetViewMatrix(), camera.GetFrontVec4());
+            uboBuffer2.WriteBytesToBuffer(ubo2.AsBytes());
+
+            //var testbytes = ubo2.AsBytes();
+            //var testubo = new GlobalUbo2(testbytes);
+
 
             lveRenderer.BeginSwapChainRenderPass(commandBuffer.Value);
+
+            //uboBuffers[frameIndex].WriteToBuffer(ubo);
+            // using coherent bit in ubo construction, so don't need to flush?  confusing
+            //uboBuffers[frameIndex].Flush();
 
             // render solid objects first!
             simpleRenderSystem.Render(frameInfo);
@@ -284,7 +319,7 @@ public class FirstApp : IDisposable
         smoothVase.Transform.Translation = new(.5f, 0.5f, 0.0f);
         smoothVase.Transform.Scale = new(3.0f, 1.5f, 3.0f);
         gameObjects.Add(smoothVase.Id, smoothVase);
-        
+
         var floor = LveGameObject.CreateGameObject();
         floor.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/quad.obj");
         floor.Transform.Translation = new(0f, 0.5f, 0f);
@@ -299,7 +334,7 @@ public class FirstApp : IDisposable
           new(.1f, 1f, .1f, 1f),
           new(1f, 1f, .1f, 1f),
           new(.1f, 1f, 1f, 1f),
-          new(1f, 1f, 1f, 1f) 
+          new(1f, 1f, 1f, 1f)
         };
         for (var i = 0; i < 6; i++)
         {
@@ -310,13 +345,13 @@ public class FirstApp : IDisposable
             pointLight.Transform.Translation = Vector3.Transform(new(1.25f, 1.25f, 0f), rotateLight);
             gameObjects.Add(pointLight.Id, pointLight);
         }
-        
+
         //var pointLight2 = LveGameObject.MakePointLight(
         //    0.8f, 0.05f, new Vector4(0.5f, 1f, 0.5f, 1f)
         //    );
         //pointLight2.Transform.Translation = new(2f, 1f, 2f);
         //gameObjects.Add(pointLight2.Id, pointLight2);
-        
+
     }
 
 

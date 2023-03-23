@@ -153,6 +153,39 @@ class PointLightRenderSystem : IDisposable
     }
 
 
+    public void Update2(FrameInfo frameInfo, ref GlobalUbo2 ubo)
+    {
+        int lightIndex = 0;
+        foreach (var (idx, g) in frameInfo.GameObjects)
+        {
+            if (g.PointLight is null) continue;
+
+            if (MathF.Abs(YPosition) > 0 || MathF.Abs(XPosition) > 0)
+            {
+                g.Transform.Translation = g.Transform.Translation with
+                {
+                    X = g.Transform.Translation.X + XPosition,
+                    Y = g.Transform.Translation.Y + YPosition,
+                };
+            }
+
+            if (RotateLightsEnabled)
+            {
+                var rotateLight = Matrix4x4.CreateRotationY(frameInfo.FrameTime * RotateSpeed);
+                g.Transform.Translation = Vector3.Transform(g.Transform.Translation, rotateLight);
+            }
+
+
+            ubo.SetPointLightTranslation(lightIndex, g.Transform.Translation);
+            ubo.SetPointLightColor(lightIndex, g.Color, g.PointLight.Value.LightIntensity);
+            lightIndex++;
+        }
+        XPosition = 0;
+        YPosition = 0;
+        ubo.SetNumLights(lightIndex);
+    }
+
+
     public unsafe void Render(FrameInfo frameInfo)
     {
         sortedZ.Clear();

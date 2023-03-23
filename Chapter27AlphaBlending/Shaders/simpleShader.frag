@@ -18,14 +18,17 @@ layout(set = 0, binding = 0) uniform GlobalUbo
 	mat4 view;
 	vec4 front;
 	vec4 ambientColor;
-//	PointLight pointLights[10];
-	PointLight pointLight1;
-	PointLight pointLight2;
-	PointLight pointLight3;
-	PointLight pointLight4;
-	PointLight pointLight5;
-	PointLight pointLight6;
 	int numLights;
+	int padding1;
+	int padding2;
+	int padding3;
+	PointLight pointLights[10];
+//	PointLight pointLight1;
+//	PointLight pointLight2;
+//	PointLight pointLight3;
+//	PointLight pointLight4;
+//	PointLight pointLight5;
+//	PointLight pointLight6;
 } ubo;
 
 layout(push_constant) uniform Push 
@@ -46,14 +49,14 @@ void main() {
 
 	for (int i = 0; i < ubo.numLights; i++)
 	{
-		PointLight light = ubo.pointLight1;
-		if (i == 1) light = ubo.pointLight2;
-		else if (i == 2) light = ubo.pointLight3;
-		else if (i == 3) light = ubo.pointLight4;
-		else if (i == 4) light = ubo.pointLight5;
-		else if (i == 5) light = ubo.pointLight6;
+//		PointLight light = ubo.pointLight1;
+//		if (i == 1) light = ubo.pointLight2;
+//		else if (i == 2) light = ubo.pointLight3;
+//		else if (i == 3) light = ubo.pointLight4;
+//		else if (i == 4) light = ubo.pointLight5;
+//		else if (i == 5) light = ubo.pointLight6;
 		
-		//PointLight light = ubo.pointLights[i];
+		PointLight light = ubo.pointLights[i];
 		vec3 directionToLight = light.position.xyz - fragPosWorld;
 		float attenuation = 1.0 / dot(directionToLight, directionToLight); // distance squared
 		directionToLight = normalize(directionToLight);

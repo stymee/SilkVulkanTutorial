@@ -125,6 +125,15 @@ public unsafe class LveBuffer : IDisposable
             throw new NotImplementedException("don't have offset stuff working yet");
         }
     }
+
+    public unsafe void WriteBytesToBuffer(byte[] data)
+    {
+        var dataSize = sizeof(byte) * data.Length;
+        fixed (void* dataPtr = data)
+        {
+            System.Buffer.MemoryCopy(dataPtr, mapped, dataSize, dataSize);
+        }
+    }
     /**
      * Copies "instanceSize" bytes of data to the mapped buffer at an offset of index * alignmentSize
      *
