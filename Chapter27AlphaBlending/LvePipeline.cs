@@ -211,10 +211,10 @@ public class LvePipeline : IDisposable
         configInfo.ColorBlendAttachment.BlendEnable = Vk.False;
         configInfo.ColorBlendAttachment.SrcColorBlendFactor = BlendFactor.One;
         configInfo.ColorBlendAttachment.DstColorBlendFactor = BlendFactor.Zero;
-        //configInfo.ColorBlendAttachment.ColorBlendOp = BlendOp.Add;
-        //configInfo.ColorBlendAttachment.SrcAlphaBlendFactor = BlendFactor.One;
-        //configInfo.ColorBlendAttachment.DstAlphaBlendFactor = BlendFactor.Zero;
-        //configInfo.ColorBlendAttachment.AlphaBlendOp = BlendOp.Add;
+        configInfo.ColorBlendAttachment.ColorBlendOp = BlendOp.Add;
+        configInfo.ColorBlendAttachment.SrcAlphaBlendFactor = BlendFactor.One;
+        configInfo.ColorBlendAttachment.DstAlphaBlendFactor = BlendFactor.Zero;
+        configInfo.ColorBlendAttachment.AlphaBlendOp = BlendOp.Add;
 
         configInfo.ColorBlendInfo.SType = StructureType.PipelineColorBlendStateCreateInfo;
         configInfo.ColorBlendInfo.LogicOpEnable = Vk.False;
