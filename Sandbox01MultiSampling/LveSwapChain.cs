@@ -358,7 +358,7 @@ public class LveSwapChain : IDisposable
         AttachmentReference colorAttachmentResolveRef = new()
         {
             Attachment = 2,
-            Layout = ImageLayout.AttachmentOptimal
+            Layout = ImageLayout.AttachmentOptimalKhr
         };
 
         SubpassDescription subpass = new()
@@ -367,7 +367,7 @@ public class LveSwapChain : IDisposable
             ColorAttachmentCount = 1,
             PColorAttachments = &colorAttachmentRef,
             PDepthStencilAttachment = &depthAttachmentRef,
-            PResolveAttachments = & colorAttachmentResolveRef
+            PResolveAttachments = &colorAttachmentResolveRef
         };
 
         SubpassDependency dependency = new()
@@ -379,6 +379,25 @@ public class LveSwapChain : IDisposable
             SrcAccessMask = 0,
             SrcStageMask = PipelineStageFlags.ColorAttachmentOutputBit | PipelineStageFlags.EarlyFragmentTestsBit,
         };
+
+        //MemoryBarrier2 memoryBarrier = new()
+        //{
+        //    SType = StructureType.MemoryBarrier2,
+        //    PNext = default,
+        //    SrcStageMask = PipelineStageFlags2.EarlyFragmentTestsBit | PipelineStageFlags2.LateFragmentTestsBit,
+        //    DstStageMask = PipelineStageFlags2.FragmentShaderBit,
+        //    SrcAccessMask = AccessFlags2.DepthStencilAttachmentWriteBit,
+        //    DstAccessMask = AccessFlags2.InputAttachmentReadBit
+        //};
+
+        //SubpassDependency2 dependency = new()
+        //{
+        //    SType = StructureType.SubpassDependency2,
+        //    PNext = &memoryBarrier,
+        //    SrcSubpass = 0,
+        //    DstSubpass = 1,
+        //    DependencyFlags = DependencyFlags.ByRegionBit
+        //};
 
         var attachments = new[] { colorAttachment, depthAttachment, colorAttachmentResolve };
 

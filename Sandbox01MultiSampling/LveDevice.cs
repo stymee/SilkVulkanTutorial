@@ -1,4 +1,6 @@
-﻿namespace Sandbox01MultiSampling;
+﻿using Silk.NET.Vulkan;
+
+namespace Sandbox01MultiSampling;
 
 public unsafe class LveDevice
 {
@@ -17,7 +19,8 @@ public unsafe class LveDevice
 
     private readonly string[] deviceExtensions = new[]
 {
-        KhrSwapchain.ExtensionName
+        KhrSwapchain.ExtensionName,
+        KhrSynchronization2.ExtensionName
     };
 
     private Instance instance;
@@ -273,11 +276,26 @@ public unsafe class LveDevice
             queueCreateInfos[i].PQueuePriorities = &queuePriority;
         }
 
+
         PhysicalDeviceFeatures deviceFeatures = new()
         {
             SamplerAnisotropy = true,
         };
 
+        // Enable Synchronization 2 to eliminate a validation layer error, thanks gpt4!
+        PhysicalDeviceSynchronization2FeaturesKHR sync2Features = new()
+        {
+            SType = StructureType.PhysicalDeviceSynchronization2FeaturesKhr,
+            Synchronization2 = Vk.True
+        };
+
+        PhysicalDeviceFeatures2 deviceFeatures2 = new()
+        {
+            SType = StructureType.PhysicalDeviceFeatures2,
+            PNext = &sync2Features
+        };
+
+        vk.GetPhysicalDeviceFeatures2(physicalDevice, &deviceFeatures2);
 
         DeviceCreateInfo createInfo = new()
         {
@@ -286,6 +304,7 @@ public unsafe class LveDevice
             PQueueCreateInfos = queueCreateInfos,
 
             PEnabledFeatures = &deviceFeatures,
+            PNext = &sync2Features,
 
             EnabledExtensionCount = (uint)deviceExtensions.Length,
             PpEnabledExtensionNames = (byte**)SilkMarshal.StringArrayToPtr(deviceExtensions)
@@ -523,7 +542,23 @@ public unsafe class LveDevice
         PhysicalDeviceFeatures supportedFeatures;
         vk.GetPhysicalDeviceFeatures(device, out supportedFeatures);
 
-        return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.SamplerAnisotropy;
+        PhysicalDeviceSynchronization2FeaturesKHR sync2Features = new()
+        {
+            SType = StructureType.PhysicalDeviceSynchronization2FeaturesKhr,
+            Synchronization2 = Vk.True
+        };
+
+        PhysicalDeviceFeatures2 deviceFeatures2 = new()
+        {
+            SType = StructureType.PhysicalDeviceFeatures2,
+            PNext = & sync2Features
+        };
+
+        //PhysicalDeviceFeatures2 supportedFeatures2;
+        //vk.GetPhysicalDeviceFeatures2(device, out supportedFeatures2);
+        vk.GetPhysicalDeviceFeatures2(device, &deviceFeatures2);
+
+        return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.SamplerAnisotropy && sync2Features.Synchronization2;
     }
 
     private bool CheckDeviceExtensionsSupport(PhysicalDevice device)
