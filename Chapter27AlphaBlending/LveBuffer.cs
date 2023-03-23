@@ -128,9 +128,9 @@ public unsafe class LveBuffer : IDisposable
 
     public unsafe void WriteBytesToBuffer(byte[] data)
     {
-        var dataSize = sizeof(byte) * data.Length;
         fixed (void* dataPtr = data)
         {
+            var dataSize = sizeof(byte) * data.Length;
             System.Buffer.MemoryCopy(dataPtr, mapped, dataSize, dataSize);
         }
     }
