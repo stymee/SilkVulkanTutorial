@@ -2,38 +2,36 @@
 
 public class GlobalUbo2
 {
-    private Matrix4x4 projection = Matrix4x4.Identity;      // 64
-    private Matrix4x4 view = Matrix4x4.Identity;            // 64
-    private Vector4 frontVec = Vector4.UnitZ;               // 16
-    private Vector4 ambientColor = new(1f, 1f, 1f, 0.02f);  // 16
-    private int numLights = 0;                              // 4
-    private int padding1 = 0;                               // 4
-    private int padding2 = 0;                               // 4
-    private int padding3 = 0;                               // 4
-    private PointLight2[] pointLights = new PointLight2[]   // 10 * 32 * 320
-    {
-        new(), new(), new(), new(), new(), new(), new(), new(), new(), new(),
-    };
-
-    // total size is 496
+    private Matrix4x4 projection;       // 64
+    private Matrix4x4 view;             // 64
+    private Vector4 frontVec;           // 16
+    private Vector4 ambientColor;       // 16
+    private int numLights;              // 4
+    private int padding1;               // 4
+    private int padding2;               // 4
+    private int padding3;               // 4
+    private PointLight2[] pointLights = null!;   // 10 * 32 * 320
 
     public GlobalUbo2()
     {
-        
+        projection = Matrix4x4.Identity;
+        view = Matrix4x4.Identity;
+        frontVec = Vector4.UnitZ;
+        ambientColor = new(1f, 1f, 1f, 0.02f);
+        numLights = 0;
+        padding1 = 0;
+        padding2 = 0;
+        padding3 = 0;
+        pointLights = new PointLight2[10];
     }
-    //public GlobalUbo2() 
-    //{
-    //    projection = Matrix4x4.Identity;
-    //    view = Matrix4x4.Identity;
-    //    frontVec = Vector4.UnitZ;
-    //    ambientColor = Vector4.One;
-    //    numLights = 0;
-    //    padding1 = 0;
-    //    padding2 = 0;
-    //    padding3 = 0;
-    //    pointLights = new PointLight2[10];
-    //    Array.Fill(pointLights, new());
-    //}
+    
+    public void Update(Matrix4x4 projection, Matrix4x4 view, Vector4 frontVec)
+    {
+        this.projection = projection;
+        this.view = view;
+        this.frontVec = frontVec;
+    }
+
 
     public void SetNumLights(int numLights)
     {
@@ -44,12 +42,12 @@ public class GlobalUbo2
     {
         pointLights[lightIndex].SetPosition(translation);
     }
-    
+
     public void SetPointLightColor(int lightIndex, Vector4 color, float intensity)
     {
         pointLights[lightIndex].SetColor(color, intensity);
     }
-    
+
     public byte[] AsBytes()
     {
         uint offset = 0;
@@ -68,13 +66,13 @@ public class GlobalUbo2
         ambientColor.AsBytes().CopyTo(bytes, offset);
         offset += vsize;
 
-        BitConverter.GetBytes(numLights).CopyTo(bytes, offset);
+        numLights.AsBytes().CopyTo(bytes, offset);
         offset += fsize;
-        BitConverter.GetBytes(padding1).CopyTo(bytes, offset);
+        padding1.AsBytes().CopyTo(bytes, offset);
         offset += fsize;
-        BitConverter.GetBytes(padding2).CopyTo(bytes, offset);
+        padding2.AsBytes().CopyTo(bytes, offset);
         offset += fsize;
-        BitConverter.GetBytes(padding3).CopyTo(bytes, offset);
+        padding3.AsBytes().CopyTo(bytes, offset);
         offset += fsize;
 
         var pbytes = pointLights.AsBytes();
@@ -86,28 +84,28 @@ public class GlobalUbo2
     public GlobalUbo2(byte[] bytes)
     {
         int offset = 0;
-        for (int row=0; row < 4; row++)
+        for (int row = 0; row < 4; row++)
         {
-            for (int col=0; col < 4; col++)
+            for (int col = 0; col < 4; col++)
             {
                 projection[row, col] = BitConverter.ToSingle(bytes[offset..(offset + 4)]);
                 offset += 4;
             }
         }
-        for (int row=0; row < 4; row++)
+        for (int row = 0; row < 4; row++)
         {
-            for (int col=0; col < 4; col++)
+            for (int col = 0; col < 4; col++)
             {
                 view[row, col] = BitConverter.ToSingle(bytes[offset..(offset + 4)]);
                 offset += 4;
             }
         }
-        for (int col=0; col < 4; col++)
+        for (int col = 0; col < 4; col++)
         {
             frontVec[col] = BitConverter.ToSingle(bytes[offset..(offset + 4)]);
             offset += 4;
         }
-        for (int col=0; col < 4; col++)
+        for (int col = 0; col < 4; col++)
         {
             ambientColor[col] = BitConverter.ToSingle(bytes[offset..(offset + 4)]);
             offset += 4;
@@ -121,7 +119,7 @@ public class GlobalUbo2
         padding3 = BitConverter.ToInt32(bytes[offset..(offset + 4)]);
         offset += 4;
 
-        for (int pt=0; pt<10; pt++)
+        for (int pt = 0; pt < 10; pt++)
         {
             var ptpos = Vector4.Zero;
             for (int col = 0; col < 4; col++)
@@ -140,33 +138,26 @@ public class GlobalUbo2
 
     }
 
-    public void Update(Matrix4x4 projection, Matrix4x4 view, Vector4 frontVec)
-    {
-        this.projection = projection;
-        this.view = view;
-        this.frontVec = frontVec;
-    }
-
     public static uint SizeOf() => 496;// (uint)Unsafe.SizeOf<GlobalUbo2>();
 
 }
 
 
-public class PointLight2
+public struct PointLight2
 {
     private Vector4 position = Vector4.Zero;
     private Vector4 color = Vector4.One;
 
     public PointLight2()
     {
-        
+
     }
     public PointLight2(Vector4 position, Vector4 color)
     {
         this.position = position;
         this.color = color;
     }
-
+    
     public void SetPosition(Vector3 pos)
     {
         position = new Vector4(pos.X, pos.Y, pos.Z, 0f);
@@ -185,7 +176,7 @@ public class PointLight2
         return bytes;
     }
 
-    public static uint SizeOf() => 32;// (uint)Unsafe.SizeOf<PointLight2>();
+    public static uint SizeOf() => (uint)Unsafe.SizeOf<PointLight2>();
 
     public override string ToString()
     {
@@ -197,7 +188,19 @@ public class PointLight2
 
 public static class TypeExtensions
 {
-    
+    public static byte[] AsBytes(this int i)
+    {
+        var bytes = new byte[4];
+        BitConverter.GetBytes(i).CopyTo(bytes, 0);
+        return bytes;
+    }
+
+    public static byte[] AsBytes(this float f)
+    {
+        var bytes = new byte[4];
+        BitConverter.GetBytes(f).CopyTo(bytes, 0);
+        return bytes;
+    }
 
     public static byte[] AsBytes(this Vector4 vec)
     {
@@ -211,32 +214,20 @@ public static class TypeExtensions
 
         return bytes;
     }
-    
+
     public static byte[] AsBytes(this Matrix4x4 mat)
     {
         uint offset = 0;
         uint fsize = 4;
         var bytes = new byte[64];
-        BitConverter.GetBytes(mat.M11).CopyTo(bytes, offset);
-        BitConverter.GetBytes(mat.M12).CopyTo(bytes, offset += fsize);
-        BitConverter.GetBytes(mat.M13).CopyTo(bytes, offset += fsize);
-        BitConverter.GetBytes(mat.M14).CopyTo(bytes, offset += fsize);
-
-        BitConverter.GetBytes(mat.M21).CopyTo(bytes, offset += fsize);
-        BitConverter.GetBytes(mat.M22).CopyTo(bytes, offset += fsize);
-        BitConverter.GetBytes(mat.M23).CopyTo(bytes, offset += fsize);
-        BitConverter.GetBytes(mat.M24).CopyTo(bytes, offset += fsize);
-
-        BitConverter.GetBytes(mat.M31).CopyTo(bytes, offset += fsize);
-        BitConverter.GetBytes(mat.M32).CopyTo(bytes, offset += fsize);
-        BitConverter.GetBytes(mat.M33).CopyTo(bytes, offset += fsize);
-        BitConverter.GetBytes(mat.M34).CopyTo(bytes, offset += fsize);
-
-        BitConverter.GetBytes(mat.M41).CopyTo(bytes, offset += fsize);
-        BitConverter.GetBytes(mat.M42).CopyTo(bytes, offset += fsize);
-        BitConverter.GetBytes(mat.M43).CopyTo(bytes, offset += fsize);
-        BitConverter.GetBytes(mat.M44).CopyTo(bytes, offset += fsize);
-
+        for (int row=0; row<4; row++)
+        {
+            for(int col=0; col<4; col++)
+            {
+                BitConverter.GetBytes((float)mat[row, col]).CopyTo(bytes, offset);
+                offset += fsize;
+            }
+        }
         return bytes;
     }
 

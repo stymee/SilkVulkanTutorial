@@ -4,7 +4,7 @@ namespace Chapter27AlphaBlending;
 public class FirstApp : IDisposable
 {
     // set to true to force FIFO swapping
-    private const bool USE_FIFO = false;
+    private const bool USE_FIFO = true;
 
     // Window stuff
     private IView window = null!;
