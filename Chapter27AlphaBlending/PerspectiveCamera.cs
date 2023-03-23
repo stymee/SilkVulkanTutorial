@@ -32,7 +32,8 @@ public class PerspectiveCamera : ICamera
     private float yaw = 0f;
 
     //private float frustumPrevious;
-    //public float Frustum => frustum;
+    private float frustum;
+    public float Frustum => frustum;
 
     public float AspectRatio => (left - right) / (top - bottom);
 

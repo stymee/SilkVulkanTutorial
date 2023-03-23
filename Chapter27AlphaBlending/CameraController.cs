@@ -30,8 +30,8 @@ public class CameraController
         return $"{controlState,-16} [{ml} {mm} {mr}] | " +
             $"2D=[{mouse2d.X:+0.0000;-0.0000},{mouse2d.Y:+0.0000;-0.0000}] | " +
             $"3D=[{mouse3d.X:+0.0000;-0.0000},{mouse3d.Y:+0.0000;-0.0000},{mouse3d.Z:+0.0000;-0.0000}] | " +
-            $"Pos=[{camera.Position.X:+0.0000;-0.0000},{camera.Position.Y:+0.0000;-0.0000},{camera.Position.Z:+0.0000;-0.0000}] | ";// +
-            //$"Frustum={camera.Frustum:0.00}, Pitch={camera.PitchDegrees:0.0}°, Yaw={camera.YawDegrees:0.0}";
+            $"Pos=[{camera.Position.X:+0.0000;-0.0000},{camera.Position.Y:+0.0000;-0.0000},{camera.Position.Z:+0.0000;-0.0000}] | " +
+            $"Frustum={camera.Frustum:0.00}, Pitch={camera.PitchDegrees:0.0}°, Yaw={camera.YawDegrees:0.0}";
     }
 
     public MouseState GetMouseState()
@@ -62,13 +62,13 @@ public class CameraController
                 break;
             case MouseControlState.Context:
                 // Debugging view/projection matrices
-                Console.WriteLine("");
-                Console.WriteLine("position");
-                Console.WriteLine($"[{camera.Position.X,-10:0.000},{camera.Position.Y,-10:0.000},{camera.Position.Z,-10:0.000}]");
-                Console.WriteLine("view matrix");
-                Console.WriteLine(camera.GetViewMatrix().PrintCols());
-                Console.WriteLine("inverse view matrix");
-                Console.WriteLine(camera.GetInverseViewMatrix().PrintCols());
+                //Console.WriteLine("");
+                //Console.WriteLine("position");
+                //Console.WriteLine($"[{camera.Position.X,-10:0.000},{camera.Position.Y,-10:0.000},{camera.Position.Z,-10:0.000}]");
+                //Console.WriteLine("view matrix");
+                //Console.WriteLine(camera.GetViewMatrix().PrintCols());
+                //Console.WriteLine("inverse view matrix");
+                //Console.WriteLine(camera.GetInverseViewMatrix().PrintCols());
                 //Console.WriteLine(camera.GetViewMatrixGlm().PrintCols());
                 //Console.WriteLine("projection matrix");
                 //Console.WriteLine(camera.GetProjectionMatrix().PrintCols());

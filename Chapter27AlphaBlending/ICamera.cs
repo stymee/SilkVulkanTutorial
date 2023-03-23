@@ -18,6 +18,8 @@
         float YawDegrees { get; }
         int Yp { get; }
 
+        float Frustum { get; }
+
         Matrix4x4 GetInverseViewMatrix();
         Matrix4x4 GetProjectionMatrix();
         //Matrix4x4 GetProjectionMatrixGlm();
