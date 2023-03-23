@@ -17,8 +17,8 @@ global using Silk.NET.Vulkan.Extensions.EXT;
 global using Silk.NET.Vulkan.Extensions.KHR;
 global using Silk.NET.Windowing;
 
-//global using Silk.NET.Vulkan.Extensions.ImGui;
-//global using Silk.NET.Input.Extensions;
+global using Silk.NET.Input.Extensions;
+global using ImGuiNET;
 
 global using Semaphore = Silk.NET.Vulkan.Semaphore;
 global using Buffer = Silk.NET.Vulkan.Buffer;

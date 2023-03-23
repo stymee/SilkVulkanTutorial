@@ -12,6 +12,13 @@ public class LvePipeline : IDisposable
     private ShaderModule fragShaderModule;
     private bool disposedValue;
 
+    public LvePipeline(Vk vk, LveDevice device, byte[] vertBytes, byte[] fragBytes, PipelineConfigInfo configInfo)
+    {
+        this.vk = vk;
+        this.device = device;
+        createGraphicsPipeline(vertBytes, fragBytes, configInfo);
+    }
+
     public LvePipeline(Vk vk, LveDevice device, string vertPath, string fragPath, PipelineConfigInfo configInfo)
     {
         this.vk = vk;
@@ -28,9 +35,14 @@ public class LvePipeline : IDisposable
     {
         var vertSource = getShaderBytes(vertPath);
         var fragSource = getShaderBytes(fragPath);
+        createGraphicsPipeline(vertSource, fragSource, configInfo);
+    }
 
-        vertShaderModule = createShaderModule(vertSource);
-        fragShaderModule = createShaderModule(fragSource);
+    private unsafe void createGraphicsPipeline(byte[] vertBytes, byte[] fragBytes, PipelineConfigInfo configInfo)
+    {
+
+        vertShaderModule = createShaderModule(vertBytes);
+        fragShaderModule = createShaderModule(fragBytes);
 
         PipelineShaderStageCreateInfo vertShaderStageInfo = new()
         {

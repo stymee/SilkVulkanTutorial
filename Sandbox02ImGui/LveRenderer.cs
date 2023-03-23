@@ -21,6 +21,8 @@ public class LveRenderer : IDisposable
 
     private bool disposedValue;
 
+    public Format SwapChainImageFormat => swapChain.SwapChainImageFormat;
+    public Format SwapChainDepthFormat => swapChain.SwapChainDepthFormat;
 
     // public props and methods
     public RenderPass GetSwapChainRenderPass() => swapChain.GetRenderPass();

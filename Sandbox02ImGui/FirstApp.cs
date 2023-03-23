@@ -1,4 +1,5 @@
 ﻿
+
 namespace Sandbox02ImGui;
 
 public class FirstApp : IDisposable
@@ -30,6 +31,7 @@ public class FirstApp : IDisposable
 
     private SimpleRenderSystem simpleRenderSystem = null!;
     private PointLightRenderSystem pointLightRenderSystem = null!;
+    private ImGuiRenderSystem imGuiRenderSystem = null!;
 
     private CameraController cameraController = null!;
     private KeyboardController keyboardController = null!;
@@ -117,6 +119,14 @@ public class FirstApp : IDisposable
             lveRenderer.GetSwapChainRenderPass(),
             globalSetLayout.GetDescriptorSetLayout()
             );
+
+        //imGuiRenderSystem = new(
+        //    vk, device,
+        //    lveRenderer.GetSwapChainRenderPass(),
+        //    globalSetLayout.GetDescriptorSetLayout(),
+        //    (IWindow)window
+        //    );
+
         log.d("run", "got render systems");
 
 
@@ -259,6 +269,22 @@ public class FirstApp : IDisposable
         camera.Resize(0, 0, (uint)newsize.X, (uint)newsize.Y);
         cameraController.Resize(newsize);
     }
+
+
+    //private void InitImGui()
+    //{
+    //    imGuiController = new ImGuiController(
+    //        vk,
+    //        window,
+    //        window.CreateInput(),
+    //        device.VkPhysicalDevice,
+    //        device.GraphicsFamilyIndex,
+    //        LveSwapChain.MAX_FRAMES_IN_FLIGHT,
+    //        lveRenderer.SwapChainImageFormat,
+    //        lveRenderer.SwapChainDepthFormat
+    //    );
+    //}
+
 
     private void loadGameObjects()
     {

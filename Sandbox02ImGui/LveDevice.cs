@@ -31,6 +31,7 @@ public unsafe class LveDevice
     public SurfaceKHR Surface => surface;
 
     private PhysicalDevice physicalDevice;
+    public PhysicalDevice VkPhysicalDevice => physicalDevice;
 
     private string deviceName = "unknown";
     public string DeviceName => deviceName;
@@ -46,6 +47,7 @@ public unsafe class LveDevice
     private Device device;
 
     private uint graphicsFamilyIndex;
+    public uint GraphicsFamilyIndex => graphicsFamilyIndex;
     private Queue graphicsQueue;
     public Queue GraphicsQueue => graphicsQueue;
 
