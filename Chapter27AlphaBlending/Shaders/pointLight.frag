@@ -20,12 +20,6 @@ layout(set = 0, binding = 0) uniform GlobalUbo
 	int padding2;
 	int padding3;
 	PointLight pointLights[10];
-//	PointLight pointLight1;
-//	PointLight pointLight2;
-//	PointLight pointLight3;
-//	PointLight pointLight4;
-//	PointLight pointLight5;
-//	PointLight pointLight6;
 } ubo;
 
 layout(push_constant) uniform Push

@@ -25,12 +25,6 @@ layout(set = 0, binding = 0) uniform GlobalUbo
 	int padding2;
 	int padding3;
 	PointLight pointLights[10];
-//	PointLight pointLight1;
-//	PointLight pointLight2;
-//	PointLight pointLight3;
-//	PointLight pointLight4;
-//	PointLight pointLight5;
-//	PointLight pointLight6;
 } ubo;
 
 layout(push_constant) uniform Push 
@@ -40,9 +34,6 @@ layout(push_constant) uniform Push
 } push;
 
 
-//const vec3 DIRECTION_TO_LIGHT = normalize(vec3(1.0, -3.0, -1.0));
-//const float AMBIENT = 0.02;
-
 void main() {
 	vec4 positionWorld = push.modelMatrix * vec4(position, 1.0);
 	gl_Position = ubo.projection * ubo.view * positionWorld;
@@ -50,15 +41,6 @@ void main() {
 	fragNormalWorld = normalize(mat3(push.normalMatrix) * normal);
 	fragPosWorld = positionWorld.xyz;
 	fragColor = color;
-
-//	vec3 directionToLight = ubo.lightPosition.xyz - positionWorld.xyz;
-//	float attenuation = 1.0 / dot(directionToLight, directionToLight); // distance squared
-//	
-//	vec3 lightColor = ubo.lightColor.xyz * ubo.lightColor.w * attenuation;
-//	vec3 ambientLight = ubo.ambientColor.xyz * ubo.ambientColor.w;
-//	vec3 diffuseLight = lightColor * max(dot(normalWorldSpace, normalize(directionToLight)), 0);
-//
-//	fragColor = (diffuseLight + ambientLight) * color;
 }
 
 
