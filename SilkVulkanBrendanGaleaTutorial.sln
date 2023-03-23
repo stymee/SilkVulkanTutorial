@@ -59,6 +59,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter26SpecularLighting",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chapter27AlphaBlending", "Chapter27AlphaBlending\Chapter27AlphaBlending.csproj", "{4F5AA701-E528-4F32-8DED-BBE70230E8ED}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sandbox01MultiSampling", "Sandbox01MultiSampling\Sandbox01MultiSampling.csproj", "{54F85B47-6B55-41CA-B0DF-88DC90655BCC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -177,6 +179,10 @@ Global
 		{4F5AA701-E528-4F32-8DED-BBE70230E8ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F5AA701-E528-4F32-8DED-BBE70230E8ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F5AA701-E528-4F32-8DED-BBE70230E8ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54F85B47-6B55-41CA-B0DF-88DC90655BCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54F85B47-6B55-41CA-B0DF-88DC90655BCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54F85B47-6B55-41CA-B0DF-88DC90655BCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54F85B47-6B55-41CA-B0DF-88DC90655BCC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
