@@ -10,7 +10,14 @@ class PointLightRenderSystem : IDisposable
     private LvePipeline pipeline = null!;
     private PipelineLayout pipelineLayout;
 
-    private Dictionary<float, uint> sortedZ = new();
+    private Dictionary<uint, float> sortedZ = new();
+
+
+    // public props
+    public bool RotateLightsEnabled { get; set; } = true;
+    public float RotateSpeed { get; set; } = 1.0f;
+    public float YPosition { get; set; } = 0f;
+    public float XPosition { get; set; } = 0f;
 
     public PointLightRenderSystem(Vk vk, LveDevice device, RenderPass renderPass, DescriptorSetLayout globalSetLayout)
     {
@@ -78,8 +85,22 @@ class PointLightRenderSystem : IDisposable
         {
             if (g.PointLight is null) continue;
 
-            var rotateLight = Matrix4x4.CreateRotationY(frameInfo.FrameTime);
-            g.Transform.Translation = Vector3.Transform(g.Transform.Translation, rotateLight);
+            if (MathF.Abs(YPosition) > 0 || MathF.Abs(XPosition) > 0)
+            {
+
+                g.Transform.Translation = g.Transform.Translation with
+                {
+                    X = g.Transform.Translation.X + XPosition,
+                    Y = g.Transform.Translation.Y + YPosition,
+                };
+            }
+
+            if (RotateLightsEnabled)
+            {
+                var rotateLight = Matrix4x4.CreateRotationY(frameInfo.FrameTime * RotateSpeed);
+                g.Transform.Translation = Vector3.Transform(g.Transform.Translation, rotateLight);
+            }
+
 
             switch (lightIndex + 1)
             {
@@ -119,19 +140,15 @@ class PointLightRenderSystem : IDisposable
 
             };
 
-            //ubo.PointLight1.Position = new Vector4(g.Transform.Translation, 0.0f);
-            //ubo.PointLight1.Color = new Vector4(g.Color.X, g.Color.Y, g.Color.Z, g.PointLight.Value.LightIntensity);
-            //}
-            //else if (lightIndex == 1)
+            //ubo.PointLights[lightIndex] = new()
             //{
-            //    ubo.PointLight2.Position = new Vector4(g.Transform.Translation, 0.0f);
-            //    ubo.PointLight2.Color = new Vector4(g.Color.X, g.Color.Y, g.Color.Z, g.PointLight.Value.LightIntensity);
-            //}
-
-            //ubo.PointLightPositions[lightIndex] = new Vector4(g.Transform.Translation, 0.0f);
-            //ubo.PointLightColors[lightIndex] = new Vector4(g.Color.X, g.Color.Y, g.Color.Z, g.PointLight.Value.LightIntensity);
+            //    Position = new(g.Transform.Translation, 0.0f),
+            //    Color = new(g.Color.X, g.Color.Y, g.Color.Z, g.PointLight.Value.LightIntensity)
+            //};
             lightIndex++;
         }
+        XPosition = 0;
+        YPosition = 0;
         ubo.NumLights = lightIndex;
     }
 
@@ -145,7 +162,11 @@ class PointLightRenderSystem : IDisposable
 
             var offset = frameInfo.Camera.FrontVec - g.Transform.Translation;
             float distSquared = Vector3.Dot(offset, offset);
-            sortedZ.Add(distSquared, g.Id);
+            if (!sortedZ.TryAdd(g.Id, distSquared))
+            {
+                //Console.WriteLine("error trying to sort point lights by z order!");
+                throw new ApplicationException($"error trying to sort point lights by z order!");
+            }
         }
 
         pipeline.Bind(frameInfo.CommandBuffer);
@@ -161,10 +182,10 @@ class PointLightRenderSystem : IDisposable
             null
         );
 
-        foreach (var (idx, gid) in sortedZ.OrderBy(s => s.Key))
+        foreach (var (gid, dist) in sortedZ.OrderBy(s => s.Value))
         {
             var g = frameInfo.GameObjects[gid];
-            //if (g.PointLight is null) continue;
+            if (g.PointLight is null) continue;
 
             PointLightPushConstants push = new()
             {

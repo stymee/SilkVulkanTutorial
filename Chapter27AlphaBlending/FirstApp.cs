@@ -31,6 +31,7 @@ public class FirstApp : IDisposable
     private PointLightRenderSystem pointLightRenderSystem = null!;
 
     private CameraController cameraController = null!;
+    private KeyboardController keyboardController = null!;
 
 
     private LveBuffer[] uboBuffers = null!;
@@ -117,13 +118,45 @@ public class FirstApp : IDisposable
         //camera = new PerspectiveCamera(new Vector3(5,5,5), 45f, 0f, 0f, window.FramebufferSize);
         cameraController = new(camera, (IWindow)window);
         resize(window.FramebufferSize);
-        log.d("run", "got camera");
+        keyboardController = new((IWindow)window);
+        keyboardController.OnKeyPressed += onKeyPressed;
+        log.d("run", "got camera and controls");
 
+        //Console.WriteLine($"GlobalUbo blittable={BlittableHelper<GlobalUbo>.IsBlittable}");
 
         MainLoop();
         CleanUp();
     }
 
+    private void onKeyPressed(Key key)
+    {
+        switch (key)
+        {
+            case Key.Space:
+                pointLightRenderSystem.RotateLightsEnabled = !pointLightRenderSystem.RotateLightsEnabled;
+                break;
+            case Key.KeypadAdd:
+                pointLightRenderSystem.RotateSpeed += 0.5f;
+                break;
+            case Key.KeypadSubtract:
+                pointLightRenderSystem.RotateSpeed -= 0.5f;
+                break;
+            case Key.Up:
+                pointLightRenderSystem.YPosition += 0.05f;
+                break;
+            case Key.Down:
+                pointLightRenderSystem.YPosition -= 0.05f;
+                break;
+            case Key.Left:
+                pointLightRenderSystem.XPosition += 0.2f;
+                break;
+            case Key.Right:
+                pointLightRenderSystem.XPosition += 0.2f;
+                break;
+            default:
+                break;
+        }
+    }
 
     // mouse stuff
     private MouseState mouseLast;

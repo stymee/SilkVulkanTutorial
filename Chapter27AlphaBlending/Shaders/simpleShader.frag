@@ -18,6 +18,7 @@ layout(set = 0, binding = 0) uniform GlobalUbo
 	mat4 view;
 	vec4 front;
 	vec4 ambientColor;
+//	PointLight pointLights[10];
 	PointLight pointLight1;
 	PointLight pointLight2;
 	PointLight pointLight3;
@@ -52,7 +53,7 @@ void main() {
 		else if (i == 4) light = ubo.pointLight5;
 		else if (i == 5) light = ubo.pointLight6;
 		
-		//PointLight light = ubo.pointLight1;
+		//PointLight light = ubo.pointLights[i];
 		vec3 directionToLight = light.position.xyz - fragPosWorld;
 		float attenuation = 1.0 / dot(directionToLight, directionToLight); // distance squared
 		directionToLight = normalize(directionToLight);

@@ -103,16 +103,17 @@ public unsafe class LveBuffer : IDisposable
      * @param offset (Optional) Byte offset from beginning of mapped region
      *
     */
-    public unsafe void WriteToBuffer<T>(T[] data, ulong size = Vk.WholeSize, ulong offset = 0)
+    public unsafe void WriteToBuffer<T>(T[] data, ulong size = Vk.WholeSize, ulong offset = 0)// where T : unmanaged
     {
         if (size == Vk.WholeSize)
         {
-            //fixed (void* dataPtr = data)
-            //{
-            //    System.Buffer.MemoryCopy(dataPtr, mapped, data.Length, data.Length);
-            //}
-            var tmpSpan = new Span<T>(mapped, data.Length);
-            data.AsSpan().CopyTo(tmpSpan);
+            var dataSize = sizeof(T) * data.Length;
+            fixed (void* dataPtr = data)
+            {
+                System.Buffer.MemoryCopy(dataPtr, mapped, dataSize, dataSize);
+            }
+            //var tmpSpan = new Span<T>(mapped, data.Length);
+            //data.AsSpan().CopyTo(tmpSpan);
         }
         else
         {

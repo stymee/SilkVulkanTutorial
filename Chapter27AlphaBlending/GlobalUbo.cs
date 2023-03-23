@@ -12,17 +12,19 @@ public struct GlobalUbo
     public PointLight PointLight4;
     public PointLight PointLight5;
     public PointLight PointLight6;
+    //public PointLight[] PointLights;
     public int NumLights;
-    
+
     public GlobalUbo()
     {
         Projection = Matrix4x4.Identity;
         View = Matrix4x4.Identity;
         FrontVec = Vector4.UnitZ;
         AmbientColor = new(1f, 1f, 1f, 0.02f);
+        //PointLights = new PointLight[10];
     }
 
-    public static uint SizeOf() => (uint)Unsafe.SizeOf<GlobalUbo>();
+public static uint SizeOf() => (uint)Unsafe.SizeOf<GlobalUbo>();
 
 }
 
@@ -32,3 +34,4 @@ public struct PointLight
     public Vector4 Position;
     public Vector4 Color;
 }
+

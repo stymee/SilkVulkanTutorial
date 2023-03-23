@@ -1,5 +1,5 @@
 #version 450
-//#extension GL_KHR_vulkan_glsl:enable
+#extension GL_KHR_vulkan_glsl:enable
 
 
 const vec2 OFFSETS[6] = vec2[](
@@ -24,6 +24,7 @@ layout(set = 0, binding = 0) uniform GlobalUbo
 	mat4 view;
 	vec4 front;
 	vec4 ambientColor;
+//	PointLight pointLights[10];
 	PointLight pointLight1;
 	PointLight pointLight2;
 	PointLight pointLight3;
