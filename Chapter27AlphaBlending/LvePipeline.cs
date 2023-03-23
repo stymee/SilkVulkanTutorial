@@ -176,7 +176,7 @@ public class LvePipeline : IDisposable
         
         configInfo.InputAssemblyInfo.SType = StructureType.PipelineInputAssemblyStateCreateInfo;
         configInfo.InputAssemblyInfo.Topology = PrimitiveTopology.TriangleList;
-        configInfo.InputAssemblyInfo.PrimitiveRestartEnable = false;
+        configInfo.InputAssemblyInfo.PrimitiveRestartEnable = Vk.False;
 
 
         configInfo.ViewportInfo.SType = StructureType.PipelineViewportStateCreateInfo;
@@ -187,28 +187,28 @@ public class LvePipeline : IDisposable
 
 
         configInfo.RasterizationInfo.SType = StructureType.PipelineRasterizationStateCreateInfo;
-        configInfo.RasterizationInfo.DepthClampEnable = false;
-        configInfo.RasterizationInfo.RasterizerDiscardEnable = false;
+        configInfo.RasterizationInfo.DepthClampEnable = Vk.False;
+        configInfo.RasterizationInfo.RasterizerDiscardEnable = Vk.False;
         configInfo.RasterizationInfo.PolygonMode = PolygonMode.Fill;
         configInfo.RasterizationInfo.LineWidth = 1f;
         configInfo.RasterizationInfo.CullMode = CullModeFlags.None;
         configInfo.RasterizationInfo.FrontFace = FrontFace.CounterClockwise;
-        configInfo.RasterizationInfo.DepthBiasEnable = false;
+        configInfo.RasterizationInfo.DepthBiasEnable = Vk.False;
         configInfo.RasterizationInfo.DepthBiasConstantFactor = 0f;
         configInfo.RasterizationInfo.DepthBiasClamp = 0f;
         configInfo.RasterizationInfo.DepthBiasSlopeFactor = 0f;
 
 
         configInfo.MultisampleInfo.SType = StructureType.PipelineMultisampleStateCreateInfo;
-        configInfo.MultisampleInfo.SampleShadingEnable = false;
+        configInfo.MultisampleInfo.SampleShadingEnable = Vk.False;
         configInfo.MultisampleInfo.RasterizationSamples = SampleCountFlags.Count1Bit;
         configInfo.MultisampleInfo.MinSampleShading = 1.0f;
         configInfo.MultisampleInfo.PSampleMask = default;
-        configInfo.MultisampleInfo.AlphaToCoverageEnable = false;
-        configInfo.MultisampleInfo.AlphaToOneEnable = false;
+        configInfo.MultisampleInfo.AlphaToCoverageEnable = Vk.False;
+        configInfo.MultisampleInfo.AlphaToOneEnable = Vk.False;
 
         configInfo.ColorBlendAttachment.ColorWriteMask = ColorComponentFlags.RBit | ColorComponentFlags.GBit | ColorComponentFlags.BBit | ColorComponentFlags.ABit;
-        configInfo.ColorBlendAttachment.BlendEnable = false;
+        configInfo.ColorBlendAttachment.BlendEnable = Vk.False;
         configInfo.ColorBlendAttachment.SrcColorBlendFactor = BlendFactor.One;
         configInfo.ColorBlendAttachment.DstColorBlendFactor = BlendFactor.Zero;
         configInfo.ColorBlendAttachment.ColorBlendOp = BlendOp.Add;
@@ -217,7 +217,7 @@ public class LvePipeline : IDisposable
         configInfo.ColorBlendAttachment.AlphaBlendOp = BlendOp.Add;
 
         configInfo.ColorBlendInfo.SType = StructureType.PipelineColorBlendStateCreateInfo;
-        configInfo.ColorBlendInfo.LogicOpEnable = false;
+        configInfo.ColorBlendInfo.LogicOpEnable = Vk.False;
         configInfo.ColorBlendInfo.LogicOp = LogicOp.Copy;
         configInfo.ColorBlendInfo.AttachmentCount = 1;
         configInfo.ColorBlendInfo.PAttachments = (PipelineColorBlendAttachmentState*)Unsafe.AsPointer(ref configInfo.ColorBlendAttachment);
@@ -229,13 +229,13 @@ public class LvePipeline : IDisposable
 
 
         configInfo.DepthStencilInfo.SType = StructureType.PipelineDepthStencilStateCreateInfo;
-        configInfo.DepthStencilInfo.DepthTestEnable = true;
-        configInfo.DepthStencilInfo.DepthWriteEnable = true;
+        configInfo.DepthStencilInfo.DepthTestEnable = Vk.True;
+        configInfo.DepthStencilInfo.DepthWriteEnable = Vk.True;
         configInfo.DepthStencilInfo.DepthCompareOp = CompareOp.Less;
-        configInfo.DepthStencilInfo.DepthBoundsTestEnable = false;
+        configInfo.DepthStencilInfo.DepthBoundsTestEnable = Vk.False;
         configInfo.DepthStencilInfo.MinDepthBounds = 0.0f;
         configInfo.DepthStencilInfo.MaxDepthBounds = 1.0f;
-        configInfo.DepthStencilInfo.StencilTestEnable = false;
+        configInfo.DepthStencilInfo.StencilTestEnable = Vk.False;
         configInfo.DepthStencilInfo.Front = default;
         configInfo.DepthStencilInfo.Back = default;
 
@@ -275,7 +275,7 @@ public class LvePipeline : IDisposable
 
     public static void EnableAlphaBlending(ref PipelineConfigInfo configInfo)
     {
-        configInfo.ColorBlendAttachment.BlendEnable = true;
+        configInfo.ColorBlendAttachment.BlendEnable = Vk.True;
         configInfo.ColorBlendAttachment.ColorWriteMask = ColorComponentFlags.RBit | ColorComponentFlags.GBit | ColorComponentFlags.BBit | ColorComponentFlags.ABit;
         configInfo.ColorBlendAttachment.SrcColorBlendFactor = BlendFactor.SrcAlpha;
         configInfo.ColorBlendAttachment.DstColorBlendFactor = BlendFactor.OneMinusSrcAlpha;
