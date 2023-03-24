@@ -90,33 +90,10 @@ public class FirstApp : IDisposable
         }
         log.d("run", "initialized ubo buffers");
 
-        unsafe
-        {
 
-            Sampler fontSampler;
-            var info = new SamplerCreateInfo();
-            info.SType = StructureType.SamplerCreateInfo;
-            info.MagFilter = Filter.Linear;
-            info.MinFilter = Filter.Linear;
-            info.MipmapMode = SamplerMipmapMode.Linear;
-            info.AddressModeU = SamplerAddressMode.Repeat;
-            info.AddressModeV = SamplerAddressMode.Repeat;
-            info.AddressModeW = SamplerAddressMode.Repeat;
-            info.MinLod = -1000;
-            info.MaxLod = 1000;
-            info.MaxAnisotropy = 1.0f;
-            if (vk.CreateSampler(device.VkDevice, info, default, out fontSampler) != Result.Success)
-            {
-                throw new Exception($"Unable to create sampler");
-            }
-
-            var sampler = fontSampler;
-            globalSetLayout = new LveDescriptorSetLayout.Builder(vk, device)
-                .AddBinding(0, DescriptorType.UniformBuffer, ShaderStageFlags.AllGraphics)
-                .AddBinding(1, DescriptorType.SampledImage, ShaderStageFlags.VertexBit, sampler)
-                .Build();
-        }
-
+        globalSetLayout = new LveDescriptorSetLayout.Builder(vk, device)
+            .AddBinding(0, DescriptorType.UniformBuffer, ShaderStageFlags.AllGraphics)
+            .Build();
 
         globalDescriptorSets = new DescriptorSet[frames];
         for (var i = 0; i < globalDescriptorSets.Length; i++)
@@ -301,21 +278,6 @@ public class FirstApp : IDisposable
         camera.Resize(0, 0, (uint)newsize.X, (uint)newsize.Y);
         cameraController.Resize(newsize);
     }
-
-
-    //private void InitImGui()
-    //{
-    //    imGuiController = new ImGuiController(
-    //        vk,
-    //        window,
-    //        window.CreateInput(),
-    //        device.VkPhysicalDevice,
-    //        device.GraphicsFamilyIndex,
-    //        LveSwapChain.MAX_FRAMES_IN_FLIGHT,
-    //        lveRenderer.SwapChainImageFormat,
-    //        lveRenderer.SwapChainDepthFormat
-    //    );
-    //}
 
 
     private void loadGameObjects()

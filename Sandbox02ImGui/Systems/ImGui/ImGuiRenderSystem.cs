@@ -36,6 +36,10 @@ public class ImGuiRenderSystem : IDisposable
     private WindowRenderBuffers _mainWindowRenderBuffers;
     private GlobalMemory _frameRenderBuffers;
 
+    private LveDescriptorPool pool = null!;
+    private LveDescriptorSetLayout setLayout = null!;
+    private DescriptorSet[] descriptorSets = null!;
+
     private DescriptorSetLayout _descriptorSetLayout;
     private DescriptorSet _descriptorSet;
 
@@ -63,6 +67,7 @@ public class ImGuiRenderSystem : IDisposable
         windowWidth = window.Size.X;
         windowHeight = window.Size.Y;
         framebufferSize = window.FramebufferSize;
+
 
         // Set default style
         ImGui.StyleColorsDark();
@@ -138,6 +143,42 @@ public class ImGuiRenderSystem : IDisposable
 
     private unsafe void createPipelineLayout(DescriptorSetLayout globalSetLayout)
     {
+        pool = new LveDescriptorPool.Builder(vk, device)
+            .SetMaxSets(1)
+            .AddPoolSize(DescriptorType.SampledImage, 1)
+            .Build();
+
+        var info = new SamplerCreateInfo()
+        {
+            SType = StructureType.SamplerCreateInfo,
+            MagFilter = Filter.Linear,
+            MinFilter = Filter.Linear,
+            MipmapMode = SamplerMipmapMode.Linear,
+            AddressModeU = SamplerAddressMode.Repeat,
+            AddressModeV = SamplerAddressMode.Repeat,
+            AddressModeW = SamplerAddressMode.Repeat,
+            MinLod = -1000,
+            MaxLod = 1000,
+            MaxAnisotropy = 1.0f,
+        };
+        if (vk.CreateSampler(device.VkDevice, info, default, out Sampler fontSampler) != Result.Success)
+        {
+            throw new Exception($"Unable to create sampler");
+        }
+
+        setLayout = new LveDescriptorSetLayout.Builder(vk, device)
+            .AddBinding(0, DescriptorType.SampledImage, ShaderStageFlags.VertexBit, fontSampler)
+            .Build();
+
+        descriptorSets = new DescriptorSet[1];
+            var bufferInfo = uboBuffers[i].DescriptorInfo();
+            _ = new LveDescriptorSetWriter(vk, device, setLayout)
+                .WriteBuffer(0, bufferInfo)
+                .Build(
+                    pool,
+                    setLayout.GetDescriptorSetLayout(), ref descriptorSets[1]
+                    );
+
         //Span<DescriptorPoolSize> poolSizes = stackalloc DescriptorPoolSize[] { new DescriptorPoolSize(DescriptorType.CombinedImageSampler, 1) };
         //var descriptorPool = new DescriptorPoolCreateInfo();
         //descriptorPool.SType = StructureType.DescriptorPoolCreateInfo;
