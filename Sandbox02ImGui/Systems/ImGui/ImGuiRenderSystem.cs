@@ -196,7 +196,7 @@ public class ImGuiRenderSystem : IDisposable
         }
 
 
-        var descriptorSetLayouts = new DescriptorSetLayout[] { _descriptorSetLayout };
+        var descriptorSetLayouts = new DescriptorSetLayout[] { _descriptorSetLayout, globalSetLayout };
         PushConstantRange pushConstantRange = new()
         {
             StageFlags = ShaderStageFlags.VertexBit,
@@ -232,10 +232,12 @@ public class ImGuiRenderSystem : IDisposable
 
         LvePipeline.EnableMultiSampling(ref pipelineConfig, device.GetMsaaSamples());
 
+        uint binding = 0;
         var bindingInfo = new VertexInputBindingDescription[]
         {
             new()
             {
+                Binding = binding,
                 Stride = (uint)Unsafe.SizeOf<ImDrawVert>(),
                 InputRate = VertexInputRate.Vertex
             }
@@ -245,21 +247,21 @@ public class ImGuiRenderSystem : IDisposable
         {
             new()
             {
-                Binding = bindingInfo[0].Binding,
+                Binding = binding,
                 Location = 0,
                 Format = Format.R32G32Sfloat,
                 Offset = (uint)Marshal.OffsetOf<ImDrawVert>(nameof(ImDrawVert.pos))
             },
             new()
             {
-                Binding = bindingInfo[0].Binding,
+                Binding = binding,
                 Location = 1,
                 Format = Format.R32G32Sfloat,
                 Offset = (uint)Marshal.OffsetOf<ImDrawVert>(nameof(ImDrawVert.uv))
             },
             new()
             {
-                Binding = bindingInfo[0].Binding,
+                Binding = binding,
                 Location = 2,
                 Format = Format.R8G8B8A8Unorm,
                 Offset = (uint) Marshal.OffsetOf<ImDrawVert>(nameof(ImDrawVert.col))
@@ -540,23 +542,23 @@ public class ImGuiRenderSystem : IDisposable
 
     private unsafe void RenderImDrawData(in ImDrawDataPtr drawDataPtr, in CommandBuffer commandBuffer, in Framebuffer framebuffer, in Extent2D swapChainExtent)
     {
-        int framebufferWidth = (int)(drawDataPtr.DisplaySize.X * drawDataPtr.FramebufferScale.X);
-        int framebufferHeight = (int)(drawDataPtr.DisplaySize.Y * drawDataPtr.FramebufferScale.Y);
-        if (framebufferWidth <= 0 || framebufferHeight <= 0)
-        {
-            return;
-        }
+        //int framebufferWidth = (int)(drawDataPtr.DisplaySize.X * drawDataPtr.FramebufferScale.X);
+        //int framebufferHeight = (int)(drawDataPtr.DisplaySize.Y * drawDataPtr.FramebufferScale.Y);
+        //if (framebufferWidth <= 0 || framebufferHeight <= 0)
+        //{
+        //    return;
+        //}
 
-        var renderPassInfo = new RenderPassBeginInfo();
-        renderPassInfo.SType = StructureType.RenderPassBeginInfo;
-        renderPassInfo.RenderPass = _renderPass;
-        renderPassInfo.Framebuffer = framebuffer;
-        renderPassInfo.RenderArea.Offset = default;
-        renderPassInfo.RenderArea.Extent = swapChainExtent;
-        renderPassInfo.ClearValueCount = 0;
-        renderPassInfo.PClearValues = default;
+        //var renderPassInfo = new RenderPassBeginInfo();
+        //renderPassInfo.SType = StructureType.RenderPassBeginInfo;
+        //renderPassInfo.RenderPass = _renderPass;
+        //renderPassInfo.Framebuffer = framebuffer;
+        //renderPassInfo.RenderArea.Offset = default;
+        //renderPassInfo.RenderArea.Extent = swapChainExtent;
+        //renderPassInfo.ClearValueCount = 0;
+        //renderPassInfo.PClearValues = default;
 
-        vk.CmdBeginRenderPass(commandBuffer, &renderPassInfo, SubpassContents.Inline);
+        //vk.CmdBeginRenderPass(commandBuffer, &renderPassInfo, SubpassContents.Inline);
 
         var drawData = *drawDataPtr.NativePtr;
 
@@ -718,7 +720,7 @@ public class ImGuiRenderSystem : IDisposable
             vertexOffset += cmd_list->VtxBuffer.Size;
         }
 
-        vk.CmdEndRenderPass(commandBuffer);
+        //vk.CmdEndRenderPass(commandBuffer);
     }
 
 
