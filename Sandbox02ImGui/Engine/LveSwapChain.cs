@@ -3,7 +3,7 @@ namespace Sandbox02ImGui;
 
 public class LveSwapChain : IDisposable
 {
-    private bool disposedValue;
+    //private bool disposedValue;
 
     public static int MAX_FRAMES_IN_FLIGHT = 2;
     public int MaxFramesInFlight => MAX_FRAMES_IN_FLIGHT;
@@ -788,66 +788,100 @@ public class LveSwapChain : IDisposable
     }
 
 
-    #region Dispose
-    protected unsafe virtual void Dispose(bool disposing)
+    public unsafe void Dispose()
     {
-        if (!disposedValue)
+        foreach (var imageView in swapChainImageViews)
         {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
+            vk.DestroyImageView(device.VkDevice, imageView, null);
+        }
+        Array.Clear(swapChainImageViews);
 
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
+        khrSwapChain!.DestroySwapchain(device.VkDevice, swapChain, null);
+        //swapChain = default;
 
-            foreach (var imageView in swapChainImageViews)
-            {
-                vk.DestroyImageView(device.VkDevice, imageView, null);
-            }
-            Array.Clear(swapChainImageViews);
+        for (int i = 0; i < depthImages.Length; i++)
+        {
+            vk.DestroyImageView(device.VkDevice, depthImageViews[i], null);
+            vk.DestroyImage(device.VkDevice, depthImages[i], null);
+            vk.FreeMemory(device.VkDevice, depthImageMemorys[i], null);
+        }
 
-            khrSwapChain!.DestroySwapchain(device.VkDevice, swapChain, null);
-            //swapChain = default;
-            
-            for (int i = 0; i < depthImages.Length; i++)
-            {
-                vk.DestroyImageView(device.VkDevice, depthImageViews[i], null);
-                vk.DestroyImage(device.VkDevice, depthImages[i], null);
-                vk.FreeMemory(device.VkDevice, depthImageMemorys[i], null);
-            }
+        foreach (var framebuffer in swapChainFramebuffers)
+        {
+            vk.DestroyFramebuffer(device.VkDevice, framebuffer, null);
+        }
 
-            foreach (var framebuffer in swapChainFramebuffers)
-            {
-                vk.DestroyFramebuffer(device.VkDevice, framebuffer, null);
-            }
+        vk.DestroyRenderPass(device.VkDevice, renderPass, null);
 
-            vk.DestroyRenderPass(device.VkDevice, renderPass, null);
-
-            // cleanup synchronization objects
-            for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-            {
-                vk.DestroySemaphore(device.VkDevice, renderFinishedSemaphores[i], null);
-                vk.DestroySemaphore(device.VkDevice, imageAvailableSemaphores[i], null);
-                vk.DestroyFence(device.VkDevice, inFlightFences[i], null);
-            }
-            disposedValue = true;
+        // cleanup synchronization objects
+        for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            vk.DestroySemaphore(device.VkDevice, renderFinishedSemaphores[i], null);
+            vk.DestroySemaphore(device.VkDevice, imageAvailableSemaphores[i], null);
+            vk.DestroyFence(device.VkDevice, inFlightFences[i], null);
         }
     }
 
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    ~LveSwapChain()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: false);
-    }
+    #region Dispose
+    //protected unsafe virtual void Dispose(bool disposing)
+    //{
+    //    if (!disposedValue)
+    //    {
+    //        if (disposing)
+    //        {
+    //            // TODO: dispose managed state (managed objects)
+    //        }
 
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
+    //        // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+    //        // TODO: set large fields to null
+
+    //        foreach (var imageView in swapChainImageViews)
+    //        {
+    //            vk.DestroyImageView(device.VkDevice, imageView, null);
+    //        }
+    //        Array.Clear(swapChainImageViews);
+
+    //        khrSwapChain!.DestroySwapchain(device.VkDevice, swapChain, null);
+    //        //swapChain = default;
+
+    //        for (int i = 0; i < depthImages.Length; i++)
+    //        {
+    //            vk.DestroyImageView(device.VkDevice, depthImageViews[i], null);
+    //            vk.DestroyImage(device.VkDevice, depthImages[i], null);
+    //            vk.FreeMemory(device.VkDevice, depthImageMemorys[i], null);
+    //        }
+
+    //        foreach (var framebuffer in swapChainFramebuffers)
+    //        {
+    //            vk.DestroyFramebuffer(device.VkDevice, framebuffer, null);
+    //        }
+
+    //        vk.DestroyRenderPass(device.VkDevice, renderPass, null);
+
+    //        // cleanup synchronization objects
+    //        for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    //        {
+    //            vk.DestroySemaphore(device.VkDevice, renderFinishedSemaphores[i], null);
+    //            vk.DestroySemaphore(device.VkDevice, imageAvailableSemaphores[i], null);
+    //            vk.DestroyFence(device.VkDevice, inFlightFences[i], null);
+    //        }
+    //        disposedValue = true;
+    //    }
+    //}
+
+    //// // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    //~LveSwapChain()
+    //{
+    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //    Dispose(disposing: false);
+    //}
+
+    //public void Dispose()
+    //{
+    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //    Dispose(disposing: true);
+    //    GC.SuppressFinalize(this);
+    //}
 
     #endregion
 }

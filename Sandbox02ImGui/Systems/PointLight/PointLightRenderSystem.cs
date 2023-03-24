@@ -5,7 +5,7 @@ class PointLightRenderSystem : IDisposable
 {
     private readonly Vk vk = null!;
     private readonly LveDevice device = null!;
-    private bool disposedValue;
+    //private bool disposedValue;
 
     private LvePipeline pipeline = null!;
     private PipelineLayout pipelineLayout;
@@ -168,35 +168,42 @@ class PointLightRenderSystem : IDisposable
 
     }
 
-    protected unsafe virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
 
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
-            disposedValue = true;
-        }
+    public unsafe void Dispose()
+    {
+        vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
     }
 
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    ~PointLightRenderSystem()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: false);
-    }
 
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
+    //protected unsafe virtual void Dispose(bool disposing)
+    //{
+    //    if (!disposedValue)
+    //    {
+    //        if (disposing)
+    //        {
+    //            // TODO: dispose managed state (managed objects)
+    //        }
+
+    //        // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+    //        // TODO: set large fields to null
+    //        vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
+    //        disposedValue = true;
+    //    }
+    //}
+
+    //// // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    //~PointLightRenderSystem()
+    //{
+    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //    Dispose(disposing: false);
+    //}
+
+    //public void Dispose()
+    //{
+    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //    Dispose(disposing: true);
+    //    GC.SuppressFinalize(this);
+    //}
 
 
     public struct PointLightPushConstants

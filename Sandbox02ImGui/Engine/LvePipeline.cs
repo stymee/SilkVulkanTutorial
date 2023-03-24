@@ -10,7 +10,7 @@ public class LvePipeline : IDisposable
 
     private ShaderModule vertShaderModule;
     private ShaderModule fragShaderModule;
-    private bool disposedValue;
+    //private bool disposedValue;
 
     public LvePipeline(Vk vk, LveDevice device, byte[] vertBytes, byte[] fragBytes, PipelineConfigInfo configInfo)
     {
@@ -307,38 +307,45 @@ public class LvePipeline : IDisposable
     }
     
 
+    public unsafe void Dispose()
+    {
+        vk.DestroyShaderModule(device.VkDevice, vertShaderModule, null);
+        vk.DestroyShaderModule(device.VkDevice, fragShaderModule, null);
+        vk.DestroyPipeline(device.VkDevice, graphicsPipeline, null);
+    }
+
     #region Dispose
-    protected unsafe virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
+    //protected unsafe virtual void Dispose(bool disposing)
+    //{
+    //    if (!disposedValue)
+    //    {
+    //        if (disposing)
+    //        {
+    //            // TODO: dispose managed state (managed objects)
+    //        }
 
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            vk.DestroyShaderModule(device.VkDevice, vertShaderModule, null);
-            vk.DestroyShaderModule(device.VkDevice, fragShaderModule, null);
-            vk.DestroyPipeline(device.VkDevice, graphicsPipeline, null);
-            disposedValue = true;
-        }
-    }
+    //        // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+    //        // TODO: set large fields to null
+    //        vk.DestroyShaderModule(device.VkDevice, vertShaderModule, null);
+    //        vk.DestroyShaderModule(device.VkDevice, fragShaderModule, null);
+    //        vk.DestroyPipeline(device.VkDevice, graphicsPipeline, null);
+    //        disposedValue = true;
+    //    }
+    //}
 
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    ~LvePipeline()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: false);
-    }
+    //// // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    //~LvePipeline()
+    //{
+    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //    Dispose(disposing: false);
+    //}
 
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
+    //public void Dispose()
+    //{
+    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //    Dispose(disposing: true);
+    //    GC.SuppressFinalize(this);
+    //}
     #endregion
 }
 

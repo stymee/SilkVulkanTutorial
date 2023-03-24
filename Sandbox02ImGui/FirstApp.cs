@@ -1,7 +1,7 @@
 ﻿
 namespace Sandbox02ImGui;
 
-public class FirstApp : IDisposable
+public partial class FirstApp : IDisposable
 {
     // set to true to force FIFO swapping
     private const bool USE_FIFO = false;
@@ -192,7 +192,8 @@ public class FirstApp : IDisposable
     {
         imGuiController.Update((float)delta);
 
-        ImGui.ShowDemoWindow();
+        //ImGui.ShowDemoWindow();
+        FirstAppGuiUpdate();
 
         mouseLast = cameraController.GetMouseState();
 
@@ -285,6 +286,7 @@ public class FirstApp : IDisposable
     {
         camera.Resize(0, 0, (uint)newsize.X, (uint)newsize.Y);
         cameraController.Resize(newsize);
+        FirstAppGuiResize(0, 0, (uint)newsize.X, (uint)newsize.Y, newsize);
     }
 
 
@@ -340,8 +342,6 @@ public class FirstApp : IDisposable
                 // TODO: dispose managed state (managed objects)
             }
 
-            //vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
-
             // TODO: free unmanaged resources (unmanaged objects) and override finalizer
             // TODO: set large fields to null
             disposedValue = true;
@@ -349,11 +349,11 @@ public class FirstApp : IDisposable
     }
 
     // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~FirstApp()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
+    ~FirstApp()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: false);
+    }
 
     public void Dispose()
     {
