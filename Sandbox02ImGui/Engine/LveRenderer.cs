@@ -266,12 +266,9 @@ public class LveRenderer : IDisposable
                 // TODO: dispose managed state (managed objects)
             }
 
-            window.Dispose();
-            //vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
-            freeCommandBuffers();
-
             // TODO: free unmanaged resources (unmanaged objects) and override finalizer
             // TODO: set large fields to null
+            freeCommandBuffers();
             disposedValue = true;
         }
     }

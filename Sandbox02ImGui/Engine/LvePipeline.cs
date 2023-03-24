@@ -305,10 +305,10 @@ public class LvePipeline : IDisposable
     {
         configInfo.MultisampleInfo.RasterizationSamples = msaaSamples;
     }
-
+    
 
     #region Dispose
-    protected virtual void Dispose(bool disposing)
+    protected unsafe virtual void Dispose(bool disposing)
     {
         if (!disposedValue)
         {
@@ -319,16 +319,19 @@ public class LvePipeline : IDisposable
 
             // TODO: free unmanaged resources (unmanaged objects) and override finalizer
             // TODO: set large fields to null
+            vk.DestroyShaderModule(device.VkDevice, vertShaderModule, null);
+            vk.DestroyShaderModule(device.VkDevice, fragShaderModule, null);
+            vk.DestroyPipeline(device.VkDevice, graphicsPipeline, null);
             disposedValue = true;
         }
     }
 
     // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~LvePipeline()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
+    ~LvePipeline()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: false);
+    }
 
     public void Dispose()
     {

@@ -789,7 +789,7 @@ public class LveSwapChain : IDisposable
 
 
     #region Dispose
-    protected virtual void Dispose(bool disposing)
+    protected unsafe virtual void Dispose(bool disposing)
     {
         if (!disposedValue)
         {
@@ -800,16 +800,47 @@ public class LveSwapChain : IDisposable
 
             // TODO: free unmanaged resources (unmanaged objects) and override finalizer
             // TODO: set large fields to null
+
+            foreach (var imageView in swapChainImageViews)
+            {
+                vk.DestroyImageView(device.VkDevice, imageView, null);
+            }
+            Array.Clear(swapChainImageViews);
+
+            khrSwapChain!.DestroySwapchain(device.VkDevice, swapChain, null);
+            //swapChain = default;
+            
+            for (int i = 0; i < depthImages.Length; i++)
+            {
+                vk.DestroyImageView(device.VkDevice, depthImageViews[i], null);
+                vk.DestroyImage(device.VkDevice, depthImages[i], null);
+                vk.FreeMemory(device.VkDevice, depthImageMemorys[i], null);
+            }
+
+            foreach (var framebuffer in swapChainFramebuffers)
+            {
+                vk.DestroyFramebuffer(device.VkDevice, framebuffer, null);
+            }
+
+            vk.DestroyRenderPass(device.VkDevice, renderPass, null);
+
+            // cleanup synchronization objects
+            for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+            {
+                vk.DestroySemaphore(device.VkDevice, renderFinishedSemaphores[i], null);
+                vk.DestroySemaphore(device.VkDevice, imageAvailableSemaphores[i], null);
+                vk.DestroyFence(device.VkDevice, inFlightFences[i], null);
+            }
             disposedValue = true;
         }
     }
 
     // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~LveSwapChain()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
+    ~LveSwapChain()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: false);
+    }
 
     public void Dispose()
     {
