@@ -16,8 +16,6 @@ class PointLightRenderSystem : IDisposable
     // public props
     public bool RotateLightsEnabled { get; set; } = true;
     public float RotateSpeed { get; set; } = 1.0f;
-    public float YPosition { get; set; } = 0f;
-    public float XPosition { get; set; } = 0f;
 
     public PointLightRenderSystem(Vk vk, LveDevice device, RenderPass renderPass, DescriptorSetLayout globalSetLayout)
     {
@@ -88,15 +86,6 @@ class PointLightRenderSystem : IDisposable
         {
             if (g.PointLight is null) continue;
 
-            if (MathF.Abs(YPosition) > 0 || MathF.Abs(XPosition) > 0)
-            {
-                g.Transform.Translation = g.Transform.Translation with
-                {
-                    X = g.Transform.Translation.X + XPosition,
-                    Y = g.Transform.Translation.Y + YPosition,
-                };
-            }
-
             if (RotateLightsEnabled)
             {
                 var rotateLight = Matrix4x4.CreateRotationY(frameInfo.FrameTime * RotateSpeed);
@@ -108,8 +97,6 @@ class PointLightRenderSystem : IDisposable
             ubo.SetPointLightColor(lightIndex, g.Color, g.PointLight.Value.LightIntensity);
             lightIndex++;
         }
-        XPosition = 0;
-        YPosition = 0;
         ubo.SetNumLights(lightIndex);
     }
 

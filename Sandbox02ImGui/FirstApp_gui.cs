@@ -16,6 +16,29 @@ public partial class FirstApp
     private Vector2 cPos;
     private Vector2 buttonSize = new(80, 24);
 
+    // settings props
+    private float rotateSpeed = 1f;
+    private float yPosition = 0f;
+
+    // footer props
+    private string status = "";
+    private long lastSample = 0;
+    private long interval = 10_000 * 1000; // 250 ms
+    private float memory;
+    private Vector2 footerPos;
+    private Vector2 footerSize;
+
+
+    private void FirstAppGuiInit()
+    {
+        rotateSpeed = pointLightRenderSystem.RotateSpeed;
+        var yCheck = gameObjects.Values.FirstOrDefault(s => s.PointLight.HasValue);
+        if (yCheck is not null)
+        {
+            yPosition = yCheck.Transform.Translation.Y;
+        }
+    }
+
     private void FirstAppGuiUpdate()
     {
         ImGui.SetNextWindowPos(toolbarPos);
@@ -37,6 +60,76 @@ public partial class FirstApp
 
         }
         ImGui.End();
+
+        ImGui.Begin("Settings");
+        {
+            ImGui.Text("Rotate Speed Factor");
+            if (ImGui.SliderFloat("##rotateSpeed", ref rotateSpeed, -5f, 5f))
+            {
+                pointLightRenderSystem.RotateSpeed = rotateSpeed;
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Stop##rotateSpeedZero"))
+            {
+                rotateSpeed = 0f;
+                pointLightRenderSystem.RotateSpeed = rotateSpeed;
+            }
+            
+            ImGui.Text("Y Position");
+            if (ImGui.SliderFloat("##yPosition", ref yPosition, -.5f, 2.5f))
+            {
+                foreach (var mod in gameObjects.Values.Where(s => s.PointLight.HasValue))
+                {
+                    mod.Transform.Translation.Y = yPosition;
+                }
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Reset##yPositionZero"))
+            {
+                yPosition = 0f;
+                foreach (var mod in gameObjects.Values.Where(s => s.PointLight.HasValue))
+                {
+                    mod.Transform.Translation.Y = yPosition;
+                }
+            }
+        }
+        ImGui.End();
+
+        // footer
+
+        var tick = DateTime.Now.Ticks;
+
+        if (tick - lastSample > interval)
+        {
+            lastSample = tick;
+            memory = Process.GetCurrentProcess().WorkingSet64 / 1_000_000;
+        }
+
+        ImGui.SetNextWindowPos(footerPos);
+        ImGui.SetNextWindowSize(footerSize);
+        ImGui.Begin("Status", ImGuiWindowFlags.NoBackground
+        | ImGuiWindowFlags.NoTitleBar
+        | ImGuiWindowFlags.NoResize
+        | ImGuiWindowFlags.NoMove
+        | ImGuiWindowFlags.NoSavedSettings
+        | ImGuiWindowFlags.NoInputs);
+        {
+            var fps = $"FPS {ImGui.GetIO().Framerate,2:0.00}";
+            var mems = $"MEM {memory,3:#,#}MB";
+            var m2 = $"M2d {mouseLast.Pos2d.X,6:+0.0000;-0.0000;0.0000},{mouseLast.Pos2d.Y,6:+0.0000;-0.0000;0.0000}";
+            //var mhud = $"Mhud {mouseHud.X,7:+0.000;-0.000},{mouseHud.Y,7:+0.000;-0.000}";
+            var m3 = $"M3d {mouseLast.Pos3d.X,7:+0.000;-0.000;0.0000},{mouseLast.Pos3d.Y,7:+0.000;-0.000;0.0000},{mouseLast.Pos3d.Z,7:+0.000;-0.000;0.0000}";
+            var v = $"V {window.FramebufferSize.X,4:0}x{window.FramebufferSize.Y,-4:0}";
+            //var f = $"F {camera.Frustum}";
+            //var p = $"P {camera.Position.X:0.000},{camera.Position.Y:0.000},{camera.Position.Z:0.000}";
+            //var yaw = $"Yaw {camera.Yaw:0.000}";
+            //var pitch = $"Pitch {camera.Pitch:0.000}";
+            //ImGui.Text($"{status,-50} | {fps,-8} | {mems,-12} | {raw,-15} | {m2,-12} | {mhud,-12} | {m3,-22} | {v,-12} | {f,-6} | {p,-16} | {yaw,-6} | {pitch,-6}");
+            ImGui.Text($"{status,-50} | {fps} | {mems} | {m2} | {m3} | {v}");
+        }
+
+        ImGui.End();
+
     }
 
 
@@ -55,6 +148,9 @@ public partial class FirstApp
 
         toolbarPos = new Vector2(xp + 5, yp + 5);
         toolbarSize = new Vector2(wp - 10, 40);
+
+        footerPos = new Vector2(10, size.Y - 25);
+        footerSize = new Vector2(size.X - 20, 25);
 
     }
 

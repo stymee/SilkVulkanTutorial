@@ -149,6 +149,7 @@ public partial class FirstApp : IDisposable
         log.d("run", "got camera and controls");
 
         //Console.WriteLine($"GlobalUbo blittable={BlittableHelper<GlobalUbo>.IsBlittable}");
+        FirstAppGuiInit();
 
         MainLoop();
         CleanUp();
@@ -166,18 +167,6 @@ public partial class FirstApp : IDisposable
                 break;
             case Key.KeypadSubtract:
                 pointLightRenderSystem.RotateSpeed -= 0.5f;
-                break;
-            case Key.Up:
-                pointLightRenderSystem.YPosition += 0.05f;
-                break;
-            case Key.Down:
-                pointLightRenderSystem.YPosition -= 0.05f;
-                break;
-            case Key.Left:
-                pointLightRenderSystem.XPosition += 0.2f;
-                break;
-            case Key.Right:
-                pointLightRenderSystem.XPosition += 0.2f;
                 break;
             default:
                 break;
