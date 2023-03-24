@@ -1,5 +1,4 @@
 ﻿
-
 namespace Sandbox02ImGui;
 
 public class FirstApp : IDisposable
@@ -19,6 +18,9 @@ public class FirstApp : IDisposable
     // Vk api
     private readonly Vk vk = null!;
 
+    // ImGui
+    private ImGuiController imGuiController = null!;
+
     private LveDevice device = null!;
     private LveRenderer lveRenderer = null!;
     private LveDescriptorPool globalPool = null!;
@@ -31,7 +33,6 @@ public class FirstApp : IDisposable
 
     private SimpleRenderSystem simpleRenderSystem = null!;
     private PointLightRenderSystem pointLightRenderSystem = null!;
-    private ImGuiRenderSystem imGuiRenderSystem = null!;
 
     private CameraController cameraController = null!;
     private KeyboardController keyboardController = null!;
@@ -68,6 +69,19 @@ public class FirstApp : IDisposable
 
         loadGameObjects();
         log.d("startup", "objects loaded");
+
+        imGuiController = new ImGuiController(
+                vk,
+                window,
+                window.CreateInput(),
+                device.VkPhysicalDevice,
+                device.GraphicsFamilyIndex,
+                LveSwapChain.MAX_FRAMES_IN_FLIGHT,
+                lveRenderer.SwapChainImageFormat,
+                lveRenderer.SwapChainDepthFormat
+            );
+        log.d("startup", "imgui loaded");
+
 
     }
 
@@ -119,13 +133,6 @@ public class FirstApp : IDisposable
             vk, device,
             lveRenderer.GetSwapChainRenderPass(),
             globalSetLayout.GetDescriptorSetLayout()
-            );
-
-        imGuiRenderSystem = new(
-            vk, device,
-            lveRenderer.GetSwapChainRenderPass(),
-            globalSetLayout.GetDescriptorSetLayout(),
-            (IWindow)window
             );
 
         log.d("run", "got render systems");
@@ -182,13 +189,17 @@ public class FirstApp : IDisposable
 
     private void render(double delta)
     {
+        imGuiController.Update((float)delta);
+
+        ImGui.ShowDemoWindow();
+
         mouseLast = cameraController.GetMouseState();
 
         var commandBuffer = lveRenderer.BeginFrame();
+        int frameIndex = lveRenderer.GetFrameIndex();
 
         if (commandBuffer is not null)
         {
-            int frameIndex = lveRenderer.GetFrameIndex();
             FrameInfo frameInfo = new()
             {
                 FrameIndex = frameIndex,
@@ -204,12 +215,6 @@ public class FirstApp : IDisposable
             ubos[frameIndex].Update(camera.GetProjectionMatrix(), camera.GetViewMatrix(), camera.GetFrontVec4());
             uboBuffers[frameIndex].WriteBytesToBuffer(ubos[frameIndex].AsBytes());
 
-            imGuiRenderSystem.Update((float)delta);
-
-            // This is where you'll tell ImGui what to draw.
-            // For now, we'll just show their built-in demo window.
-            ImGuiNET.ImGui.ShowDemoWindow();
-
             lveRenderer.BeginSwapChainRenderPass(commandBuffer.Value);
 
             // render solid objects first!
@@ -217,11 +222,15 @@ public class FirstApp : IDisposable
 
             pointLightRenderSystem.Render(frameInfo);
 
-            imGuiRenderSystem.Render(frameInfo, lveRenderer.SwapChain.GetFrameBufferAt((uint)frameIndex), lveRenderer.SwapChain.GetSwapChainExtent());
-
+            
             lveRenderer.EndSwapChainRenderPass(commandBuffer.Value);
+
             lveRenderer.EndFrame();
+
         }
+
+        var imGuiCommandBuffer = lveRenderer.GetCommandBufferAt(frameIndex + 2);
+        imGuiController.Render(imGuiCommandBuffer, lveRenderer.SwapChain.GetFrameBufferAt((uint)frameIndex), lveRenderer.SwapChain.GetSwapChainExtent());
     }
 
     private void MainLoop()
@@ -319,7 +328,21 @@ public class FirstApp : IDisposable
             pointLight.Transform.Translation = Vector3.Transform(new(1.25f, 1.25f, 0f), rotateLight);
             gameObjects.Add(pointLight.Id, pointLight);
         }
+    }
 
+
+    private void InitImGui()
+    {
+        imGuiController = new ImGuiController(
+                vk,
+                window,
+                window.CreateInput(),
+                device.VkPhysicalDevice,
+                device.GraphicsFamilyIndex,
+                LveSwapChain.MAX_FRAMES_IN_FLIGHT,
+                lveRenderer.SwapChainImageFormat,
+                lveRenderer.SwapChainDepthFormat
+            );
     }
 
 

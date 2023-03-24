@@ -18,14 +18,14 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
 {
     public class ImGuiController : IDisposable
     {
-        private Vk _vk;
-        private IView _view;
-        private IInputContext _input;
+        private Vk _vk = null!;
+        private IView _view = null!;
+        private IInputContext _input = null!;
         private Device _device;
         private PhysicalDevice _physicalDevice;
         private bool _frameBegun;
         private readonly List<char> _pressedChars = new List<char>();
-        private IKeyboard _keyboard;
+        private IKeyboard _keyboard = null!;
         private DescriptorPool _descriptorPool;
         private RenderPass _renderPass;
         private int _windowWidth;
@@ -39,7 +39,7 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
         private ShaderModule _shaderModuleFrag;
         private Pipeline _pipeline;
         private WindowRenderBuffers _mainWindowRenderBuffers;
-        private GlobalMemory _frameRenderBuffers;
+        private GlobalMemory _frameRenderBuffers = null!;
         private DeviceMemory _fontMemory;
         private Image _fontImage;
         private ImageView _fontView;
@@ -770,6 +770,8 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
             renderPassInfo.ClearValueCount = 0;
             renderPassInfo.PClearValues = default;
 
+
+            // lveRenderer is handling the begin/end of renderpass
             _vk.CmdBeginRenderPass(commandBuffer, &renderPassInfo, SubpassContents.Inline);
 
             var drawData = *drawDataPtr.NativePtr;

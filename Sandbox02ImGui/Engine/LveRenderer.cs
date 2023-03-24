@@ -31,6 +31,7 @@ public class LveRenderer : IDisposable
 
     public bool IsFrameStarted => isFrameStarted;
     public CommandBuffer GetCurrentCommandBuffer() => commandBuffers[currentFrameIndex];
+    public CommandBuffer GetCommandBufferAt(int idx) => commandBuffers[idx];
     public int GetFrameIndex() => currentFrameIndex;
 
     private bool useFifo = false;
@@ -89,7 +90,7 @@ public class LveRenderer : IDisposable
     private unsafe void createCommandBuffers()
     {
         //Array.Resize(ref commandBuffers, swapChain.MaxFramesInFlight);
-        commandBuffers = new CommandBuffer[swapChain.ImageCount()];
+        commandBuffers = new CommandBuffer[swapChain.ImageCount() * 2];
 
         CommandBufferAllocateInfo allocInfo = new()
         {
