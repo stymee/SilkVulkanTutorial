@@ -120,12 +120,12 @@ public class FirstApp : IDisposable
             globalSetLayout.GetDescriptorSetLayout()
             );
 
-        //imGuiRenderSystem = new(
-        //    vk, device,
-        //    lveRenderer.GetSwapChainRenderPass(),
-        //    globalSetLayout.GetDescriptorSetLayout(),
-        //    (IWindow)window
-        //    );
+        imGuiRenderSystem = new(
+            vk, device,
+            lveRenderer.GetSwapChainRenderPass(),
+            globalSetLayout.GetDescriptorSetLayout(),
+            (IWindow)window
+            );
 
         log.d("run", "got render systems");
 
@@ -203,12 +203,20 @@ public class FirstApp : IDisposable
             ubos[frameIndex].Update(camera.GetProjectionMatrix(), camera.GetViewMatrix(), camera.GetFrontVec4());
             uboBuffers[frameIndex].WriteBytesToBuffer(ubos[frameIndex].AsBytes());
 
+            imGuiRenderSystem.Update((float)delta);
+
+            // This is where you'll tell ImGui what to draw.
+            // For now, we'll just show their built-in demo window.
+            ImGuiNET.ImGui.ShowDemoWindow();
+
             lveRenderer.BeginSwapChainRenderPass(commandBuffer.Value);
 
             // render solid objects first!
             simpleRenderSystem.Render(frameInfo);
 
             pointLightRenderSystem.Render(frameInfo);
+
+            imGuiRenderSystem.Render(frameInfo, lveRenderer.SwapChain.GetFrameBufferAt((uint)frameIndex), lveRenderer.SwapChain.GetSwapChainExtent());
 
             lveRenderer.EndSwapChainRenderPass(commandBuffer.Value);
             lveRenderer.EndFrame();

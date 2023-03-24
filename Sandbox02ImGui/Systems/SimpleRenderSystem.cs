@@ -20,6 +20,8 @@ class SimpleRenderSystem : IDisposable
     
     private unsafe void createPipelineLayout(DescriptorSetLayout globalSetLayout)
     {
+
+
         var descriptorSetLayouts = new DescriptorSetLayout[] { globalSetLayout };
         PushConstantRange pushConstantRange = new()
         {

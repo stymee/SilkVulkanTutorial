@@ -10,6 +10,7 @@ public class LveRenderer : IDisposable
     private readonly LveDevice device = null!;
 
     private LveSwapChain swapChain = null!;
+    public LveSwapChain SwapChain => swapChain;
     private CommandBuffer[] commandBuffers = null!;
 
     private bool framebufferResized = false;

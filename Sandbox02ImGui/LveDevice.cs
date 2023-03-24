@@ -360,7 +360,7 @@ public unsafe class LveDevice
 
     // helpers
 
-    private CommandBuffer BeginSingleTimeCommands()
+    public CommandBuffer BeginSingleTimeCommands()
     {
         CommandBufferAllocateInfo allocateInfo = new()
         {
@@ -384,7 +384,7 @@ public unsafe class LveDevice
         return commandBuffer;
     }
 
-    private void EndSingleTimeCommands(CommandBuffer commandBuffer)
+    public void EndSingleTimeCommands(CommandBuffer commandBuffer)
     {
         vk.EndCommandBuffer(commandBuffer);
 

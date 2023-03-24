@@ -188,14 +188,14 @@ public class LvePipeline : IDisposable
         
         configInfo.InputAssemblyInfo.SType = StructureType.PipelineInputAssemblyStateCreateInfo;
         configInfo.InputAssemblyInfo.Topology = PrimitiveTopology.TriangleList;
-        configInfo.InputAssemblyInfo.PrimitiveRestartEnable = Vk.False;
+        configInfo.InputAssemblyInfo.PrimitiveRestartEnable = Vk.False; //imgui
 
 
         configInfo.ViewportInfo.SType = StructureType.PipelineViewportStateCreateInfo;
         configInfo.ViewportInfo.ViewportCount = 1;
-        configInfo.ViewportInfo.PViewports = default;
+        configInfo.ViewportInfo.PViewports = default; // imgui
         configInfo.ViewportInfo.ScissorCount = 1;
-        configInfo.ViewportInfo.PScissors = default;
+        configInfo.ViewportInfo.PScissors = default;  // imgui
 
 
         configInfo.RasterizationInfo.SType = StructureType.PipelineRasterizationStateCreateInfo;

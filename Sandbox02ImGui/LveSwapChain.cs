@@ -25,6 +25,7 @@ public class LveSwapChain : IDisposable
     public Format SwapChainDepthFormat => swapChainDepthFormat;
 
     private Extent2D swapChainExtent;
+    //public Extent2D GetSwapChainExtent() => swapChainExtent;
     private ImageView[] swapChainImageViews = null!;
     public ImageView[] GetSwapChainImageViews() => swapChainImageViews;
 
