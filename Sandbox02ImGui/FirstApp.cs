@@ -78,7 +78,8 @@ public class FirstApp : IDisposable
                 device.GraphicsFamilyIndex,
                 LveSwapChain.MAX_FRAMES_IN_FLIGHT,
                 lveRenderer.SwapChainImageFormat,
-                lveRenderer.SwapChainDepthFormat
+                lveRenderer.SwapChainDepthFormat,
+                device.GetMsaaSamples()
             );
         log.d("startup", "imgui loaded");
 
@@ -222,15 +223,13 @@ public class FirstApp : IDisposable
 
             pointLightRenderSystem.Render(frameInfo);
 
+            imGuiController.Render(commandBuffer.Value, lveRenderer.SwapChain.GetFrameBufferAt((uint)frameIndex), lveRenderer.SwapChain.GetSwapChainExtent());
             
             lveRenderer.EndSwapChainRenderPass(commandBuffer.Value);
 
             lveRenderer.EndFrame();
 
         }
-
-        var imGuiCommandBuffer = lveRenderer.GetCommandBufferAt(frameIndex + 2);
-        imGuiController.Render(imGuiCommandBuffer, lveRenderer.SwapChain.GetFrameBufferAt((uint)frameIndex), lveRenderer.SwapChain.GetSwapChainExtent());
     }
 
     private void MainLoop()
@@ -328,21 +327,6 @@ public class FirstApp : IDisposable
             pointLight.Transform.Translation = Vector3.Transform(new(1.25f, 1.25f, 0f), rotateLight);
             gameObjects.Add(pointLight.Id, pointLight);
         }
-    }
-
-
-    private void InitImGui()
-    {
-        imGuiController = new ImGuiController(
-                vk,
-                window,
-                window.CreateInput(),
-                device.VkPhysicalDevice,
-                device.GraphicsFamilyIndex,
-                LveSwapChain.MAX_FRAMES_IN_FLIGHT,
-                lveRenderer.SwapChainImageFormat,
-                lveRenderer.SwapChainDepthFormat
-            );
     }
 
 

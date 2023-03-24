@@ -12,6 +12,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Input;
 using Silk.NET.Input.Extensions;
 using Silk.NET.Maths;
+using Silk.NET.OpenAL;
 using Silk.NET.Windowing;
 
 namespace Silk.NET.Vulkan.Extensions.ImGui
@@ -56,7 +57,7 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
         /// <param name="swapChainImageCt">The number of images used in the swap chain</param>
         /// <param name="swapChainFormat">The image format used by the swap chain</param>
         /// <param name="depthBufferFormat">The image formate used by the depth buffer, or null if no depth buffer is used</param>
-        public ImGuiController(Vk vk, IView view, IInputContext input, PhysicalDevice physicalDevice, uint graphicsFamilyIndex, int swapChainImageCt, Format swapChainFormat, Format? depthBufferFormat)
+        public ImGuiController(Vk vk, IView view, IInputContext input, PhysicalDevice physicalDevice, uint graphicsFamilyIndex, int swapChainImageCt, Format swapChainFormat, Format? depthBufferFormat, SampleCountFlags msaaSamples)
         {
             var context = ImGuiNET.ImGui.CreateContext();
             ImGuiNET.ImGui.SetCurrentContext(context);
@@ -66,7 +67,7 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
             io.Fonts.AddFontDefault();
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
 
-            Init(vk, view, input, physicalDevice, graphicsFamilyIndex, swapChainImageCt, swapChainFormat, depthBufferFormat);
+            Init(vk, view, input, physicalDevice, graphicsFamilyIndex, swapChainImageCt, swapChainFormat, depthBufferFormat, msaaSamples);
 
             SetKeyMappings();
 
@@ -87,7 +88,7 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
         /// <param name="swapChainImageCt">The number of images used in the swap chain</param>
         /// <param name="swapChainFormat">The image format used by the swap chain</param>
         /// <param name="depthBufferFormat">The image formate used by the depth buffer, or null if no depth buffer is used</param>
-        public unsafe ImGuiController(Vk vk, IView view, IInputContext input, ImGuiFontConfig imGuiFontConfig, PhysicalDevice physicalDevice, uint graphicsFamilyIndex, int swapChainImageCt, Format swapChainFormat, Format? depthBufferFormat)
+        public unsafe ImGuiController(Vk vk, IView view, IInputContext input, ImGuiFontConfig imGuiFontConfig, PhysicalDevice physicalDevice, uint graphicsFamilyIndex, int swapChainImageCt, Format swapChainFormat, Format? depthBufferFormat, SampleCountFlags msaaSamples)
         {
             var context = ImGuiNET.ImGui.CreateContext();
             ImGuiNET.ImGui.SetCurrentContext(context);
@@ -100,7 +101,7 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
                 throw new Exception($"Failed to load ImGui font");
             }
 
-            Init(vk, view, input, physicalDevice, graphicsFamilyIndex, swapChainImageCt, swapChainFormat, depthBufferFormat);
+            Init(vk, view, input, physicalDevice, graphicsFamilyIndex, swapChainImageCt, swapChainFormat, depthBufferFormat, msaaSamples);
 
             SetKeyMappings();
 
@@ -109,7 +110,10 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
             BeginFrame();
         }
 
-        private unsafe void Init(Vk vk, IView view, IInputContext input, PhysicalDevice physicalDevice, uint graphicsFamilyIndex, int swapChainImageCt, Format swapChainFormat, Format? depthBufferFormat)
+        private unsafe void Init(
+            Vk vk, IView view, IInputContext input, PhysicalDevice physicalDevice, 
+            uint graphicsFamilyIndex, int swapChainImageCt, 
+            Format swapChainFormat, Format? depthBufferFormat, SampleCountFlags msaaSamples)
         {
             _vk = vk;
             _view = view;
@@ -147,68 +151,189 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
             }
 
             // Create the render pass
-            var colorAttachment = new AttachmentDescription();
-            colorAttachment.Format = swapChainFormat;
-            colorAttachment.Samples = SampleCountFlags.Count1Bit;
-            colorAttachment.LoadOp = AttachmentLoadOp.Load;
-            colorAttachment.StoreOp = AttachmentStoreOp.Store;
-            colorAttachment.StencilLoadOp = AttachmentLoadOp.DontCare;
-            colorAttachment.StencilStoreOp = AttachmentStoreOp.DontCare;
-            colorAttachment.InitialLayout = AttachmentLoadOp.Load == AttachmentLoadOp.Clear ? ImageLayout.Undefined : ImageLayout.PresentSrcKhr;
-            colorAttachment.FinalLayout = ImageLayout.PresentSrcKhr;
 
-            var colorAttachmentRef = new AttachmentReference();
-            colorAttachmentRef.Attachment = 0;
-            colorAttachmentRef.Layout = ImageLayout.ColorAttachmentOptimal;
 
-            var subpass = new SubpassDescription();
-            subpass.PipelineBindPoint = PipelineBindPoint.Graphics;
-            subpass.ColorAttachmentCount = 1;
-            subpass.PColorAttachments = (AttachmentReference*)Unsafe.AsPointer(ref colorAttachmentRef);
+            if (depthBufferFormat is null) throw new ApplicationException("ImGui Depth Format must have a value!");
 
-            Span<AttachmentDescription> attachments = stackalloc AttachmentDescription[] { colorAttachment };
-            var depthAttachment = new AttachmentDescription();
-            var depthAttachmentRef = new AttachmentReference();
-            if (depthBufferFormat.HasValue)
+            AttachmentDescription depthAttachment = new()
             {
-                depthAttachment.Format = depthBufferFormat.Value;
-                depthAttachment.Samples = SampleCountFlags.Count1Bit;
-                depthAttachment.LoadOp = AttachmentLoadOp.Load;
-                depthAttachment.StoreOp = AttachmentStoreOp.DontCare;
-                depthAttachment.StencilLoadOp = AttachmentLoadOp.DontCare;
-                depthAttachment.StencilStoreOp = AttachmentStoreOp.DontCare;
-                depthAttachment.InitialLayout = AttachmentLoadOp.Load == AttachmentLoadOp.Clear ? ImageLayout.Undefined : ImageLayout.DepthStencilAttachmentOptimal;
-                depthAttachment.FinalLayout = ImageLayout.DepthStencilAttachmentOptimal;
+                Format = depthBufferFormat.Value,
+                //Samples = SampleCountFlags.Count1Bit,
+                Samples = msaaSamples,
+                LoadOp = AttachmentLoadOp.Clear,
+                StoreOp = AttachmentStoreOp.DontCare,
+                StencilLoadOp = AttachmentLoadOp.DontCare,
+                StencilStoreOp = AttachmentStoreOp.DontCare,
+                InitialLayout = ImageLayout.Undefined,
+                FinalLayout = ImageLayout.DepthStencilAttachmentOptimal,
+            };
 
-                depthAttachmentRef.Attachment = 1;
-                depthAttachmentRef.Layout = ImageLayout.DepthStencilAttachmentOptimal;
+            AttachmentReference depthAttachmentRef = new()
+            {
+                Attachment = 1,
+                Layout = ImageLayout.DepthStencilAttachmentOptimal,
+            };
 
-                subpass.PDepthStencilAttachment = (AttachmentReference*)Unsafe.AsPointer(ref depthAttachmentRef);
+            AttachmentDescription colorAttachment = new()
+            {
+                Format = swapChainFormat,
+                //Samples = SampleCountFlags.Count1Bit,
+                Samples = msaaSamples,
+                LoadOp = AttachmentLoadOp.Clear,
+                StoreOp = AttachmentStoreOp.Store,
+                StencilLoadOp = AttachmentLoadOp.DontCare,
+                StencilStoreOp = AttachmentStoreOp.DontCare,
+                InitialLayout = ImageLayout.Undefined,
+                //FinalLayout = ImageLayout.PresentSrcKhr,
+                FinalLayout = ImageLayout.ColorAttachmentOptimal,
+            };
 
-                attachments = stackalloc AttachmentDescription[] { colorAttachment, depthAttachment };
+            AttachmentReference colorAttachmentRef = new()
+            {
+                Attachment = 0,
+                Layout = ImageLayout.ColorAttachmentOptimal,
+            };
+
+
+            AttachmentDescription colorAttachmentResolve = new()
+            {
+                Format = swapChainFormat,
+                Samples = SampleCountFlags.Count1Bit,
+                LoadOp = AttachmentLoadOp.DontCare,
+                StoreOp = AttachmentStoreOp.Store,
+                StencilLoadOp = AttachmentLoadOp.DontCare,
+                StencilStoreOp = AttachmentStoreOp.DontCare,
+                InitialLayout = ImageLayout.Undefined,
+                FinalLayout = ImageLayout.PresentSrcKhr
+            };
+
+            AttachmentReference colorAttachmentResolveRef = new()
+            {
+                Attachment = 2,
+                Layout = ImageLayout.AttachmentOptimalKhr
+            };
+
+            SubpassDescription subpass = new()
+            {
+                PipelineBindPoint = PipelineBindPoint.Graphics,
+                ColorAttachmentCount = 1,
+                PColorAttachments = &colorAttachmentRef,
+                PDepthStencilAttachment = &depthAttachmentRef,
+                PResolveAttachments = &colorAttachmentResolveRef
+            };
+
+            SubpassDependency dependency = new()
+            {
+                DstSubpass = 0,
+                DstAccessMask = AccessFlags.ColorAttachmentWriteBit | AccessFlags.DepthStencilAttachmentWriteBit,
+                DstStageMask = PipelineStageFlags.ColorAttachmentOutputBit | PipelineStageFlags.EarlyFragmentTestsBit,
+                SrcSubpass = Vk.SubpassExternal,
+                SrcAccessMask = 0,
+                SrcStageMask = PipelineStageFlags.ColorAttachmentOutputBit | PipelineStageFlags.EarlyFragmentTestsBit,
+            };
+
+            var attachments = new[] { colorAttachment, depthAttachment, colorAttachmentResolve };
+
+            fixed (AttachmentDescription* attachmentsPtr = attachments)
+            {
+                RenderPassCreateInfo renderPassInfo = new()
+                {
+                    SType = StructureType.RenderPassCreateInfo,
+                    AttachmentCount = (uint)attachments.Length,
+                    PAttachments = attachmentsPtr,
+                    SubpassCount = 1,
+                    PSubpasses = &subpass,
+                    DependencyCount = 1,
+                    PDependencies = &dependency,
+                };
+
+                if (vk.CreateRenderPass(_device, renderPassInfo, null, out _renderPass) != Result.Success)
+                {
+                    throw new Exception("failed to create render pass!");
+                }
             }
 
-            var dependency = new SubpassDependency();
-            dependency.SrcSubpass = Vk.SubpassExternal;
-            dependency.DstSubpass = 0;
-            dependency.SrcStageMask = PipelineStageFlags.ColorAttachmentOutputBit;
-            dependency.SrcAccessMask = 0;
-            dependency.DstStageMask = PipelineStageFlags.ColorAttachmentOutputBit;
-            dependency.DstAccessMask = AccessFlags.ColorAttachmentReadBit | AccessFlags.ColorAttachmentWriteBit;
+            // original ImGui code
 
-            var renderPassInfo = new RenderPassCreateInfo();
-            renderPassInfo.SType = StructureType.RenderPassCreateInfo;
-            renderPassInfo.AttachmentCount = (uint)attachments.Length;
-            renderPassInfo.PAttachments = (AttachmentDescription*)Unsafe.AsPointer(ref attachments.GetPinnableReference());
-            renderPassInfo.SubpassCount = 1;
-            renderPassInfo.PSubpasses = (SubpassDescription*)Unsafe.AsPointer(ref subpass);
-            renderPassInfo.DependencyCount = 1;
-            renderPassInfo.PDependencies = (SubpassDependency*)Unsafe.AsPointer(ref dependency);
+            //var depthAttachment = new AttachmentDescription();
+            //depthAttachment.Format = depthBufferFormat.Value;
+            ////depthAttachment.Samples = SampleCountFlags.Count1Bit;
+            //depthAttachment.Samples = msaaSamples;
+            //depthAttachment.LoadOp = AttachmentLoadOp.Load;
+            //depthAttachment.StoreOp = AttachmentStoreOp.DontCare;
+            //depthAttachment.StencilLoadOp = AttachmentLoadOp.DontCare;
+            //depthAttachment.StencilStoreOp = AttachmentStoreOp.DontCare;
+            //depthAttachment.InitialLayout = AttachmentLoadOp.Load == AttachmentLoadOp.Clear ? ImageLayout.Undefined : ImageLayout.DepthStencilAttachmentOptimal;
+            //depthAttachment.FinalLayout = ImageLayout.DepthStencilAttachmentOptimal;
 
-            if (_vk.CreateRenderPass(_device, renderPassInfo, default, out _renderPass) != Result.Success)
-            {
-                throw new Exception($"Failed to create render pass");
-            }
+            //var depthAttachmentRef = new AttachmentReference();
+            //depthAttachmentRef.Attachment = 1;
+            //depthAttachmentRef.Layout = ImageLayout.DepthStencilAttachmentOptimal;
+
+            //var colorAttachment = new AttachmentDescription();
+            //colorAttachment.Format = swapChainFormat;
+            ////colorAttachment.Samples = SampleCountFlags.Count1Bit;
+            //colorAttachment.Samples = msaaSamples;
+            //colorAttachment.LoadOp = AttachmentLoadOp.Load;
+            //colorAttachment.StoreOp = AttachmentStoreOp.Store;
+            //colorAttachment.StencilLoadOp = AttachmentLoadOp.DontCare;
+            //colorAttachment.StencilStoreOp = AttachmentStoreOp.DontCare;
+            //colorAttachment.InitialLayout = AttachmentLoadOp.Load == AttachmentLoadOp.Clear ? ImageLayout.Undefined : ImageLayout.PresentSrcKhr;
+            //colorAttachment.FinalLayout = ImageLayout.PresentSrcKhr;
+
+            //var colorAttachmentRef = new AttachmentReference();
+            //colorAttachmentRef.Attachment = 0;
+            //colorAttachmentRef.Layout = ImageLayout.ColorAttachmentOptimal;
+
+            //var colorAttachmentResolve = new AttachmentDescription();
+            //colorAttachmentResolve.Format = swapChainFormat;
+            //colorAttachmentResolve.Samples = SampleCountFlags.Count1Bit;
+            //colorAttachmentResolve.LoadOp = AttachmentLoadOp.DontCare;
+            //colorAttachmentResolve.StoreOp = AttachmentStoreOp.Store;
+            //colorAttachmentResolve.StencilLoadOp = AttachmentLoadOp.DontCare;
+            //colorAttachmentResolve.StencilStoreOp = AttachmentStoreOp.DontCare;
+            //colorAttachmentResolve.InitialLayout = ImageLayout.Undefined;
+            //colorAttachmentResolve.FinalLayout = ImageLayout.PresentSrcKhr;
+
+            //var colorAttachmentResolveRef = new AttachmentReference();
+            //colorAttachmentResolveRef.Attachment = 2;
+            //colorAttachmentResolveRef.Layout = ImageLayout.ColorAttachmentOptimal;
+
+
+            //var subpass = new SubpassDescription();
+            //subpass.PipelineBindPoint = PipelineBindPoint.Graphics;
+            //subpass.ColorAttachmentCount = 1;
+            //subpass.PColorAttachments = (AttachmentReference*)Unsafe.AsPointer(ref colorAttachmentRef);
+            //subpass.PDepthStencilAttachment = (AttachmentReference*)Unsafe.AsPointer(ref depthAttachmentRef);
+            //subpass.PResolveAttachments = (AttachmentReference*)Unsafe.AsPointer(ref colorAttachmentResolveRef);
+
+
+            //Span<AttachmentDescription> attachments = stackalloc AttachmentDescription[] { colorAttachment, depthAttachment, colorAttachmentResolve };
+            //    //attachments = stackalloc AttachmentDescription[] { colorAttachment, depthAttachment };
+            ////}
+
+            //var dependency = new SubpassDependency();
+            //dependency.SrcSubpass = Vk.SubpassExternal;
+            //dependency.DstSubpass = 0;
+            //dependency.SrcStageMask = PipelineStageFlags.ColorAttachmentOutputBit;
+            //dependency.SrcAccessMask = 0;
+            //dependency.DstStageMask = PipelineStageFlags.ColorAttachmentOutputBit;
+            //dependency.DstAccessMask = AccessFlags.ColorAttachmentReadBit | AccessFlags.ColorAttachmentWriteBit;
+
+            //var renderPassInfo = new RenderPassCreateInfo();
+            //renderPassInfo.SType = StructureType.RenderPassCreateInfo;
+            //renderPassInfo.AttachmentCount = (uint)attachments.Length;
+            //renderPassInfo.PAttachments = (AttachmentDescription*)Unsafe.AsPointer(ref attachments.GetPinnableReference());
+            //renderPassInfo.SubpassCount = 1;
+            //renderPassInfo.PSubpasses = (SubpassDescription*)Unsafe.AsPointer(ref subpass);
+            //renderPassInfo.DependencyCount = 1;
+            //renderPassInfo.PDependencies = (SubpassDependency*)Unsafe.AsPointer(ref dependency);
+
+
+            //if (_vk.CreateRenderPass(_device, renderPassInfo, default, out _renderPass) != Result.Success)
+            //{
+            //    throw new Exception($"Failed to create render pass");
+            //}
 
             var info = new SamplerCreateInfo();
             info.SType = StructureType.SamplerCreateInfo;
@@ -357,7 +482,7 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
 
             var ms_info = new PipelineMultisampleStateCreateInfo();
             ms_info.SType = StructureType.PipelineMultisampleStateCreateInfo;
-            ms_info.RasterizationSamples = SampleCountFlags.Count1Bit;
+            ms_info.RasterizationSamples = msaaSamples;
 
             var color_attachment = new PipelineColorBlendAttachmentState();
             color_attachment.BlendEnable = new Silk.NET.Core.Bool32(true);
@@ -772,7 +897,7 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
 
 
             // lveRenderer is handling the begin/end of renderpass
-            _vk.CmdBeginRenderPass(commandBuffer, &renderPassInfo, SubpassContents.Inline);
+            //_vk.CmdBeginRenderPass(commandBuffer, &renderPassInfo, SubpassContents.Inline);
 
             var drawData = *drawDataPtr.NativePtr;
 
@@ -934,7 +1059,7 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
                 vertexOffset += cmd_list->VtxBuffer.Size;
             }
 
-            _vk.CmdEndRenderPass(commandBuffer);
+            //_vk.CmdEndRenderPass(commandBuffer);
         }
 
         unsafe void CreateOrResizeBuffer(ref Buffer buffer, ref DeviceMemory buffer_memory, ref ulong bufferSize, ulong newSize, BufferUsageFlags usage)
@@ -1002,8 +1127,11 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
             _vk.DestroyDescriptorSetLayout(_device, _descriptorSetLayout, default);
             _vk.DestroyPipelineLayout(_device, _pipelineLayout, default);
             _vk.DestroyPipeline(_device, _pipeline, default);
-            _vk.DestroyDescriptorPool(_vk.CurrentDevice.Value, _descriptorPool, default);
-            _vk.DestroyRenderPass(_vk.CurrentDevice.Value, _renderPass, default);
+            if (_vk.CurrentDevice.HasValue)
+            {
+                _vk.DestroyDescriptorPool(_vk.CurrentDevice.Value, _descriptorPool, default);
+                _vk.DestroyRenderPass(_vk.CurrentDevice.Value, _renderPass, default);
+            }
 
             ImGuiNET.ImGui.DestroyContext();
         }
