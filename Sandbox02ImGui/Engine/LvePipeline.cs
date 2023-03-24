@@ -218,7 +218,7 @@ public class LvePipeline : IDisposable
         configInfo.MultisampleInfo.AlphaToCoverageEnable = Vk.False;
         configInfo.MultisampleInfo.AlphaToOneEnable = Vk.False;
 
-        configInfo.ColorBlendAttachment.ColorWriteMask = ColorComponentFlags.RBit | ColorComponentFlags.GBit | ColorComponentFlags.BBit | ColorComponentFlags.ABit;
+
         configInfo.ColorBlendAttachment.BlendEnable = Vk.False;
         configInfo.ColorBlendAttachment.SrcColorBlendFactor = BlendFactor.One;
         configInfo.ColorBlendAttachment.DstColorBlendFactor = BlendFactor.Zero;
@@ -226,6 +226,9 @@ public class LvePipeline : IDisposable
         configInfo.ColorBlendAttachment.SrcAlphaBlendFactor = BlendFactor.One;
         configInfo.ColorBlendAttachment.DstAlphaBlendFactor = BlendFactor.Zero;
         configInfo.ColorBlendAttachment.AlphaBlendOp = BlendOp.Add;
+        configInfo.ColorBlendAttachment.ColorWriteMask =
+            ColorComponentFlags.RBit | ColorComponentFlags.GBit |
+            ColorComponentFlags.BBit | ColorComponentFlags.ABit;
 
         configInfo.ColorBlendInfo.SType = StructureType.PipelineColorBlendStateCreateInfo;
         configInfo.ColorBlendInfo.LogicOpEnable = Vk.False;
@@ -287,13 +290,15 @@ public class LvePipeline : IDisposable
     public static void EnableAlphaBlending(ref PipelineConfigInfo configInfo)
     {
         configInfo.ColorBlendAttachment.BlendEnable = Vk.True;
-        configInfo.ColorBlendAttachment.ColorWriteMask = ColorComponentFlags.RBit | ColorComponentFlags.GBit | ColorComponentFlags.BBit | ColorComponentFlags.ABit;
         configInfo.ColorBlendAttachment.SrcColorBlendFactor = BlendFactor.SrcAlpha;
         configInfo.ColorBlendAttachment.DstColorBlendFactor = BlendFactor.OneMinusSrcAlpha;
-        //configInfo.ColorBlendAttachment.ColorBlendOp = BlendOp.Add;
-        //configInfo.ColorBlendAttachment.SrcAlphaBlendFactor = BlendFactor.One;
-        //configInfo.ColorBlendAttachment.DstAlphaBlendFactor = BlendFactor.Zero;
-        //configInfo.ColorBlendAttachment.AlphaBlendOp = BlendOp.Add;
+        configInfo.ColorBlendAttachment.ColorBlendOp = BlendOp.Add;
+        configInfo.ColorBlendAttachment.SrcAlphaBlendFactor = BlendFactor.One;
+        configInfo.ColorBlendAttachment.DstAlphaBlendFactor = BlendFactor.OneMinusSrcAlpha;
+        configInfo.ColorBlendAttachment.AlphaBlendOp = BlendOp.Add;
+        configInfo.ColorBlendAttachment.ColorWriteMask = 
+            ColorComponentFlags.RBit | ColorComponentFlags.GBit | 
+            ColorComponentFlags.BBit | ColorComponentFlags.ABit;
 
     }
     public static void EnableMultiSampling(ref PipelineConfigInfo configInfo, SampleCountFlags msaaSamples)

@@ -492,7 +492,9 @@ namespace Silk.NET.Vulkan.Extensions.ImGui
             color_attachment.SrcAlphaBlendFactor = BlendFactor.One;
             color_attachment.DstAlphaBlendFactor = BlendFactor.OneMinusSrcAlpha;
             color_attachment.AlphaBlendOp = BlendOp.Add;
-            color_attachment.ColorWriteMask = ColorComponentFlags.RBit | ColorComponentFlags.GBit | ColorComponentFlags.BBit | ColorComponentFlags.ABit;
+            color_attachment.ColorWriteMask = 
+                ColorComponentFlags.RBit | ColorComponentFlags.GBit | 
+                ColorComponentFlags.BBit | ColorComponentFlags.ABit;
 
             var depth_info = new PipelineDepthStencilStateCreateInfo();
             depth_info.SType = StructureType.PipelineDepthStencilStateCreateInfo;
