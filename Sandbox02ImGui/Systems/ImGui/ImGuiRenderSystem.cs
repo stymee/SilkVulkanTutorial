@@ -138,65 +138,65 @@ public class ImGuiRenderSystem : IDisposable
 
     private unsafe void createPipelineLayout(DescriptorSetLayout globalSetLayout)
     {
-        Span<DescriptorPoolSize> poolSizes = stackalloc DescriptorPoolSize[] { new DescriptorPoolSize(DescriptorType.CombinedImageSampler, 1) };
-        var descriptorPool = new DescriptorPoolCreateInfo();
-        descriptorPool.SType = StructureType.DescriptorPoolCreateInfo;
-        descriptorPool.PoolSizeCount = (uint)poolSizes.Length;
-        descriptorPool.PPoolSizes = (DescriptorPoolSize*)Unsafe.AsPointer(ref poolSizes.GetPinnableReference());
-        descriptorPool.MaxSets = 1;
-        if (vk.CreateDescriptorPool(device.VkDevice, descriptorPool, default, out _descriptorPool) != Result.Success)
-        {
-            throw new Exception($"Unable to create descriptor pool");
-        }
+        //Span<DescriptorPoolSize> poolSizes = stackalloc DescriptorPoolSize[] { new DescriptorPoolSize(DescriptorType.CombinedImageSampler, 1) };
+        //var descriptorPool = new DescriptorPoolCreateInfo();
+        //descriptorPool.SType = StructureType.DescriptorPoolCreateInfo;
+        //descriptorPool.PoolSizeCount = (uint)poolSizes.Length;
+        //descriptorPool.PPoolSizes = (DescriptorPoolSize*)Unsafe.AsPointer(ref poolSizes.GetPinnableReference());
+        //descriptorPool.MaxSets = 1;
+        //if (vk.CreateDescriptorPool(device.VkDevice, descriptorPool, default, out _descriptorPool) != Result.Success)
+        //{
+        //    throw new Exception($"Unable to create descriptor pool");
+        //}
 
-        var info = new SamplerCreateInfo();
-        info.SType = StructureType.SamplerCreateInfo;
-        info.MagFilter = Filter.Linear;
-        info.MinFilter = Filter.Linear;
-        info.MipmapMode = SamplerMipmapMode.Linear;
-        info.AddressModeU = SamplerAddressMode.Repeat;
-        info.AddressModeV = SamplerAddressMode.Repeat;
-        info.AddressModeW = SamplerAddressMode.Repeat;
-        info.MinLod = -1000;
-        info.MaxLod = 1000;
-        info.MaxAnisotropy = 1.0f;
-        if (vk.CreateSampler(device.VkDevice, info, default, out _fontSampler) != Result.Success)
-        {
-            throw new Exception($"Unable to create sampler");
-        }
+        //var info = new SamplerCreateInfo();
+        //info.SType = StructureType.SamplerCreateInfo;
+        //info.MagFilter = Filter.Linear;
+        //info.MinFilter = Filter.Linear;
+        //info.MipmapMode = SamplerMipmapMode.Linear;
+        //info.AddressModeU = SamplerAddressMode.Repeat;
+        //info.AddressModeV = SamplerAddressMode.Repeat;
+        //info.AddressModeW = SamplerAddressMode.Repeat;
+        //info.MinLod = -1000;
+        //info.MaxLod = 1000;
+        //info.MaxAnisotropy = 1.0f;
+        //if (vk.CreateSampler(device.VkDevice, info, default, out _fontSampler) != Result.Success)
+        //{
+        //    throw new Exception($"Unable to create sampler");
+        //}
 
-        var sampler = _fontSampler;
+        //var sampler = _fontSampler;
 
-        var binding = new DescriptorSetLayoutBinding();
-        binding.DescriptorType = DescriptorType.CombinedImageSampler;
-        binding.DescriptorCount = 1;
-        binding.StageFlags = ShaderStageFlags.FragmentBit;
-        binding.PImmutableSamplers = (Sampler*)Unsafe.AsPointer(ref sampler);
+        //var binding = new DescriptorSetLayoutBinding();
+        //binding.DescriptorType = DescriptorType.CombinedImageSampler;
+        //binding.DescriptorCount = 1;
+        //binding.StageFlags = ShaderStageFlags.FragmentBit;
+        //binding.PImmutableSamplers = (Sampler*)Unsafe.AsPointer(ref sampler);
 
-        var descriptorInfo = new DescriptorSetLayoutCreateInfo();
-        descriptorInfo.SType = StructureType.DescriptorSetLayoutCreateInfo;
-        descriptorInfo.BindingCount = 1;
-        descriptorInfo.PBindings = (DescriptorSetLayoutBinding*)Unsafe.AsPointer(ref binding);
-        if (vk.CreateDescriptorSetLayout(device.VkDevice, descriptorInfo, default, out _descriptorSetLayout) != Result.Success)
-        {
-            throw new Exception($"Unable to create descriptor set layout");
-        }
+        //var descriptorInfo = new DescriptorSetLayoutCreateInfo();
+        //descriptorInfo.SType = StructureType.DescriptorSetLayoutCreateInfo;
+        //descriptorInfo.BindingCount = 1;
+        //descriptorInfo.PBindings = (DescriptorSetLayoutBinding*)Unsafe.AsPointer(ref binding);
+        //if (vk.CreateDescriptorSetLayout(device.VkDevice, descriptorInfo, default, out _descriptorSetLayout) != Result.Success)
+        //{
+        //    throw new Exception($"Unable to create descriptor set layout");
+        //}
 
-        fixed (DescriptorSetLayout* pg_DescriptorSetLayout = &_descriptorSetLayout)
-        {
-            var alloc_info = new DescriptorSetAllocateInfo();
-            alloc_info.SType = StructureType.DescriptorSetAllocateInfo;
-            alloc_info.DescriptorPool = _descriptorPool;
-            alloc_info.DescriptorSetCount = 1;
-            alloc_info.PSetLayouts = pg_DescriptorSetLayout;
-            if (vk.AllocateDescriptorSets(device.VkDevice, alloc_info, out _descriptorSet) != Result.Success)
-            {
-                throw new Exception($"Unable to create descriptor sets");
-            }
-        }
+        //fixed (DescriptorSetLayout* pg_DescriptorSetLayout = &_descriptorSetLayout)
+        //{
+        //    var alloc_info = new DescriptorSetAllocateInfo();
+        //    alloc_info.SType = StructureType.DescriptorSetAllocateInfo;
+        //    alloc_info.DescriptorPool = _descriptorPool;
+        //    alloc_info.DescriptorSetCount = 1;
+        //    alloc_info.PSetLayouts = pg_DescriptorSetLayout;
+        //    if (vk.AllocateDescriptorSets(device.VkDevice, alloc_info, out _descriptorSet) != Result.Success)
+        //    {
+        //        throw new Exception($"Unable to create descriptor sets");
+        //    }
+        //}
 
 
-        var descriptorSetLayouts = new DescriptorSetLayout[] { _descriptorSetLayout, globalSetLayout };
+        var descriptorSetLayouts = new DescriptorSetLayout[] { globalSetLayout };
         PushConstantRange pushConstantRange = new()
         {
             StageFlags = ShaderStageFlags.VertexBit,

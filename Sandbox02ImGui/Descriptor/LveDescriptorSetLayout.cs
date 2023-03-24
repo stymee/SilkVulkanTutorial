@@ -75,6 +75,25 @@ public unsafe class LveDescriptorSetLayout : IDisposable
             return this;
         }
 
+        public unsafe Builder AddBinding(uint binding, DescriptorType descriptorType, ShaderStageFlags stageFlags, Sampler sampler, uint count = 1)
+        {
+            //Debug.Assert(bindings.Count(binding) == 0 && "Binding already in use");
+            if (bindings.ContainsKey(binding))
+            {
+                throw new ApplicationException($"Binding {binding} is already in use, can't add");
+            }
+            DescriptorSetLayoutBinding layoutBinding = new()
+            {
+                Binding = binding,
+                DescriptorType = descriptorType,
+                DescriptorCount = count,
+                StageFlags = stageFlags,
+                PImmutableSamplers = (Sampler*)Unsafe.AsPointer(ref sampler)
+            };
+            bindings[binding] = layoutBinding;
+            return this;
+        }
+
         public LveDescriptorSetLayout Build()
         {
             return new LveDescriptorSetLayout(vk, device, bindings);
