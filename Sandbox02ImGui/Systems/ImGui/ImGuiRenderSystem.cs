@@ -170,14 +170,14 @@ public class ImGuiRenderSystem : IDisposable
             .AddBinding(0, DescriptorType.SampledImage, ShaderStageFlags.VertexBit, fontSampler)
             .Build();
 
-        descriptorSets = new DescriptorSet[1];
-            var bufferInfo = uboBuffers[i].DescriptorInfo();
-            _ = new LveDescriptorSetWriter(vk, device, setLayout)
-                .WriteBuffer(0, bufferInfo)
-                .Build(
-                    pool,
-                    setLayout.GetDescriptorSetLayout(), ref descriptorSets[1]
-                    );
+        //descriptorSets = new DescriptorSet[1];
+        //    var bufferInfo = uboBuffers[i].DescriptorInfo();
+        //    _ = new LveDescriptorSetWriter(vk, device, setLayout)
+        //        .WriteBuffer(0, bufferInfo)
+        //        .Build(
+        //            pool,
+        //            setLayout.GetDescriptorSetLayout(), ref descriptorSets[1]
+        //            );
 
         //Span<DescriptorPoolSize> poolSizes = stackalloc DescriptorPoolSize[] { new DescriptorPoolSize(DescriptorType.CombinedImageSampler, 1) };
         //var descriptorPool = new DescriptorPoolCreateInfo();
