@@ -30,11 +30,11 @@ https://www.youtube.com/watch?v=GIFfxnux9mo
 	- Perspective camera currently doesn't work
 	
 
-## Build requirements
+## Build requirements !!! VERY IMPORTANT !!!
 
 The projects require the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to build/run. The SDK provides the Vulkan validation layers as well as the command line tools to compile the shaders. 
 
-You will have to update the path to the  have to point the folder where glslc.exe is found 
+You will have to update your csproj files to point the folder where glslc.exe is found (this is the glsl compiler)
 
 ```xml
 	<PropertyGroup>
