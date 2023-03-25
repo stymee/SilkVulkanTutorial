@@ -5,7 +5,6 @@ public unsafe class LveBuffer : IDisposable
 {
     private readonly Vk vk = null!;
     private readonly LveDevice device = null!;
-    private bool disposedValue;
 
     private ulong bufferSize;
     public ulong BufferSize => bufferSize;

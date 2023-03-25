@@ -25,8 +25,6 @@ public class FirstApp : IDisposable
 
     private OrthographicCamera camera = null!;
 
-    private bool disposedValue;
-
     private SimpleRenderSystem simpleRenderSystem = null!;
     private PointLightRenderSystem pointLightRenderSystem = null!;
 

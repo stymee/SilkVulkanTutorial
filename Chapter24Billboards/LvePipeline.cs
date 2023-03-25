@@ -171,9 +171,12 @@ public class LvePipeline : IDisposable
 
 
     // Default PipelineConfig
-    public unsafe static PipelineConfigInfo GetDefaultPipelineConfigInfo()
+    public unsafe static void DefaultPipelineConfigInfo(ref PipelineConfigInfo configInfo)
     {
-        var configInfo = new PipelineConfigInfo();
+
+    //public unsafe static PipelineConfigInfo GetDefaultPipelineConfigInfo()
+    //{
+    //    var configInfo = new PipelineConfigInfo();
         
         configInfo.InputAssemblyInfo.SType = StructureType.PipelineInputAssemblyStateCreateInfo;
         configInfo.InputAssemblyInfo.Topology = PrimitiveTopology.TriangleList;
@@ -243,7 +246,7 @@ public class LvePipeline : IDisposable
         configInfo.BindingDescriptions = Vertex.GetBindingDescriptions();
         configInfo.AttributeDescriptions = Vertex.GetAttributeDescriptions();
 
-        return configInfo;
+        //return configInfo;
         // pulled dynamic state stuff out of here 
 
         //var dynamicStateEnables = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
