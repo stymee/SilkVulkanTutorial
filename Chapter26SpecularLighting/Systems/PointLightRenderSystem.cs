@@ -5,7 +5,6 @@ class PointLightRenderSystem : IDisposable
 {
     private readonly Vk vk = null!;
     private readonly LveDevice device = null!;
-    private bool disposedValue;
 
     private LvePipeline pipeline = null!;
     private PipelineLayout pipelineLayout;

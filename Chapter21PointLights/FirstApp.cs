@@ -113,7 +113,6 @@ public class FirstApp : IDisposable
 
 
         MainLoop();
-        CleanUp();
     }
 
 
@@ -162,11 +161,6 @@ public class FirstApp : IDisposable
         window.Run();
 
         vk.DeviceWaitIdle(device.VkDevice);
-    }
-
-    private void CleanUp()
-    {
-        window.Dispose();
     }
 
     private void initWindow()

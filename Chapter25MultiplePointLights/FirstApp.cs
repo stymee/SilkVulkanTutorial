@@ -4,7 +4,7 @@ namespace Chapter25MultiplePointLights;
 public class FirstApp : IDisposable
 {
     // set to true to force FIFO swapping
-    private const bool USE_FIFO = true;
+    private const bool USE_FIFO = false;
 
     // Window stuff
     private IView window = null!;
@@ -120,7 +120,6 @@ public class FirstApp : IDisposable
 
 
         MainLoop();
-        CleanUp();
     }
 
 
@@ -176,11 +175,6 @@ public class FirstApp : IDisposable
         window.Run();
 
         vk.DeviceWaitIdle(device.VkDevice);
-    }
-
-    private void CleanUp()
-    {
-        window.Dispose();
     }
 
     private void initWindow()
@@ -281,39 +275,16 @@ public class FirstApp : IDisposable
     }
 
 
-    protected unsafe virtual void Dispose(bool disposing)
+    public unsafe void Dispose()
     {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                window.Dispose();
-                // TODO: dispose managed state (managed objects)
-            }
+        window.Dispose();
+        lveRenderer.Dispose();
+        simpleRenderSystem.Dispose();
+        pointLightRenderSystem.Dispose();
+        device.Dispose();
 
-            //vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
-
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            disposedValue = true;
-        }
-    }
-
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~FirstApp()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
-
-
 }
 
 
