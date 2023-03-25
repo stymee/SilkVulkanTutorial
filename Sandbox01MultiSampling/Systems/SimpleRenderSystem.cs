@@ -51,8 +51,9 @@ class SimpleRenderSystem : IDisposable
     {
         Debug.Assert(pipelineLayout.Handle != 0, "Cannot create pipeline before pipeline layout");
 
-        var pipelineConfig = LvePipeline.GetDefaultPipelineConfigInfo();
-        
+        var pipelineConfig = new PipelineConfigInfo();
+        LvePipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
+
         LvePipeline.EnableMultiSampling(ref pipelineConfig, device.GetMsaaSamples());
 
         pipelineConfig.RenderPass = renderPass;

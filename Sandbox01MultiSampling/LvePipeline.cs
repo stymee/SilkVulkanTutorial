@@ -148,12 +148,11 @@ public class LvePipeline : IDisposable
 
     private static byte[] getShaderBytes(string filename)
     {
+        var assembly = Assembly.GetExecutingAssembly();
         //foreach (var item in assembly.GetManifestResourceNames())
         //{
         //    Console.WriteLine($"{item}");
         //}
-        //var resourceName = $"Chapter05SwapChain.{filename.Replace('/', '.')}";
-        var assembly = Assembly.GetExecutingAssembly();
         var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(s => s.EndsWith(filename));
         if (resourceName is null) throw new ApplicationException($"*** No shader file found with name {filename}\n*** Check that resourceName and try again!  Did you forget to set glsl file to Embedded Resource/Do Not Copy?");
 
@@ -169,10 +168,8 @@ public class LvePipeline : IDisposable
 
 
     // Default PipelineConfig
-    public unsafe static PipelineConfigInfo GetDefaultPipelineConfigInfo()
+    public unsafe static void DefaultPipelineConfigInfo(ref PipelineConfigInfo configInfo)
     {
-        var configInfo = new PipelineConfigInfo();
-
         configInfo.InputAssemblyInfo.SType = StructureType.PipelineInputAssemblyStateCreateInfo;
         configInfo.InputAssemblyInfo.Topology = PrimitiveTopology.TriangleList;
         configInfo.InputAssemblyInfo.PrimitiveRestartEnable = Vk.False;
@@ -241,7 +238,6 @@ public class LvePipeline : IDisposable
         configInfo.BindingDescriptions = Vertex.GetBindingDescriptions();
         configInfo.AttributeDescriptions = Vertex.GetAttributeDescriptions();
 
-        return configInfo;
         // pulled dynamic state stuff out of here 
 
         //var dynamicStateEnables = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };

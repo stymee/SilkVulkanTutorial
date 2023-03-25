@@ -5,7 +5,6 @@ class SimpleRenderSystem : IDisposable
 {
 	private readonly Vk vk = null!;
 	private readonly LveDevice device = null!;
-    private bool disposedValue;
 
     private LvePipeline pipeline = null!;
     private PipelineLayout pipelineLayout;
@@ -52,7 +51,8 @@ class SimpleRenderSystem : IDisposable
     {
         Debug.Assert(pipelineLayout.Handle != 0, "Cannot create pipeline before pipeline layout");
 
-        var pipelineConfig = LvePipeline.GetDefaultPipelineConfigInfo();
+        var pipelineConfig = new PipelineConfigInfo();
+        LvePipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
 
         pipelineConfig.RenderPass = renderPass;
         pipelineConfig.PipelineLayout = pipelineLayout;

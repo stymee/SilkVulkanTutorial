@@ -59,7 +59,8 @@ class PointLightRenderSystem : IDisposable
     {
         Debug.Assert(pipelineLayout.Handle != 0, "Cannot create pipeline before pipeline layout");
 
-        var pipelineConfig = LvePipeline.GetDefaultPipelineConfigInfo();
+        var pipelineConfig = new PipelineConfigInfo();
+        LvePipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
         LvePipeline.EnableAlphaBlending(ref pipelineConfig);
         pipelineConfig.BindingDescriptions = Array.Empty<VertexInputBindingDescription>();
         pipelineConfig.AttributeDescriptions = Array.Empty<VertexInputAttributeDescription>();

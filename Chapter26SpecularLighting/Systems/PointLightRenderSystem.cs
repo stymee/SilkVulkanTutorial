@@ -50,7 +50,8 @@ class PointLightRenderSystem : IDisposable
     {
         Debug.Assert(pipelineLayout.Handle != 0, "Cannot create pipeline before pipeline layout");
 
-        var pipelineConfig = LvePipeline.GetDefaultPipelineConfigInfo();
+        var pipelineConfig = new PipelineConfigInfo();
+        LvePipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
         pipelineConfig.BindingDescriptions = Array.Empty<VertexInputBindingDescription>();
         pipelineConfig.AttributeDescriptions = Array.Empty<VertexInputAttributeDescription>();
 
@@ -76,7 +77,6 @@ class PointLightRenderSystem : IDisposable
 
             var rotateLight = Matrix4x4.CreateRotationY(frameInfo.FrameTime);
             g.Transform.Translation = Vector3.Transform(g.Transform.Translation, rotateLight);
-
             switch (lightIndex + 1)
             {
                 case 1:
