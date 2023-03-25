@@ -1,6 +1,8 @@
-﻿namespace Chapter19UniformBuffers;
+﻿using Silk.NET.Vulkan;
 
-public class LveModel
+namespace Chapter19UniformBuffers;
+
+public class LveModel : IDisposable
 {
     private readonly Vk vk = null!;
     private readonly LveDevice device = null!;
@@ -97,6 +99,12 @@ public class LveModel
         {
             vk.CmdDraw(commandBuffer, vertexCount, 1, 0, 0);
         }
+    }
+    public unsafe void Dispose()
+    {
+        vertexBuffer.Dispose();
+        indexBuffer.Dispose();
+        GC.SuppressFinalize(this);
     }
 
 

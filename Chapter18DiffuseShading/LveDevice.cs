@@ -1,6 +1,6 @@
 ﻿namespace Chapter18DiffuseShading;
 
-public unsafe class LveDevice
+public unsafe class LveDevice : IDisposable
 {
     private readonly Vk vk = null!;
     private readonly IView window;
@@ -12,8 +12,6 @@ public unsafe class LveDevice
 
     private bool enableValidationLayers = true;
     private string[] validationLayers = { "VK_LAYER_KHRONOS_validation" };
-    //private List<string> instanceExtensions = new() { ExtDebugUtils.ExtensionName };
-    //private List<string> deviceExtensions = new() { KhrSwapchain.ExtensionName };
 
     private readonly string[] deviceExtensions = new[]
 {
@@ -28,7 +26,6 @@ public unsafe class LveDevice
     public SurfaceKHR Surface => surface;
 
     private PhysicalDevice physicalDevice;
-    //public PhysicalDevice VkPhysicalDevice => physicalDevice;
 
     private SampleCountFlags msaaSamples = SampleCountFlags.Count1Bit;
     private Device device;
@@ -42,6 +39,7 @@ public unsafe class LveDevice
 
     private CommandPool commandPool;
     public CommandPool GetCommandPool() => commandPool;
+
 
     public LveDevice(Vk vk, IView window)
     {
@@ -664,6 +662,11 @@ public unsafe class LveDevice
 
         throw new Exception("failed to find suitable memory type!");
     }
-
+    public unsafe void Dispose()
+    {
+        vk.DestroyCommandPool(device, commandPool, null);
+        vk.DestroyDevice(device, null);
+        GC.SuppressFinalize(this);
+    }
 
 }

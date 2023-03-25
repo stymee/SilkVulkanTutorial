@@ -7,8 +7,6 @@ public class LveModel : IDisposable
     private readonly Vk vk = null!;
     private readonly LveDevice device = null!;
 
-    private bool disposedValue;
-
     private Buffer vertexBuffer;
     private DeviceMemory vertexBufferMemory;
     private uint vertexCount;
@@ -202,41 +200,16 @@ public class LveModel : IDisposable
     }
 
 
-
-    protected unsafe virtual void Dispose(bool disposing)
+    public unsafe void Dispose()
     {
-        if (!disposedValue)
+        vk.DestroyBuffer(device.VkDevice, vertexBuffer, null);
+        vk.FreeMemory(device.VkDevice, vertexBufferMemory, null);
+
+        if (hasIndexBuffer)
         {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
-
-            vk.DestroyBuffer(device.VkDevice, vertexBuffer, null);
-            vk.FreeMemory(device.VkDevice, vertexBufferMemory, null);
-
-            if (hasIndexBuffer)
-            {
-                vk.DestroyBuffer(device.VkDevice, indexBuffer, null);
-                vk.FreeMemory(device.VkDevice, indexBufferMemory, null);
-            }
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            disposedValue = true;
+            vk.DestroyBuffer(device.VkDevice, indexBuffer, null);
+            vk.FreeMemory(device.VkDevice, indexBufferMemory, null);
         }
-    }
-
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~LveModel()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
 }
