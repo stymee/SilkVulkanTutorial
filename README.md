@@ -14,6 +14,20 @@ https://www.youtube.com/watch?v=GIFfxnux9mo
 	- https://github.com/dotnet/Silk.NET/tree/main/src/Lab/Experiments/ImGuiVulkan
 
 - And the entire Silk.NET team and discord 
+
+## TO DO:
+- Docs:
+	- Add some notes for each chapter describing where I deviated from the C++ (and maybe why)
+	- Maybe add some some youtube tutorials for the C# stuff?
+
+- Build:
+	- Fix up the shader compiler build step to only compile if glsl files have changed
+	- Get the shader compiler path to work with an env variable (I'm dense)
+
+- Features:
+	- Add some new tutorial chapters (textures?, what else?)
+	- Points and lines rendering
+	- Perspective camera currently doesn't work
 	
 
 ## Build requirements
@@ -23,3 +37,4 @@ The projects require the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to bui
 
 ## Each chapter was re-coded in C# (.NET 7)
 ## Two bonus projects that include MultiSampling and ImGui integration
+![screenshot of solution](https://github.com/stymee/SilkVulkanTutorial/blob/master/Docs/screenshot2.png?raw=true)
