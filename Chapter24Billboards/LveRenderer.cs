@@ -17,10 +17,7 @@ public class LveRenderer : IDisposable
     private int currentFrameIndex = 0;
     private bool isFrameStarted = false;
 
-    private LveSwapChain? oldSwapChain = null;
-
-    private bool disposedValue;
-
+    //private LveSwapChain? oldSwapChain = null;
 
     // public props and methods
     public RenderPass GetSwapChainRenderPass() => swapChain.GetRenderPass();
@@ -72,10 +69,25 @@ public class LveRenderer : IDisposable
         }
         else
         {
-            oldSwapChain = swapChain;
-            swapChain = new LveSwapChain(vk, device, GetWindowExtents(), useFifo, oldSwapChain);
+            //oldSwapChain = swapChain;
+            //swapChain = new LveSwapChain(vk, device, GetWindowExtents(), oldSwapChain);
 
-            if (!oldSwapChain.CompareSwapFormats(swapChain))
+            //if (!oldSwapChain.CompareSwapFormats(swapChain))
+            //{
+            //    throw new Exception("Swap chain image(or depth) format has changed!");
+            //}
+            //if (swapChain.GetFrameBufferCount() != commandBuffers.Length)
+            //{
+            //    freeCommandBuffers();
+            //    createCommandBuffers();
+            //}
+            var oldImageFormat = swapChain.SwapChainImageFormat;
+            var oldDepthFormat = swapChain.SwapChainDepthFormat;
+
+            swapChain.Dispose();
+            swapChain = new LveSwapChain(vk, device, GetWindowExtents(), useFifo);
+
+            if (swapChain.SwapChainImageFormat != oldImageFormat || swapChain.SwapChainDepthFormat != oldDepthFormat)
             {
                 throw new Exception("Swap chain image(or depth) format has changed!");
             }
@@ -252,38 +264,10 @@ public class LveRenderer : IDisposable
         return new Extent2D((uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
     }
 
-
-
-    protected unsafe virtual void Dispose(bool disposing)
+    public unsafe void Dispose()
     {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
-
-            window.Dispose();
-            //vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
-            freeCommandBuffers();
-
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            disposedValue = true;
-        }
-    }
-
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    ~LveRenderer()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: false);
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
+        freeCommandBuffers();
         GC.SuppressFinalize(this);
     }
+
 }
