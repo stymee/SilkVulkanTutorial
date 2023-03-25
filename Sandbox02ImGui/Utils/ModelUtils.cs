@@ -17,12 +17,12 @@ public static class ModelUtils
 
     public static string GetEmbeddedResourceObjText(string filename)
     {
+        var assembly = Assembly.GetExecutingAssembly();
         //foreach (var item in assembly.GetManifestResourceNames())
         //{
         //    Console.WriteLine($"{item}");
         //}
         //var resourceName = $"Chapter05SwapChain.{filename.Replace('/', '.')}";
-        var assembly = Assembly.GetExecutingAssembly();
         var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(s => s.EndsWith(filename));
         if (resourceName is null) throw new ApplicationException($"*** No obj file found with name {filename}\n*** Check that resourceName and try again!  Did you forget to set obj file to Embedded Resource/Do Not Copy?");
 
@@ -43,7 +43,7 @@ public static class ModelUtils
     public static LveModel LoadModelFromFile(Vk vk, LveDevice device, string path)
     {
         if (!File.Exists(path)) throw new FileNotFoundException($"Error loading model file, Can't find file at {path}");
-        var builder = new Builder();
+        var builder = new LveModel.Builder();
         builder.LoadModel(path);
 
         return new LveModel(vk, device, builder);
@@ -52,7 +52,7 @@ public static class ModelUtils
     public static LveModel CreateCubeModel6(Vk vk, LveDevice device)
     {
         var h = .5f;
-        var builder = new Builder
+        var builder = new LveModel.Builder
         {
             Vertices = new Vertex[]
             {
@@ -109,7 +109,7 @@ public static class ModelUtils
     public static LveModel CreateCubeModel3(Vk vk, LveDevice device)
     {
         var h = .5f;
-        var builder = new Builder
+        var builder = new LveModel.Builder
         {
             Vertices = new Vertex[]
             {

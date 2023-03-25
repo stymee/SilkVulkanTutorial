@@ -16,10 +16,6 @@ public partial class FirstApp
     private Vector2 cPos;
     private Vector2 buttonSize = new(80, 24);
 
-    // settings props
-    private float rotateSpeed = 1f;
-    private float yPosition = 0f;
-
     // footer props
     private string status = "";
     private long lastSample = 0;
@@ -28,6 +24,11 @@ public partial class FirstApp
     private Vector2 footerPos;
     private Vector2 footerSize;
 
+    // pointLight props
+    private float rotateSpeed = 1f;
+    private float yPosition = 0f;
+    private float lightIntensity = 0f;
+    private float lightRadius = 0f;
 
     private void FirstAppGuiInit()
     {
@@ -36,6 +37,8 @@ public partial class FirstApp
         if (yCheck is not null)
         {
             yPosition = yCheck.Transform.Translation.Y;
+            lightIntensity = yCheck.PointLight?.LightIntensity ?? 0f;
+            lightRadius = yCheck.Transform.Scale.X;
         }
     }
 
@@ -61,8 +64,11 @@ public partial class FirstApp
         }
         ImGui.End();
 
+
+
         ImGui.Begin("Settings");
         {
+            // Rotate speed
             ImGui.Text("Rotate Speed Factor");
             if (ImGui.SliderFloat("##rotateSpeed", ref rotateSpeed, -5f, 5f))
             {
@@ -75,6 +81,7 @@ public partial class FirstApp
                 pointLightRenderSystem.RotateSpeed = rotateSpeed;
             }
             
+            // Y Position
             ImGui.Text("Y Position");
             if (ImGui.SliderFloat("##yPosition", ref yPosition, -.5f, 2.5f))
             {
@@ -92,11 +99,52 @@ public partial class FirstApp
                     mod.Transform.Translation.Y = yPosition;
                 }
             }
+            
+            // Light Intensity
+            ImGui.Text("Light Intensity");
+            if (ImGui.SliderFloat("##lightIntensity", ref lightIntensity, 0.005f, 1.000f))
+            {
+                foreach (var mod in gameObjects.Values.Where(s => s.PointLight.HasValue))
+                {
+                    mod.PointLight = new PointLightComponent(lightIntensity);
+                }
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Reset##lightIntensityZero"))
+            {
+                lightIntensity = 0f;
+                foreach (var mod in gameObjects.Values.Where(s => s.PointLight.HasValue))
+                {
+                    mod.PointLight = new PointLightComponent(lightIntensity);
+                }
+            }
+
+            // Light Radius
+            ImGui.Text("Light Radius");
+            if (ImGui.SliderFloat("##lightRadius", ref lightRadius, 0.01f, 0.5f))
+            {
+                foreach (var mod in gameObjects.Values.Where(s => s.PointLight.HasValue))
+                {
+                    mod.Transform.Scale.X = lightRadius;
+                }
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Reset##lightRadiusZero"))
+            {
+                lightRadius = 0f;
+                foreach (var mod in gameObjects.Values.Where(s => s.PointLight.HasValue))
+                {
+                    mod.Transform.Scale.X = lightRadius;
+                }
+            }
+
         }
         ImGui.End();
 
-        // footer
 
+
+
+        // footer
         var tick = DateTime.Now.Ticks;
 
         if (tick - lastSample > interval)

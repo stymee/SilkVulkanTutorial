@@ -15,6 +15,8 @@ class PointLightRenderSystem : IDisposable
     // public props
     public bool RotateLightsEnabled { get; set; } = true;
     public float RotateSpeed { get; set; } = 1.0f;
+    public float LightIntensity { get; set; }  
+    public float LightRadius { get; set; }  
 
     public PointLightRenderSystem(Vk vk, LveDevice device, RenderPass renderPass, DescriptorSetLayout globalSetLayout)
     {
