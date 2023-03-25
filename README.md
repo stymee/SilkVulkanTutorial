@@ -1,6 +1,6 @@
 # C# Silk.NET Vulkan Game Engine Tutorial
 
-![](../Docs/screenshot1.png)
+![screenshot of app](https://github.com/stymee/SilkVulkanTutorial/blob/master/Docs/screenshot1.png?raw=true)
 https://www.youtube.com/watch?v=GIFfxnux9mo
 
 - Based on the excellent Youtube tutorial by Brendan Galea - Vulkan Game Engine Tutorial (C++)
