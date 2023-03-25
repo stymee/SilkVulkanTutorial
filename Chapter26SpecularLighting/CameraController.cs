@@ -62,13 +62,13 @@ public class CameraController
                 break;
             case MouseControlState.Context:
                 // Debugging view/projection matrices
-                Console.WriteLine("");
-                Console.WriteLine("position");
-                Console.WriteLine($"[{camera.Position.X,-10:0.000},{camera.Position.Y,-10:0.000},{camera.Position.Z,-10:0.000}]");
-                Console.WriteLine("view matrix");
-                Console.WriteLine(camera.GetViewMatrix().PrintCols());
-                Console.WriteLine("inverse view matrix");
-                Console.WriteLine(camera.GetInverseViewMatrix().PrintCols());
+                //Console.WriteLine("");
+                //Console.WriteLine("position");
+                //Console.WriteLine($"[{camera.Position.X,-10:0.000},{camera.Position.Y,-10:0.000},{camera.Position.Z,-10:0.000}]");
+                //Console.WriteLine("view matrix");
+                //Console.WriteLine(camera.GetViewMatrix().PrintCols());
+                //Console.WriteLine("inverse view matrix");
+                //Console.WriteLine(camera.GetInverseViewMatrix().PrintCols());
                 //Console.WriteLine(camera.GetViewMatrixGlm().PrintCols());
                 //Console.WriteLine("projection matrix");
                 //Console.WriteLine(camera.GetProjectionMatrix().PrintCols());
