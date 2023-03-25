@@ -10,7 +10,6 @@ public class LvePipeline : IDisposable
 
     private ShaderModule vertShaderModule;
     private ShaderModule fragShaderModule;
-    //private bool disposedValue;
 
     public LvePipeline(Vk vk, LveDevice device, byte[] vertBytes, byte[] fragBytes, PipelineConfigInfo configInfo)
     {
@@ -309,9 +308,10 @@ public class LvePipeline : IDisposable
 
     public unsafe void Dispose()
     {
-        vk.DestroyShaderModule(device.VkDevice, vertShaderModule, null);
-        vk.DestroyShaderModule(device.VkDevice, fragShaderModule, null);
+        //vk.DestroyShaderModule(device.VkDevice, vertShaderModule, null);
+        //vk.DestroyShaderModule(device.VkDevice, fragShaderModule, null);
         vk.DestroyPipeline(device.VkDevice, graphicsPipeline, null);
+        GC.SuppressFinalize(this);
     }
 
     #region Dispose

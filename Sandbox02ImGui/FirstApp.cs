@@ -1,5 +1,4 @@
-﻿
-namespace Sandbox02ImGui;
+﻿namespace Sandbox02ImGui;
 
 public partial class FirstApp : IDisposable
 {
@@ -28,8 +27,6 @@ public partial class FirstApp : IDisposable
     private Dictionary<uint, LveGameObject> gameObjects = new();
 
     private ICamera camera = null!;
-
-    private bool disposedValue;
 
     private SimpleRenderSystem simpleRenderSystem = null!;
     private PointLightRenderSystem pointLightRenderSystem = null!;
@@ -320,36 +317,47 @@ public partial class FirstApp : IDisposable
         }
     }
 
-
-    protected unsafe virtual void Dispose(bool disposing)
+    public unsafe void Dispose()
     {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                window.Dispose();
-                // TODO: dispose managed state (managed objects)
-            }
+        simpleRenderSystem.Dispose();
+        pointLightRenderSystem.Dispose();
+        imGuiController.Dispose();
+        lveRenderer.Dispose();
+        device.Dispose();
+        window.Dispose();
 
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            disposedValue = true;
-        }
-    }
-
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    ~FirstApp()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: false);
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
+    //protected unsafe virtual void Dispose(bool disposing)
+    //{
+    //    if (!disposedValue)
+    //    {
+    //        if (disposing)
+    //        {
+    //            window.Dispose();
+    //            // TODO: dispose managed state (managed objects)
+    //        }
+
+    //        // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+    //        // TODO: set large fields to null
+    //        disposedValue = true;
+    //    }
+    //}
+
+    //// // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    //~FirstApp()
+    //{
+    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //    Dispose(disposing: false);
+    //}
+
+    //public void Dispose()
+    //{
+    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //    Dispose(disposing: true);
+    //    GC.SuppressFinalize(this);
+    //}
 
 
 }

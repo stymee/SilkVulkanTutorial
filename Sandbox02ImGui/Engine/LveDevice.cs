@@ -726,6 +726,7 @@ public unsafe class LveDevice : IDisposable
     {
         vk.DestroyCommandPool(device, commandPool, null);
         vk.DestroyDevice(device, null);
+        GC.SuppressFinalize(this);
     }
 
     //protected virtual void Dispose(bool disposing)

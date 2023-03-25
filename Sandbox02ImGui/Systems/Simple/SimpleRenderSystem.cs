@@ -113,8 +113,9 @@ class SimpleRenderSystem : IDisposable
 
     public unsafe void Dispose()
     {
+        pipeline.Dispose();
         vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
-
+        GC.SuppressFinalize(this);
     }
 
     //protected unsafe virtual void Dispose(bool disposing)

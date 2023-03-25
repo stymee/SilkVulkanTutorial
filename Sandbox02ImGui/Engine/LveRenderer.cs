@@ -18,7 +18,7 @@ public class LveRenderer : IDisposable
     private int currentFrameIndex = 0;
     private bool isFrameStarted = false;
 
-    private LveSwapChain? oldSwapChain = null;
+    //private LveSwapChain? oldSwapChain = null;
 
     //private bool disposedValue;
 
@@ -76,14 +76,20 @@ public class LveRenderer : IDisposable
         }
         else
         {
-            oldSwapChain = swapChain;
-            swapChain = new LveSwapChain(vk, device, GetWindowExtents(), useFifo, oldSwapChain);
+            //oldSwapChain = swapChain;
+            //swapChain = new LveSwapChain(vk, device, GetWindowExtents(), useFifo, oldSwapChain);
 
-            if (!oldSwapChain.CompareSwapFormats(swapChain))
+            var oldImageFormat = swapChain.SwapChainImageFormat;
+            var oldDepthFormat = swapChain.SwapChainDepthFormat;
+
+            swapChain.Dispose();
+            swapChain = new LveSwapChain(vk, device, GetWindowExtents(), useFifo);
+
+            if (swapChain.SwapChainImageFormat != oldImageFormat || swapChain.SwapChainDepthFormat != oldDepthFormat)
             {
                 throw new Exception("Swap chain image(or depth) format has changed!");
             }
-            oldSwapChain.Dispose();
+            //oldSwapChain.Dispose();
         }
 
     }
@@ -259,6 +265,7 @@ public class LveRenderer : IDisposable
 
     public unsafe void Dispose()
     {
+        swapChain.Dispose();
         freeCommandBuffers();
     }
 

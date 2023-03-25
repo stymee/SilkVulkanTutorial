@@ -84,18 +84,18 @@ public class LveSwapChain : IDisposable
         init();
     }
 
-    public LveSwapChain(Vk vk, LveDevice device, Extent2D extent, bool useFifo, LveSwapChain previous)
-    {
-        this.vk = vk;
-        this.device = device;
-        UseFifo = useFifo;
-        vkDevice = device.VkDevice;
-        windowExtent = extent;
-        oldSwapChain = previous;
-        init();
+    //public LveSwapChain(Vk vk, LveDevice device, Extent2D extent, bool useFifo, LveSwapChain previous)
+    //{
+    //    this.vk = vk;
+    //    this.device = device;
+    //    UseFifo = useFifo;
+    //    vkDevice = device.VkDevice;
+    //    windowExtent = extent;
+    //    oldSwapChain = previous;
+    //    init();
 
-        oldSwapChain = null;
-    }
+    //    oldSwapChain = null;
+    //}
 
     private void init()
     {
@@ -108,11 +108,11 @@ public class LveSwapChain : IDisposable
         createSyncObjects();
     }
 
-    public bool CompareSwapFormats(LveSwapChain swapChainToCompare)
-    {
-        return swapChainToCompare.SwapChainDepthFormat == swapChainDepthFormat &&
-               swapChainToCompare.SwapChainImageFormat == swapChainImageFormat;
-    }
+    //public bool CompareSwapFormats(LveSwapChain swapChainToCompare)
+    //{
+    //    return swapChainToCompare.SwapChainDepthFormat == swapChainDepthFormat &&
+    //           swapChainToCompare.SwapChainImageFormat == swapChainImageFormat;
+    //}
     public Result AcquireNextImage(ref uint imageIndex)
     {
         //var fence = inFlightFences[currentFrame];
@@ -790,25 +790,22 @@ public class LveSwapChain : IDisposable
 
     public unsafe void Dispose()
     {
+        foreach (var framebuffer in swapChainFramebuffers)
+        {
+            vk.DestroyFramebuffer(device.VkDevice, framebuffer, null);
+        }
+
         foreach (var imageView in swapChainImageViews)
         {
             vk.DestroyImageView(device.VkDevice, imageView, null);
         }
         Array.Clear(swapChainImageViews);
 
-        khrSwapChain!.DestroySwapchain(device.VkDevice, swapChain, null);
-        //swapChain = default;
-
         for (int i = 0; i < depthImages.Length; i++)
         {
             vk.DestroyImageView(device.VkDevice, depthImageViews[i], null);
             vk.DestroyImage(device.VkDevice, depthImages[i], null);
             vk.FreeMemory(device.VkDevice, depthImageMemorys[i], null);
-        }
-
-        foreach (var framebuffer in swapChainFramebuffers)
-        {
-            vk.DestroyFramebuffer(device.VkDevice, framebuffer, null);
         }
 
         vk.DestroyRenderPass(device.VkDevice, renderPass, null);
@@ -820,6 +817,11 @@ public class LveSwapChain : IDisposable
             vk.DestroySemaphore(device.VkDevice, imageAvailableSemaphores[i], null);
             vk.DestroyFence(device.VkDevice, inFlightFences[i], null);
         }
+
+        khrSwapChain!.DestroySwapchain(device.VkDevice, swapChain, null);
+        swapChain = default;
+
+        GC.SuppressFinalize(this);
     }
 
     #region Dispose

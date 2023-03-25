@@ -158,6 +158,7 @@ class PointLightRenderSystem : IDisposable
 
     public unsafe void Dispose()
     {
+        pipeline.Dispose();
         vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
     }
 
