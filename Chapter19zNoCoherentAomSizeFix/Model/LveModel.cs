@@ -98,6 +98,12 @@ public class LveModel
             vk.CmdDraw(commandBuffer, vertexCount, 1, 0, 0);
         }
     }
+    public unsafe void Dispose()
+    {
+        vertexBuffer.Dispose();
+        indexBuffer.Dispose();
+        GC.SuppressFinalize(this);
+    }
 
 
 

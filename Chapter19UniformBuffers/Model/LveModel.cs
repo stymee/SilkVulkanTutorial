@@ -1,6 +1,4 @@
-﻿using Silk.NET.Vulkan;
-
-namespace Chapter19UniformBuffers;
+﻿namespace Chapter19UniformBuffers;
 
 public class LveModel : IDisposable
 {
