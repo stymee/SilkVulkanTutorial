@@ -18,8 +18,6 @@ public class FirstApp : IDisposable
     private List<LveGameObject> gameObjects = new();
     private LveCamera camera = null!;
 
-    private bool disposedValue;
-
     private SimpleRenderSystem simpleRenderSystem = null!;
 
     public FirstApp()
@@ -53,7 +51,6 @@ public class FirstApp : IDisposable
 
         log.d("startup", "got camera");
         MainLoop();
-        CleanUp();
     }
 
 
@@ -81,14 +78,8 @@ public class FirstApp : IDisposable
         vk.DeviceWaitIdle(device.VkDevice);
     }
 
-    private void CleanUp()
-    {
-        window.Dispose();
-    }
-
     private void initWindow()
     {
-        //Create a window.
         var options = WindowOptions.DefaultVulkan with
         {
             Size = new Vector2D<int>(width, height),
@@ -105,28 +96,19 @@ public class FirstApp : IDisposable
 
         fpsLastUpdate = DateTime.Now.Ticks;
 
-        window.FramebufferResize += resize;
         window.Update += updateWindow;
         window.Render += render;
     }
 
     private void updateWindow(double frametime)
     {
-
         if (DateTime.Now.Ticks - fpsLastUpdate < fpsUpdateInterval) return;
 
         fpsLastUpdate = DateTime.Now.Ticks;
         if (window is IWindow w)
         {
-            //w.Title = $"{windowName} | W {window.Size.X}x{window.Size.Y} | FPS {Math.Ceiling(1d / obj)} | ";
             w.Title = $"{windowName} - {1d / frametime,-8: #,##0.0} fps";
         }
-
-    }
-
-    private void resize(Vector2D<int> newsize)
-    {
-
     }
 
     private void loadGameObjects()
@@ -201,35 +183,14 @@ public class FirstApp : IDisposable
     }
 
 
-    protected unsafe virtual void Dispose(bool disposing)
+    public unsafe void Dispose()
     {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
+        window.Dispose();
+        lveRenderer.Dispose();
+        simpleRenderSystem.Dispose();
+        device.Dispose();
 
-            window.Dispose();
-            //vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
-
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            disposedValue = true;
-        }
-    }
-
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~FirstApp()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
 }

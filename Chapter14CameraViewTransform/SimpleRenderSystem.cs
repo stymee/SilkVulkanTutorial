@@ -1,7 +1,7 @@
 ﻿
 namespace Chapter14CameraViewTransform;
 
-class SimpleRenderSystem
+class SimpleRenderSystem : IDisposable
 {
 	private readonly Vk vk = null!;
 	private readonly LveDevice device = null!;
@@ -89,9 +89,15 @@ class SimpleRenderSystem
         }
     }
 
-
+    public unsafe void Dispose()
+    {
+        pipeline.Dispose();
+        vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
+        GC.SuppressFinalize(this);
+    }
 
 }
+
 
 
 public struct SimplePushConstantData
