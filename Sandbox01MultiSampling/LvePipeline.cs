@@ -10,7 +10,6 @@ public class LvePipeline : IDisposable
 
     private ShaderModule vertShaderModule;
     private ShaderModule fragShaderModule;
-    private bool disposedValue;
 
     public LvePipeline(Vk vk, LveDevice device, string vertPath, string fragPath, PipelineConfigInfo configInfo)
     {
@@ -99,9 +98,9 @@ public class LvePipeline : IDisposable
                 PDepthStencilState = &configInfo.DepthStencilInfo,
                 PDynamicState = (PipelineDynamicStateCreateInfo*)Unsafe.AsPointer(ref dynamic_state),
 
-                Layout = configInfo.PipelineLayout, 
-                RenderPass = configInfo.RenderPass,  
-                Subpass = configInfo.Subpass,       
+                Layout = configInfo.PipelineLayout,
+                RenderPass = configInfo.RenderPass,
+                Subpass = configInfo.Subpass,
 
                 BasePipelineIndex = -1,
                 BasePipelineHandle = default
@@ -173,7 +172,7 @@ public class LvePipeline : IDisposable
     public unsafe static PipelineConfigInfo GetDefaultPipelineConfigInfo()
     {
         var configInfo = new PipelineConfigInfo();
-        
+
         configInfo.InputAssemblyInfo.SType = StructureType.PipelineInputAssemblyStateCreateInfo;
         configInfo.InputAssemblyInfo.Topology = PrimitiveTopology.TriangleList;
         configInfo.InputAssemblyInfo.PrimitiveRestartEnable = Vk.False;
@@ -272,7 +271,7 @@ public class LvePipeline : IDisposable
         //    DynamicStateInfo = dynamicState,
         //};
     }
-    
+
     public static void EnableAlphaBlending(ref PipelineConfigInfo configInfo)
     {
         configInfo.ColorBlendAttachment.BlendEnable = Vk.True;
@@ -291,36 +290,15 @@ public class LvePipeline : IDisposable
     }
 
 
-    #region Dispose
-    protected virtual void Dispose(bool disposing)
+        public unsafe void Dispose()
     {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
+        vk.DestroyShaderModule(device.VkDevice, vertShaderModule, null);
+        vk.DestroyShaderModule(device.VkDevice, fragShaderModule, null);
+        vk.DestroyPipeline(device.VkDevice, graphicsPipeline, null);
 
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            disposedValue = true;
-        }
-    }
-
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~LvePipeline()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
-    #endregion
+
 }
 
 public struct PipelineConfigInfo
@@ -348,20 +326,20 @@ public struct PipelineConfigInfo
 
     public PipelineConfigInfo()
     {
-        Subpass = 0;    
+        Subpass = 0;
         BindingDescriptions = Array.Empty<VertexInputBindingDescription>();
         AttributeDescriptions = Array.Empty<VertexInputAttributeDescription>();
 
 
-    //PipelineDynamicStateCreateInfo dynamicState = new()
-    //{
-    //unsafe
-    //{
-    //    Span<DynamicState> dynamic_states = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
-    //    DynamicStateEnables = dynamic_states.ToArray();
-    //    DynamicStateInfo.PDynamicStates = (DynamicState*)Unsafe.AsPointer(ref DynamicStateEnables[0]);
-    //}
+        //PipelineDynamicStateCreateInfo dynamicState = new()
+        //{
+        //unsafe
+        //{
+        //    Span<DynamicState> dynamic_states = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
+        //    DynamicStateEnables = dynamic_states.ToArray();
+        //    DynamicStateInfo.PDynamicStates = (DynamicState*)Unsafe.AsPointer(ref DynamicStateEnables[0]);
+        //}
 
-    //DynamicStateEnables = Array.Empty<DynamicState>();
-}
+        //DynamicStateEnables = Array.Empty<DynamicState>();
+    }
 }

@@ -1,8 +1,6 @@
-﻿using Silk.NET.Vulkan;
+﻿namespace Sandbox01MultiSampling;
 
-namespace Sandbox01MultiSampling;
-
-public unsafe class LveDevice
+public unsafe class LveDevice : IDisposable
 {
     private readonly Vk vk = null!;
     private readonly IView window;
@@ -719,6 +717,11 @@ public unsafe class LveDevice
 
         throw new Exception("failed to find suitable memory type!");
     }
-
+    public unsafe void Dispose()
+    {
+        vk.DestroyCommandPool(device, commandPool, null);
+        vk.DestroyDevice(device, null);
+        GC.SuppressFinalize(this);
+    }
 
 }
