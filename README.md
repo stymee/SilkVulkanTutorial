@@ -5,12 +5,15 @@ https://www.youtube.com/watch?v=GIFfxnux9mo
 - Based on the excellent Youtube tutorial by Brendan Galea - Vulkan Game Engine Tutorial (C++)
 	- https://www.youtube.com/playlist?list=PL8327DO66nu9qYVKLDmdLW_84-yE4auCR
 
-- Credit also to C# Silk.NET version of the OG Vulkan C++ Tutorial
+- Credit also to C# Silk.NET version of the OG Vulkan C++ Tutorial by Daniel Keenan
 	- https://github.com/dfkeenan/SilkVulkanTutorial
 	- https://vulkan-tutorial.com/
 
-- And Melino for the ImGui Vulkan example in the main Silk.NET repo
+- And Mellinoe for the ImGui Vulkan example in the main Silk.NET repo
 	- https://github.com/dotnet/Silk.NET/tree/main/src/Lab/Experiments/ImGuiVulkan
+
+- And the entire Silk.NET team and discord 
+	
 
 ## Build requirements
 
