@@ -1,12 +1,12 @@
-﻿namespace Sandbox02ImGui;
+﻿
+namespace Sandbox02ImGui;
 
 public partial class FirstApp : IDisposable
 {
     // set to true to force FIFO swapping
     private const bool USE_FIFO = false;
     
-
-    // Window stuff
+        // Window stuff
     private IView window = null!;
     private int width = 1800;
     private int height = 1200;
@@ -102,7 +102,6 @@ public partial class FirstApp : IDisposable
         }
         log.d("run", "initialized ubo buffers");
 
-
         globalSetLayout = new LveDescriptorSetLayout.Builder(vk, device)
             .AddBinding(0, DescriptorType.UniformBuffer, ShaderStageFlags.AllGraphics)
             .Build();
@@ -132,7 +131,6 @@ public partial class FirstApp : IDisposable
             lveRenderer.GetSwapChainRenderPass(),
             globalSetLayout.GetDescriptorSetLayout()
             );
-
         log.d("run", "got render systems");
 
 
@@ -149,7 +147,6 @@ public partial class FirstApp : IDisposable
         FirstAppGuiInit();
 
         MainLoop();
-        CleanUp();
     }
 
     private void onKeyPressed(Key key)
@@ -224,11 +221,6 @@ public partial class FirstApp : IDisposable
         window.Run();
 
         vk.DeviceWaitIdle(device.VkDevice);
-    }
-
-    private void CleanUp()
-    {
-        window.Dispose();
     }
 
     private void initWindow()
@@ -319,47 +311,15 @@ public partial class FirstApp : IDisposable
 
     public unsafe void Dispose()
     {
+        window.Dispose();
+        lveRenderer.Dispose();
         simpleRenderSystem.Dispose();
         pointLightRenderSystem.Dispose();
         imGuiController.Dispose();
-        lveRenderer.Dispose();
         device.Dispose();
-        window.Dispose();
 
         GC.SuppressFinalize(this);
     }
-
-    //protected unsafe virtual void Dispose(bool disposing)
-    //{
-    //    if (!disposedValue)
-    //    {
-    //        if (disposing)
-    //        {
-    //            window.Dispose();
-    //            // TODO: dispose managed state (managed objects)
-    //        }
-
-    //        // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-    //        // TODO: set large fields to null
-    //        disposedValue = true;
-    //    }
-    //}
-
-    //// // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    //~FirstApp()
-    //{
-    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //    Dispose(disposing: false);
-    //}
-
-    //public void Dispose()
-    //{
-    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //    Dispose(disposing: true);
-    //    GC.SuppressFinalize(this);
-    //}
-
-
 }
 
 

@@ -5,7 +5,6 @@ public unsafe class LveDescriptorSetLayout : IDisposable
 {
     private readonly Vk vk = null!;
     private readonly LveDevice device = null!;
-    //private bool disposedValue;
 
     private DescriptorSetLayout descriptorSetLayout;
     public DescriptorSetLayout GetDescriptorSetLayout() => descriptorSetLayout;
@@ -75,6 +74,7 @@ public unsafe class LveDescriptorSetLayout : IDisposable
             return this;
         }
 
+        // might use for textures later?
         public unsafe Builder AddBinding(uint binding, DescriptorType descriptorType, ShaderStageFlags stageFlags, Sampler sampler, uint count = 1)
         {
             //Debug.Assert(bindings.Count(binding) == 0 && "Binding already in use");
@@ -102,39 +102,9 @@ public unsafe class LveDescriptorSetLayout : IDisposable
 
     }
 
-    public void Dispose()
+    public unsafe void Dispose()
     {
         vk.DestroyDescriptorSetLayout(device.VkDevice, descriptorSetLayout, null);
+        GC.SuppressFinalize(this);
     }
-
-
-    //protected virtual void Dispose(bool disposing)
-    //{
-    //    if (!disposedValue)
-    //    {
-    //        if (disposing)
-    //        {
-    //            // TODO: dispose managed state (managed objects)
-    //        }
-
-    //        // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-    //        // TODO: set large fields to null
-    //        vk.DestroyDescriptorSetLayout(device.VkDevice, descriptorSetLayout, null);
-    //        disposedValue = true;
-    //    }
-    //}
-
-    //// // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    //~LveDescriptorSetLayout()
-    //{
-    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //    Dispose(disposing: false);
-    //}
-
-    //public void Dispose()
-    //{
-    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //    Dispose(disposing: true);
-    //    GC.SuppressFinalize(this);
-    //}
 }
