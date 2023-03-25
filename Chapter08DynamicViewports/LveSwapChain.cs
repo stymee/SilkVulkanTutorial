@@ -3,8 +3,6 @@ namespace Chapter08DynamicViewports;
 
 public class LveSwapChain : IDisposable
 {
-    private bool disposedValue;
-
     const int MAX_FRAMES_IN_FLIGHT = 2;
 
     private readonly Vk vk = null!;
@@ -30,9 +28,6 @@ public class LveSwapChain : IDisposable
 
     private RenderPass renderPass;
     
-    // save this for later
-    //private SampleCountFlags msaaSamples = SampleCountFlags.Count1Bit;
-
     private Image[] depthImages = null!;
     private DeviceMemory[] depthImageMemorys = null!;
     private ImageView[] depthImageViews = null!;
@@ -89,8 +84,6 @@ public class LveSwapChain : IDisposable
 
     public Result AcquireNextImage(ref uint imageIndex)
     {
-        //var fence = inFlightFences[currentFrame];
-        //vk.WaitForFences(device.VkDevice, 1, in fence, Vk.True, ulong.MaxValue);
         vk.WaitForFences(device.VkDevice, 1, inFlightFences[currentFrame], true, ulong.MaxValue);
 
         Result result = khrSwapChain.AcquireNextImage
@@ -115,8 +108,6 @@ public class LveSwapChain : IDisposable
 
         var waitSemaphores = stackalloc[] { imageAvailableSemaphores[currentFrame] };
         var waitStages = stackalloc[] { PipelineStageFlags.ColorAttachmentOutputBit };
-
-        //var buffer = commandBuffers![imageIndex];
 
         submitInfo = submitInfo with
         {
@@ -225,7 +216,6 @@ public class LveSwapChain : IDisposable
 
         creatInfo.OldSwapchain = oldSwapChain == default ? default : oldSwapChain.VkSwapChain;
 
-        //var res = khrSwapChain.CreateSwapchain(vkDevice, creatInfo, null, out swapChain);
         if (khrSwapChain.CreateSwapchain(vkDevice, creatInfo, null, out swapChain) != Result.Success)
         {
             throw new Exception($"failed to create swap chain!");
@@ -618,36 +608,41 @@ public class LveSwapChain : IDisposable
         }
     }
 
-
-    #region Dispose
-    protected virtual void Dispose(bool disposing)
+    public unsafe void Dispose()
     {
-        if (!disposedValue)
+        foreach (var framebuffer in swapChainFramebuffers)
         {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            disposedValue = true;
+            vk.DestroyFramebuffer(device.VkDevice, framebuffer, null);
         }
-    }
 
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~LveSwapChain()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
+        foreach (var imageView in swapChainImageViews)
+        {
+            vk.DestroyImageView(device.VkDevice, imageView, null);
+        }
+        Array.Clear(swapChainImageViews);
 
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
+
+        for (int i = 0; i < depthImages.Length; i++)
+        {
+            vk.DestroyImageView(device.VkDevice, depthImageViews[i], null);
+            vk.DestroyImage(device.VkDevice, depthImages[i], null);
+            vk.FreeMemory(device.VkDevice, depthImageMemorys[i], null);
+        }
+
+        vk.DestroyRenderPass(device.VkDevice, renderPass, null);
+
+        // cleanup synchronization objects
+        for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            vk.DestroySemaphore(device.VkDevice, renderFinishedSemaphores[i], null);
+            vk.DestroySemaphore(device.VkDevice, imageAvailableSemaphores[i], null);
+            vk.DestroyFence(device.VkDevice, inFlightFences[i], null);
+        }
+
+        khrSwapChain!.DestroySwapchain(device.VkDevice, swapChain, null);
+        swapChain = default;
+
         GC.SuppressFinalize(this);
     }
 
-    #endregion
 }

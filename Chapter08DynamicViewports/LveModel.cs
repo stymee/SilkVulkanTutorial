@@ -1,6 +1,4 @@
 ﻿
-using Silk.NET.Vulkan;
-
 namespace Chapter08DynamicViewports;
 
 public struct Vertex

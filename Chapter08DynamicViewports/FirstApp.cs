@@ -1,6 +1,4 @@
-﻿using Silk.NET.Vulkan;
-
-namespace Chapter08DynamicViewports;
+﻿namespace Chapter08DynamicViewports;
 
 public class FirstApp : IDisposable
 {
@@ -24,8 +22,6 @@ public class FirstApp : IDisposable
 
     private PipelineLayout pipelineLayout;
     private CommandBuffer[] commandBuffers = null!;
-
-    private bool disposedValue;
 
     public FirstApp()
     {
@@ -89,7 +85,7 @@ public class FirstApp : IDisposable
 
     private void resize(Vector2D<int> newsize)
     {
-
+        // don't actually need this yet, using the check in drawFrame to flag a resize and recreateSwapChain...
     }
 
     private void MainLoop()
@@ -165,6 +161,8 @@ public class FirstApp : IDisposable
         }
         else
         {
+            // I think the dispose commands below are the correct place for this, not sure if I should be expecting them to be called automatically?
+            cleanupSwapChain();
             swapChain = new LveSwapChain(vk, device, GetWindowExtents(), swapChain);
             if (swapChain.GetFrameBufferCount() != commandBuffers.Length)
             {
@@ -175,6 +173,13 @@ public class FirstApp : IDisposable
 
 
         createPipeline();
+    }
+
+    public unsafe void cleanupSwapChain()
+    {
+        vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
+        pipeline.Dispose();
+        swapChain.Dispose();
     }
 
 
@@ -331,35 +336,49 @@ public class FirstApp : IDisposable
         }
     }
 
-    protected unsafe virtual void Dispose(bool disposing)
+
+    public unsafe void Dispose()
     {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
+        window.Dispose();
+        pipeline.Dispose();
+        swapChain.Dispose();
+        device.Dispose();
+        vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
 
-            window.Dispose();
-            vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
-
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            disposedValue = true;
-        }
-    }
-
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~FirstApp()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
         GC.SuppressFinalize(this);
+
     }
+
+
+    //protected unsafe virtual void Dispose(bool disposing)
+    //{
+    //    if (!disposedValue)
+    //    {
+    //        if (disposing)
+    //        {
+    //            // TODO: dispose managed state (managed objects)
+    //        }
+
+
+    //        // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+    //        // TODO: set large fields to null
+    //        window.Dispose();
+    //        vk.DestroyPipelineLayout(device.VkDevice, pipelineLayout, null);
+    //        disposedValue = true;
+    //    }
+    //}
+
+    //// // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    //~FirstApp()
+    //{
+    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //    Dispose(disposing: false);
+    //}
+
+    //public void Dispose()
+    //{
+    //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //    Dispose(disposing: true);
+    //    GC.SuppressFinalize(this);
+    //}
 }
