@@ -5,12 +5,12 @@ VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Assets", "Assets", "{4E629480-B2F1-4C76-9447-753DDCE4D081}"
 	ProjectSection(SolutionItems) = preProject
-		Assets\colored_cube.obj = Assets\colored_cube.obj
-		Assets\cube.obj = Assets\cube.obj
-		Assets\flat_vase.obj = Assets\flat_vase.obj
-		Assets\quad.obj = Assets\quad.obj
-		Assets\smooth_vase.obj = Assets\smooth_vase.obj
-		Assets\viking_room.obj = Assets\viking_room.obj
+		..\Assets\colored_cube.obj = ..\Assets\colored_cube.obj
+		..\Assets\cube.obj = ..\Assets\cube.obj
+		..\Assets\flat_vase.obj = ..\Assets\flat_vase.obj
+		..\Assets\quad.obj = ..\Assets\quad.obj
+		..\Assets\smooth_vase.obj = ..\Assets\smooth_vase.obj
+		..\Assets\viking_room.obj = ..\Assets\viking_room.obj
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TutorialChapters", "TutorialChapters", "{CF414F33-FAD4-4B63-AA34-5150ED294742}"
@@ -76,6 +76,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sandbox01MultiSampling", "Sandbox01MultiSampling\Sandbox01MultiSampling.csproj", "{2ACE318F-F0F9-4459-8B85-9DC281132FB0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sandbox02ImGui", "Sandbox02ImGui\Sandbox02ImGui.csproj", "{6FEBB0AD-AC8E-49BB-A798-B843F89F7289}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{5F328B72-B838-406C-9522-176FF7564037}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
