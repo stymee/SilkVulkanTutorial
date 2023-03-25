@@ -15,6 +15,15 @@ https://www.youtube.com/watch?v=GIFfxnux9mo
 
 - And the entire Silk.NET team and discord 
 
+
+
+## Mouse Controls (starting in Chapter 15ish)
+- Scroll to zoom
+- Middle click to pan
+- Middle + Right click to rotate (kinda like Catia)
+
+
+
 ## TO DO:
 - Docs:
 	- Add some notes for each chapter describing where I deviated from the C++ (and maybe why)
