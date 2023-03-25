@@ -1,6 +1,6 @@
 ﻿namespace Chapter19zNoCoherentAomSizeFix;
 
-public class LveModel
+public class LveModel : IDisposable
 {
     private readonly Vk vk = null!;
     private readonly LveDevice device = null!;

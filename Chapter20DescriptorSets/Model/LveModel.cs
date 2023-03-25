@@ -1,6 +1,6 @@
 ﻿namespace Chapter20DescriptorSets;
 
-public class LveModel
+public class LveModel : IDisposable
 {
     private readonly Vk vk = null!;
     private readonly LveDevice device = null!;
@@ -97,6 +97,12 @@ public class LveModel
         {
             vk.CmdDraw(commandBuffer, vertexCount, 1, 0, 0);
         }
+    }
+    public unsafe void Dispose()
+    {
+        vertexBuffer.Dispose();
+        indexBuffer.Dispose();
+        GC.SuppressFinalize(this);
     }
 
 
