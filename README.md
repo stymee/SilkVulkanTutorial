@@ -32,7 +32,18 @@ https://www.youtube.com/watch?v=GIFfxnux9mo
 
 ## Build requirements
 
-The projects require the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to build/run. The SDK provides the Vulkan validation layers as well as the command line tools to compile the shaders. You may have to point the csproj to your Vulkan SDK path (I couldn't get it to work with an environment variable)
+The projects require the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to build/run. The SDK provides the Vulkan validation layers as well as the command line tools to compile the shaders. 
+
+You will have to update the path to the  have to point the folder where glslc.exe is found 
+
+```xml
+	<PropertyGroup>
+		<VulkanBinPath>C:\VulkanSDK\1.3.239.0\Bin</VulkanBinPath>
+	</PropertyGroup>
+```
+![screenshot of vulkan path](https://github.com/stymee/SilkVulkanTutorial/blob/master/Docs/screenshot3.png?raw=true)
+
+** I couldn't get it to work with an environment variable, and I'm sure there's a better way to handle this globally
 
 
 ## Each chapter was re-coded in C# (.NET 7)
