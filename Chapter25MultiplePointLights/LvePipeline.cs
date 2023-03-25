@@ -10,7 +10,7 @@ public class LvePipeline : IDisposable
 
     private ShaderModule vertShaderModule;
     private ShaderModule fragShaderModule;
-    private bool disposedValue;
+
 
     public LvePipeline(Vk vk, LveDevice device, string vertPath, string fragPath, PipelineConfigInfo configInfo)
     {
@@ -151,12 +151,11 @@ public class LvePipeline : IDisposable
 
     private static byte[] getShaderBytes(string filename)
     {
+        var assembly = Assembly.GetExecutingAssembly();
         //foreach (var item in assembly.GetManifestResourceNames())
         //{
         //    Console.WriteLine($"{item}");
         //}
-        //var resourceName = $"Chapter05SwapChain.{filename.Replace('/', '.')}";
-        var assembly = Assembly.GetExecutingAssembly();
         var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(s => s.EndsWith(filename));
         if (resourceName is null) throw new ApplicationException($"*** No shader file found with name {filename}\n*** Check that resourceName and try again!  Did you forget to set glsl file to Embedded Resource/Do Not Copy?");
 
@@ -275,37 +274,15 @@ public class LvePipeline : IDisposable
         //};
     }
 
-
-    #region Dispose
-    protected virtual void Dispose(bool disposing)
+    public unsafe void Dispose()
     {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
+        vk.DestroyShaderModule(device.VkDevice, vertShaderModule, null);
+        vk.DestroyShaderModule(device.VkDevice, fragShaderModule, null);
+        vk.DestroyPipeline(device.VkDevice, graphicsPipeline, null);
 
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            disposedValue = true;
-        }
-    }
-
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~LvePipeline()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
-    #endregion
+
 }
 
 public struct PipelineConfigInfo
