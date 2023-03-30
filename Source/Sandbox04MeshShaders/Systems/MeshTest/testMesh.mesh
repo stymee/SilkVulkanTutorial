@@ -1,0 +1,92 @@
+/*
+ * Vulkan Example - Using mesh shaders
+ *
+ * Copyright (C) 2022 by Sascha Willems - www.saschawillems.de
+ *
+ * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+ */
+
+#version 460
+#extension GL_EXT_mesh_shader : require
+
+layout (binding = 0) uniform UBO 
+{
+	mat4 projection;
+	mat4 model;
+	mat4 view;
+} ubo;
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(triangles, max_vertices = 3, max_primitives = 1) out;
+
+layout(location = 0) out VertexOutput
+{
+	vec4 color;
+} vertexOutput[];
+
+const vec4[3] positions = {
+	vec4( 0.0, -1.0, 0.0, 1.0),
+	vec4(-1.0,  1.0, 0.0, 1.0),
+	vec4( 1.0,  1.0, 0.0, 1.0)
+};
+
+const vec4[3] colors = {
+	vec4(0.0, 1.0, 0.0, 1.0),
+	vec4(0.0, 0.0, 1.0, 1.0),
+	vec4(1.0, 0.0, 0.0, 1.0)
+};
+
+void main()
+{
+	uint iid = gl_LocalInvocationID.x;
+
+	vec4 offset = vec4(0.0, 0.0, gl_GlobalInvocationID.x, 0.0);
+
+	SetMeshOutputsEXT(3, 1);
+	mat4 mvp = ubo.projection * ubo.view * ubo.model;
+	gl_MeshVerticesEXT[0].gl_Position = mvp * (positions[0] + offset);
+	gl_MeshVerticesEXT[1].gl_Position = mvp * (positions[1] + offset);
+	gl_MeshVerticesEXT[2].gl_Position = mvp * (positions[2] + offset);
+	vertexOutput[0].color = colors[0];
+	vertexOutput[1].color = colors[1];
+	vertexOutput[2].color = colors[2];
+	gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationIndex] =  uvec3(0, 1, 2);
+}
+
+
+//layout(location = 0) in vec4 start;
+//layout(location = 1) in vec4 stop;
+//layout(location = 2) in vec4 color;
+//
+//layout(location = 0) out vec3 fragColor;
+//
+//
+//layout(set = 0, binding = 0) uniform UboGlobal
+//{
+//	mat4 projection;
+//	mat4 view;
+//	vec4 front;
+//	vec4 ambientColor;
+//	vec4 lightDirection;
+//	vec2 mouse2d;
+//	float viewScale;
+//	int rawIndex;
+//	float aspect;
+//	float padding1;
+//	float padding2;
+//	float padding3;
+//} ubo;
+//
+//layout(push_constant) uniform Push 
+//{
+//	mat4 modelMatrix;
+//} push;
+//
+//
+//void main() {
+//	vec4 positionWorld = push.modelMatrix * vec4(start.xyz, 1.0);
+//	gl_Position = ubo.projection * ubo.view * positionWorld;
+//	fragColor = color.xyz;
+//}
+//
+

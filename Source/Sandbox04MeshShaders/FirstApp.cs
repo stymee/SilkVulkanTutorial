@@ -25,11 +25,13 @@ public partial class FirstApp : IDisposable
     private LveDescriptorPool globalPool = null!;
 
     private Dictionary<uint, LveGameObject> gameObjects = new();
+    private Dictionary<uint, LveMeshObject> meshObjects = new();
 
     private ICamera camera = null!;
 
     private SimpleRenderSystem simpleRenderSystem = null!;
     private PointLightRenderSystem pointLightRenderSystem = null!;
+    private LveMesh2Renderer mesh2Renderer = null!;
 
     private CameraController cameraController = null!;
     private KeyboardController keyboardController = null!;
@@ -131,6 +133,12 @@ public partial class FirstApp : IDisposable
             lveRenderer.GetSwapChainRenderPass(),
             globalSetLayout.GetDescriptorSetLayout()
             );
+
+        mesh2Renderer = new(
+            vk, device,
+            lveRenderer.GetSwapChainRenderPass(),
+            globalSetLayout.GetDescriptorSetLayout()
+            );
         log.d("run", "got render systems");
 
 
@@ -192,7 +200,8 @@ public partial class FirstApp : IDisposable
                 CommandBuffer = commandBuffer.Value,
                 Camera = camera,
                 GlobalDescriptorSet = globalDescriptorSets[frameIndex],
-                GameObjects = gameObjects
+                GameObjects = gameObjects,
+                MeshObjects = meshObjects,
             };
 
             pointLightRenderSystem.Update(frameInfo, ref ubos[frameIndex]);
@@ -204,6 +213,7 @@ public partial class FirstApp : IDisposable
 
             // render solid objects first!
             simpleRenderSystem.Render(frameInfo);
+            mesh2Renderer.Render(frameInfo);
 
             pointLightRenderSystem.Render(frameInfo);
 
@@ -293,6 +303,11 @@ public partial class FirstApp : IDisposable
         floor.Transform.Translation = new(0f, 0.5f, 0f);
         floor.Transform.Scale = new(3f, 1f, 3f);
         gameObjects.Add(floor.Id, floor);
+
+
+        var mesh = new LveMeshObject(vk, device);
+        meshObjects.Add(mesh.Id, mesh);
+
 
 
         var lightColors = new Vector4[]

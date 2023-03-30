@@ -117,6 +117,12 @@ public class LveGameObject
         return new LveGameObject(currentId);
     }
 
+    public static uint GetNextID()
+    {
+        currentId++;
+        return currentId;
+    }
+
     private LveGameObject(uint id)
     {
         this.id = id;

@@ -1,0 +1,16 @@
+/*
+ * Vulkan Example - Using mesh shaders
+ *
+ * Copyright (C) 2022 by Sascha Willems - www.saschawillems.de
+ *
+ * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+ */
+
+#version 460
+#extension GL_EXT_mesh_shader : require
+
+void main()
+{
+	EmitMeshTasksEXT(3, 1, 1);
+}
+

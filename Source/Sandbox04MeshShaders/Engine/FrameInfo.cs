@@ -9,6 +9,7 @@ public struct FrameInfo
     public ICamera Camera;// { get; init; } = null!;
     public DescriptorSet GlobalDescriptorSet;// { get; init; }
     public Dictionary<uint, LveGameObject> GameObjects;
+    public Dictionary<uint, LveMeshObject> MeshObjects;
 }
 
 
