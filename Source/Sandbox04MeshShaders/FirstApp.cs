@@ -280,29 +280,29 @@ public partial class FirstApp : IDisposable
 
     private void loadGameObjects()
     {
-        var flatVase = LveGameObject.CreateGameObject();
-        flatVase.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/flat_vase.obj");
-        flatVase.Transform.Translation = new(-.5f, 0.5f, 0.0f);
-        flatVase.Transform.Scale = new(3.0f, 1.5f, 3.0f);
-        gameObjects.Add(flatVase.Id, flatVase);
+        //var flatVase = LveGameObject.CreateGameObject();
+        //flatVase.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/flat_vase.obj");
+        //flatVase.Transform.Translation = new(-.5f, 0.5f, 0.0f);
+        //flatVase.Transform.Scale = new(3.0f, 1.5f, 3.0f);
+        //gameObjects.Add(flatVase.Id, flatVase);
 
-        var smoothVase = LveGameObject.CreateGameObject();
-        smoothVase.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/smooth_vase.obj");
-        smoothVase.Transform.Translation = new(.5f, 0.5f, 0.0f);
-        smoothVase.Transform.Scale = new(3.0f, 1.5f, 3.0f);
-        gameObjects.Add(smoothVase.Id, smoothVase);
+        //var smoothVase = LveGameObject.CreateGameObject();
+        //smoothVase.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/smooth_vase.obj");
+        //smoothVase.Transform.Translation = new(.5f, 0.5f, 0.0f);
+        //smoothVase.Transform.Scale = new(3.0f, 1.5f, 3.0f);
+        //gameObjects.Add(smoothVase.Id, smoothVase);
 
-        var cube = LveGameObject.CreateGameObject();
-        cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/cube.obj");
-        cube.Transform.Translation = new(-1.25f, .751f, -1.25f);
-        cube.Transform.Scale = new(0.25f);
-        gameObjects.Add(cube.Id, cube);
+        //var cube = LveGameObject.CreateGameObject();
+        //cube.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/cube.obj");
+        //cube.Transform.Translation = new(-1.25f, .751f, -1.25f);
+        //cube.Transform.Scale = new(0.25f);
+        //gameObjects.Add(cube.Id, cube);
 
-        var floor = LveGameObject.CreateGameObject();
-        floor.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/quad.obj");
-        floor.Transform.Translation = new(0f, 0.5f, 0f);
-        floor.Transform.Scale = new(3f, 1f, 3f);
-        gameObjects.Add(floor.Id, floor);
+        //var floor = LveGameObject.CreateGameObject();
+        //floor.Model = ModelUtils.LoadModelFromFile(vk, device, "Assets/quad.obj");
+        //floor.Transform.Translation = new(0f, 0.5f, 0f);
+        //floor.Transform.Scale = new(3f, 1f, 3f);
+        //gameObjects.Add(floor.Id, floor);
 
 
         var mesh = new LveMeshObject(vk, device);

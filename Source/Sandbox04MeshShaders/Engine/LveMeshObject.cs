@@ -28,7 +28,8 @@ public class LveMeshObject : IDisposable
         Scale = Vector3.One;
 
         Id = LveGameObject.GetNextID();
-        extMeshShader = new ExtMeshShader(vk.Context);
+        vk.TryGetDeviceExtension(device.Instance, device.VkDevice, out extMeshShader);
+
     }
 
 
