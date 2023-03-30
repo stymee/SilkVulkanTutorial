@@ -9,7 +9,7 @@ public sealed class FileUtil
         foreach (var item in assembly.GetManifestResourceNames())
         {
             Console.Write(".");
-            //Console.WriteLine($"{item}");
+            Console.WriteLine($"{item}");
         }
         var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(s => s.EndsWith(filename));
         if (resourceName is null) throw new ApplicationException($"*** In {renderSystemName}, No shader file found with name {filename}\n*** Check that resourceName and try again!  Did you forget to set glsl file to Embedded Resource/Do Not Copy?");
