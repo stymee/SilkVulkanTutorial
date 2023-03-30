@@ -31,7 +31,7 @@ public partial class FirstApp : IDisposable
 
     private SimpleRenderSystem simpleRenderSystem = null!;
     private PointLightRenderSystem pointLightRenderSystem = null!;
-    private LveMesh2Renderer mesh2Renderer = null!;
+    private Mesh2Renderer mesh2Renderer = null!;
 
     private CameraController cameraController = null!;
     private KeyboardController keyboardController = null!;
@@ -105,7 +105,7 @@ public partial class FirstApp : IDisposable
         log.d("run", "initialized ubo buffers");
 
         globalSetLayout = new LveDescriptorSetLayout.Builder(vk, device)
-            .AddBinding(0, DescriptorType.UniformBuffer, ShaderStageFlags.AllGraphics)
+            .AddBinding(0, DescriptorType.UniformBuffer, ShaderStageFlags.AllGraphics | ShaderStageFlags.MeshBitExt | ShaderStageFlags.TaskBitExt | ShaderStageFlags.FragmentBit)
             .Build();
 
         globalDescriptorSets = new DescriptorSet[frames];

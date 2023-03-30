@@ -6,7 +6,7 @@ class PointLightRenderSystem : IDisposable
     private readonly Vk vk = null!;
     private readonly LveDevice device = null!;
 
-    private LvePipeline pipeline = null!;
+    private LveStdPipeline pipeline = null!;
     private PipelineLayout pipelineLayout;
 
     private Dictionary<uint, float> sortedZ = new();
@@ -60,10 +60,10 @@ class PointLightRenderSystem : IDisposable
         Debug.Assert(pipelineLayout.Handle != 0, "Cannot create pipeline before pipeline layout");
 
         var pipelineConfig = new PipelineConfigInfo();
-        LvePipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
-        LvePipeline.EnableAlphaBlending(ref pipelineConfig);
+        LveStdPipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
+        LveStdPipeline.EnableAlphaBlending(ref pipelineConfig);
         
-        LvePipeline.EnableMultiSampling(ref pipelineConfig, device.GetMsaaSamples());
+        LveStdPipeline.EnableMultiSampling(ref pipelineConfig, device.GetMsaaSamples());
         
         pipelineConfig.BindingDescriptions = Array.Empty<VertexInputBindingDescription>();
         pipelineConfig.AttributeDescriptions = Array.Empty<VertexInputAttributeDescription>();
@@ -71,7 +71,7 @@ class PointLightRenderSystem : IDisposable
 
         pipelineConfig.RenderPass = renderPass;
         pipelineConfig.PipelineLayout = pipelineLayout;
-        pipeline = new LvePipeline(
+        pipeline = new LveStdPipeline(
             vk, device,
             "pointLight.vert.spv",
             "pointLight.frag.spv",

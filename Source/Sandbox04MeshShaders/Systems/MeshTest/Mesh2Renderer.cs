@@ -1,15 +1,15 @@
 ﻿
 namespace Sandbox04MeshShaders;
 
-class LveMesh2Renderer : IDisposable
+class Mesh2Renderer : IDisposable
 {
 	private readonly Vk vk = null!;
 	private readonly LveDevice device = null!;
 
-    private LvePipeline pipeline = null!;
+    private LveMeshPipeline pipeline = null!;
     private PipelineLayout pipelineLayout;
 
-    public LveMesh2Renderer(Vk vk, LveDevice device, RenderPass renderPass, DescriptorSetLayout globalSetLayout)
+    public Mesh2Renderer(Vk vk, LveDevice device, RenderPass renderPass, DescriptorSetLayout globalSetLayout)
 	{
         this.vk = vk;
 		this.device = device;
@@ -58,9 +58,9 @@ class LveMesh2Renderer : IDisposable
         Debug.Assert(pipelineLayout.Handle != 0, "Cannot create pipeline before pipeline layout");
 
         var pipelineConfig = new PipelineConfigInfo();
-        LvePipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
-        LvePipeline.EnableMultiSampling(ref pipelineConfig, device.GetMsaaSamples());
-        //LvePipeline.SetDrawPoints(ref pipelineConfig);
+        LveMeshPipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
+        LveMeshPipeline.EnableMultiSampling(ref pipelineConfig, device.GetMsaaSamples());
+        //LveMeshPipeline.SetDrawPoints(ref pipelineConfig);
         pipelineConfig.InputAssemblyInfo.Topology = PrimitiveTopology.TriangleStrip;
         //pipelineConfig.BindingDescriptions = LineSegMeshVertex.GetBindingDescriptions();
         //pipelineConfig.AttributeDescriptions = LineSegMeshVertex.GetAttributeDescriptions();
@@ -69,7 +69,7 @@ class LveMesh2Renderer : IDisposable
 
         pipelineConfig.RenderPass = renderPass;
         pipelineConfig.PipelineLayout = pipelineLayout;
-        pipeline = new LvePipeline(
+        pipeline = new LveMeshPipeline(
             vk,
             device,
             "testMesh.task.spv",

@@ -6,7 +6,7 @@ class SimpleRenderSystem : IDisposable
 	private readonly Vk vk = null!;
 	private readonly LveDevice device = null!;
 
-    private LvePipeline pipeline = null!;
+    private LveStdPipeline pipeline = null!;
     private PipelineLayout pipelineLayout;
 
     public SimpleRenderSystem(Vk vk, LveDevice device, RenderPass renderPass, DescriptorSetLayout globalSetLayout)
@@ -52,13 +52,13 @@ class SimpleRenderSystem : IDisposable
         Debug.Assert(pipelineLayout.Handle != 0, "Cannot create pipeline before pipeline layout");
 
         var pipelineConfig = new PipelineConfigInfo();
-        LvePipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
+        LveStdPipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
 
-        LvePipeline.EnableMultiSampling(ref pipelineConfig, device.GetMsaaSamples());
+        LveStdPipeline.EnableMultiSampling(ref pipelineConfig, device.GetMsaaSamples());
 
         pipelineConfig.RenderPass = renderPass;
         pipelineConfig.PipelineLayout = pipelineLayout;
-        pipeline = new LvePipeline(
+        pipeline = new LveStdPipeline(
             vk, device,
             "simpleShader.vert.spv", 
             "simpleShader.frag.spv",

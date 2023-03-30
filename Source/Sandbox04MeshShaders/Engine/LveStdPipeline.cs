@@ -6,7 +6,7 @@ public enum GraphicsPipelineTypes
     Mesh
 }
 
-public class LvePipeline : IDisposable
+public class LveStdPipeline : IDisposable
 {
     private readonly Vk vk = null!;
     private readonly LveDevice device = null!;
@@ -25,20 +25,15 @@ public class LvePipeline : IDisposable
     // Constructors
 
     // Std Vertex/Fragment Pipeline
-    public LvePipeline(Vk vk, LveDevice device, string vertPath, string fragPath, PipelineConfigInfo configInfo, string renderSystemName = "unknown")
+    public LveStdPipeline(Vk vk, LveDevice device, string vertPath, string fragPath, PipelineConfigInfo configInfo, string renderSystemName = "unknown")
     {
         this.vk = vk;
         this.device = device;
+        pipelineType = GraphicsPipelineTypes.Std;
         createGraphicsPipelineStd(vertPath, fragPath, configInfo, renderSystemName);
     }
 
     // Mesh Task/MeshFragment Pipeline
-    public LvePipeline(Vk vk, LveDevice device, string taskPath, string meshPath, string fragPath, PipelineConfigInfo configInfo, string renderSystemName = "unknown")
-    {
-        this.vk = vk;
-        this.device = device;
-        createGraphicsPipelineMesh(taskPath, meshPath, fragPath, configInfo, renderSystemName);
-    }
     //
 
     public void Bind(CommandBuffer commandBuffer)

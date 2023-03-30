@@ -4,7 +4,6 @@ var app = new FirstApp();
 
 try
 {
-	throw new Exception("Nothing to see here yet, just a placeholder!");
 	app.Run();
 
 }
