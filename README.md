@@ -13,7 +13,18 @@ https://www.youtube.com/watch?v=GIFfxnux9mo
 - And Mellinoe for the ImGui Vulkan example in the main Silk.NET repo
 	- https://github.com/dotnet/Silk.NET/tree/main/src/Lab/Experiments/ImGuiVulkan
 
-- And the entire Silk.NET team and discord 
+- **And the entire Silk.NET team and discord, y'all are awesome**
+
+- Here are some other resources that helped me tremendously
+	- Sascha Willems and his giant collection of examples (C++)
+		- https://github.com/SaschaWillems/Vulkan
+	- Cem Yuksel's Interactive Computer Graphics course
+		- https://www.youtube.com/playlist?list=PLplnkTzzqsZS3R5DjmCQsqupu43oS9CFN
+	- Johannes Unterguggenberger's Lecture Series
+		- https://www.youtube.com/playlist?list=PLmIqTlJ6KsE1Jx5HV4sd2jOe3V1KMHHgn
+	- The Cherno
+		- https://www.youtube.com/@TheCherno
+
 
 
 
@@ -41,9 +52,13 @@ https://www.youtube.com/watch?v=GIFfxnux9mo
 
 ## Build requirements !!! VERY IMPORTANT !!!
 
-The projects require the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to build/run. The SDK provides the Vulkan validation layers as well as the command line tools to compile the shaders. 
+- Sandbox03MeshShaders is using the Experimental build of Silk.NET 2.17 (as of 2023-03-30) 
+	- get it here: https://dev.azure.com/UltzOS/Silk.NET/_artifacts/feed/Experimental
+	- click "Connet to Feed", "Visual Studio", and copy the Source into a new nuget package source
 
-You will have to update your csproj files to point the folder where glslc.exe is found (this is the glsl compiler)
+- The projects require the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to build/run. The SDK provides the Vulkan validation layers as well as the command line tools to compile the shaders. 
+
+- You will have to update your csproj files to point the folder where glslc.exe is found (this is the glsl compiler)
 
 ```xml
 	<PropertyGroup>
@@ -56,5 +71,10 @@ You will have to update your csproj files to point the folder where glslc.exe is
 
 
 ## Each chapter was re-coded in C# (.NET 7)
-## Two bonus projects that include MultiSampling and ImGui integration
+- Bonus projects:
+	- Sandbox01Multisampling
+	- Sandbox02ImGui
+	- Sandbox03MeshShaders
+	- Sandbox04ComputeShaders (coming soon)
+
 ![screenshot of solution](https://github.com/stymee/SilkVulkanTutorial/blob/master/Docs/screenshot2.png?raw=true)
