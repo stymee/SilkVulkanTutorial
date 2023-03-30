@@ -310,6 +310,7 @@ public unsafe class LveDevice : IDisposable
         PhysicalDeviceFeatures2 features2 = new();
         features2.SType = StructureType.PhysicalDeviceFeatures2;
         features2.PNext = &meshShaderFeaturesExt;
+        meshShaderFeaturesExt.PNext = &sync2Features;
         //features2.PNext = &sync2Features;
         //sync2Features.PNext = &meshShaderFeaturesExt;
         //features2.PNext = &deviceFeatures;
@@ -368,35 +369,6 @@ public unsafe class LveDevice : IDisposable
             throw new Exception("failed to create logical device!");
         }
 
-        // test features
-        //PhysicalDeviceFeatures2 checkFeatures2 = new();
-        //checkFeatures2.SType = StructureType.PhysicalDeviceFeatures2;
-        PhysicalDeviceSynchronization2FeaturesKHR checkSync2Features = new()
-        {
-            SType = StructureType.PhysicalDeviceSynchronization2FeaturesKhr,
-        };
-        PhysicalDeviceMeshShaderFeaturesEXT checkMeshShaderFeaturesExt = new()
-        {
-            SType = StructureType.PhysicalDeviceMeshShaderFeaturesExt,
-            MeshShader = Vk.True,
-            TaskShader = Vk.True,
-
-        };
-        //checkSync2Features.PNext = &checkMeshShaderFeaturesExt;
-        
-        PhysicalDeviceFeatures2 chain2 = new()
-        {
-            SType = StructureType.PhysicalDeviceFeatures2,
-            PNext = &checkMeshShaderFeaturesExt
-        };
-
-
-        vk.GetPhysicalDeviceFeatures2(physicalDevice, &chain2);
-        PhysicalDeviceFeatures2[] chainCheck;
-        
-
-        bool samplerAnisotropyEnabled = chain2.Features.SamplerAnisotropy;
-        
         vk.GetDeviceQueue(device, indices.GraphicsFamily!.Value, 0, out graphicsQueue);
         vk.GetDeviceQueue(device, indices.PresentFamily!.Value, 0, out presentQueue);
 
