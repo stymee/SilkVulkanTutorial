@@ -51,10 +51,13 @@ https://www.youtube.com/watch?v=GIFfxnux9mo
 	
 
 ## Build requirements !!! VERY IMPORTANT !!!
-
+<del>
 - Sandbox03MeshShaders is using the Experimental build of Silk.NET 2.17 (as of 2023-03-30) 
 	- get it here: https://dev.azure.com/UltzOS/Silk.NET/_artifacts/feed/Experimental
 	- click "Connet to Feed", "Visual Studio", and copy the Source into a new nuget package source
+</del>
+
+- Silk.NET 2.17 is released, so make sure you're on that version at least.
 
 - The projects require the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to build/run. The SDK provides the Vulkan validation layers as well as the command line tools to compile the shaders. 
 
