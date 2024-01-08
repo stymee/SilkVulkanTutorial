@@ -56,6 +56,7 @@ class Mesh2Renderer : IDisposable
 
         var pipelineConfig = new PipelineConfigInfo();
         LveMeshPipeline.DefaultPipelineConfigInfo(ref pipelineConfig);
+        LveMeshPipeline.EnableAlphaBlending(ref pipelineConfig);
         LveMeshPipeline.EnableMultiSampling(ref pipelineConfig, device.GetMsaaSamples());
         //LveMeshPipeline.SetDrawPoints(ref pipelineConfig);
         pipelineConfig.InputAssemblyInfo.Topology = PrimitiveTopology.TriangleStrip;
